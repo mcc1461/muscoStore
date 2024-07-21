@@ -14,9 +14,9 @@ module.exports = async function () {
 
   /* User */
   const User = require("../models/user");
-  await User.deleteMany(); //. !!! Clear collection.
+  await User.deleteMany(); //: !!! Clear collection.
   await User.create({
-    _id: "65343222b67e9681f937f001",
+    _id: "1111aaaa2222bbbb3333a001",
     username: "admin",
     password: "Musco.777",
     email: "admin@site.com",
@@ -27,7 +27,7 @@ module.exports = async function () {
     isAdmin: true,
   });
   await User.create({
-    _id: "65343222b67e9681f937f002",
+    _id: "1111aaaa2222bbbb3333a002",
     username: "staff",
     password: "Musco.777",
     email: "staff@site.com",
@@ -38,7 +38,7 @@ module.exports = async function () {
     isAdmin: false,
   });
   await User.create({
-    _id: "65343222b67e9681f937f003",
+    _id: "1111aaaa2222bbbb3333a003",
     username: "user",
     password: "MusCo.777",
     email: "user@site.com",
@@ -52,168 +52,341 @@ module.exports = async function () {
   /* Brand */
   const Brand = require("../models/brand");
   await Brand.deleteMany();
+
+  /* ----------------------- shoes ----------------------- */
+
   await Brand.create({
-    _id: "65343222b67e9681f937f104",
+    _id: "1111aaaa2222bbbb3333b001",
     name: "Adidas",
-    image:
-      "https://1000logos.net/wp-content/uploads/2019/06/Adidas-Logo-1991.jpg",
+    image: "https://logowik.com/content/uploads/images/adidas-new-20225326.jpg",
   });
   await Brand.create({
-    _id: "65343222b67e9681f937f105",
+    _id: "1111aaaa2222bbbb3333b002",
     name: "Nike",
     image:
-      "https://i.pinimg.com/736x/33/e6/3d/33e63d5adb0da6b303a83901c8e8463a.jpg",
+      "https://logowik.com/content/uploads/images/nike-swoosh5938.logowik.com.webp",
   });
   await Brand.create({
-    _id: "65343222b67e9681f937f107",
-    name: "Puma",
+    _id: "1111aaaa2222bbbb3333b003",
+    name: "North Face",
+    image: "https://logowik.com/content/uploads/images/the-north-face.jpg",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b004",
+    name: "Skechers",
+    image: "https://logowik.com/content/uploads/images/skechers-shoes8680.jpg",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b005",
+    name: "Salomon",
+    image: "https://logowik.com/content/uploads/images/salomon-group7511.jpg",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b006",
+    name: "Columbia",
     image:
-      "https://staticg.sportskeeda.com/editor/2023/03/bda84-16779522739911-1920.jpg",
+      "https://logowik.com/content/uploads/images/columbia-sportswear7667.logowik.com.webp",
   });
+
+  /* ----------------------- electronics ----------------------- */
+
   await Brand.create({
-    _id: "65343222b67e9681f937f108",
-    name: "Lotto",
-    image: "https://1000logos.net/wp-content/uploads/2021/05/Lotto-logo.png",
-  });
-  await Brand.create({
-    _id: "65343222b67e9681f937f109",
-    name: "Kinetix",
-    image:
-      "https://seeklogo.com/images/K/kinetix-logo-73FB3FD17D-seeklogo.com.png",
-  });
-  await Brand.create({
-    _id: "65343222b67e9681f937f110",
-    name: "Reebok",
-    image:
-      "https://preview.thenewsmarket.com/Previews/RBOK/StillAssets/1920x1080/551064.png",
-  });
-  await Brand.create({
-    _id: "65343222b67e9681f937f122",
+    _id: "1111aaaa2222bbbb3333b007",
     name: "Samsung",
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Samsung_Logo.svg/2560px-Samsung_Logo.svg.png",
+      "https://logowik.com/content/uploads/images/samsung-black-wordmark5578.logowik.com.webp",
   });
   await Brand.create({
-    _id: "65343222b67e9681f937f123",
-    name: "Ülker",
-    image: "https://cdn.worldvectorlogo.com/logos/ulker.svg",
-  });
-  await Brand.create({
-    _id: "65343222b67e9681f937f129",
-    name: "Tommy",
+    _id: "1111aaaa2222bbbb3333b008",
+    name: "Huawei",
     image:
-      "https://i.pinimg.com/736x/d3/09/1a/d3091a1a5350fede679b2c7461b0745b.jpg",
+      "https://logowik.com/content/uploads/images/huawei-vertical-flat6195.logowik.com.webp",
   });
   await Brand.create({
-    _id: "65343222b67e9681f937f130",
+    _id: "1111aaaa2222bbbb3333b009",
     name: "LG",
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/LG_symbol.svg/640px-LG_symbol.svg.png",
+      "https://logowik.com/content/uploads/images/lg-new-20233698.logowik.com.webp",
   });
   await Brand.create({
-    _id: "65343222b67e9681f937f131",
+    _id: "1111aaaa2222bbbb3333b010",
     name: "Apple",
     image:
-      "https://www.tailorbrands.com/wp-content/uploads/2021/01/apple_logo_1988.jpg",
+      "https://logowik.com/content/uploads/images/apple-carbon-neutral3283.logowik.com.webp",
+  });
+
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b011",
+    name: "Dell",
+    image: "https://logowik.com/content/uploads/images/627_dell_logo.jpg",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b012",
+    name: "Asus",
+    image: "https://logowik.com/content/uploads/images/424_asus.jpg",
+  });
+
+  /* ----------------------- clothes ----------------------- */
+
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b013",
+    name: "Tommy",
+    image: "https://logowik.com/content/uploads/images/375_tommy_hilfiger.jpg",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b014",
+    name: "Under Armour",
+    image: "https://logowik.com/content/uploads/images/under-armour.jpg",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b014",
+    name: "Jack Wolfskin",
+    image:
+      "https://logowik.com/content/uploads/images/jack-wolfskin2002.logowik.com.webp",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b015",
+    name: "Koton",
+    image: "https://logowik.com/content/uploads/images/koton9388.jpg",
+  });
+
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b016",
+    name: "Lacoste",
+    image:
+      "https://logowik.com/content/uploads/images/lacoste-crocodile6472.logowik.com.webp",
+  });
+
+  /* ----------------------- home ----------------------- */
+
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b017",
+    name: "Braun",
+    image: "https://logowik.com/content/uploads/images/t_982_braun.jpg",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b018",
+    name: "Philips",
+    image: "https://logowik.com/content/uploads/images/395_philips.jpg",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b019",
+    name: "Bosch",
+    image:
+      "https://logowik.com/content/uploads/images/t_bosch-black8003.logowik.com.webp",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b020",
+    name: "Siemens",
+    image:
+      "https://logowik.com/content/uploads/images/t_siemens-ag7992.logowik.com.webp",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b021",
+    name: "Tefal",
+    image: "https://logowik.com/content/uploads/images/t_410_tefal.jpg",
+  });
+
+  /* ----------------------- beauty ----------------------- */
+
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b022",
+    name: "Davidoff",
+    image:
+      "https://logowik.com/content/uploads/images/davidoff6517.logowik.com.webp",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b023",
+    name: "Hugo Boss",
+    image: "https://logowik.com/content/uploads/images/t_966_hugoboss.jpg",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b024",
+    name: "Bvlgari",
+    image:
+      "https://logowik.com/content/uploads/images/bulgari2696.logowik.com.webp",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b025",
+    name: "Nivea",
+    image: "https://logowik.com/content/uploads/images/t_239_nivea.jpg",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b026",
+    name: "Loreal",
+    image:
+      "https://logowik.com/content/uploads/images/t_loreal2662.logowik.com.webp",
+  });
+
+  /* ----------------------- accessories ----------------------- */
+
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b027",
+    name: "Fossil",
+    image:
+      "hhttps://logowik.com/content/uploads/images/t_siemens-ag7992.logowik.com.webp",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b028",
+    name: "Rayban",
+    image:
+      "https://logowik.com/content/uploads/images/t_ray-ban9478.logowik.com.webp",
+  });
+
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b029",
+    name: "Gucci",
+    image: "https://logowik.com/content/uploads/images/t_493_gucci.jpg",
+  });
+
+  /* ----------------------- Tools ----------------------- */
+
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b030",
+    name: "Stanley",
+    image:
+      "https://logowik.com/content/uploads/images/stanley-hand-tools2014.logowik.com.webp",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b031",
+    name: "Makita",
+    image:
+      "https://logowik.com/content/uploads/images/t_makita5486.logowik.com.webp",
+  });
+  await Brand.create({
+    _id: "1111aaaa2222bbbb3333b032",
+    name: "Metabo",
+    image:
+      "https://logowik.com/content/uploads/images/t_metabo-no-tagline8054.logowik.com.webp",
   });
 
   /* Category */
   const Category = require("../models/category");
   await Category.deleteMany();
   await Category.create({
-    _id: "65343222b67e9681f937f201",
-    name: "Food",
+    _id: "1111aaaa2222bbbb3333c001",
+    name: "Electronics",
   });
   await Category.create({
-    _id: "65343222b67e9681f937f202",
-    name: "Drink",
+    _id: "1111aaaa2222bbbb3333c002",
+    name: "Home Appliances",
   });
   await Category.create({
-    _id: "65343222b67e9681f937f203",
-    name: "Jewelery",
+    _id: "1111aaaa2222bbbb3333c003",
+    name: "Clothes",
   });
   await Category.create({
-    _id: "65343222b67e9681f937f204",
-    name: "Electronic",
+    _id: "1111aaaa2222bbbb3333c004",
+    name: "Shoes",
+  });
+  await Category.create({
+    _id: "1111aaaa2222bbbb3333c005",
+    name: "Beauty",
+  });
+  await Category.create({
+    _id: "1111aaaa2222bbbb3333c006",
+    name: "Tools",
+  });
+  await Category.create({
+    _id: "1111aaaa2222bbbb3333c007",
+    name: "Accessories",
   });
 
   /* Firm */
   const Firm = require("../models/firm");
   await Firm.deleteMany();
   await Firm.create({
-    _id: "65343222b67e9681f937f302",
-    name: "BOYNER",
-    phone: "0212 444 00 54",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Boyner_Logo.jpg/800px-Boyner_Logo.jpg",
-    address:
-      "B01-Z02 Maslak Büyükdere Cad. Uso Center 245/A, 34396 Sarıyer/İstanbul, Türkiye",
+    _id: "1111aaaa2222bbbb3333f001",
+    name: "Boyner",
+    phone: "00902124442222",
+    image: "https://logowik.com/content/uploads/images/t_242_boyner.jpg",
+    address: {
+      city: "Istanbul",
+      country: "Türkiye",
+    },
   });
   await Firm.create({
-    _id: "65343222b67e9681f937f303",
-    name: "FLO",
-    phone: "0212 444 22 23",
-    image:
-      "https://akillifabrikalar.com.tr/wp-content/uploads/2021/11/Floo2.png",
-    address:
-      "Mahmutbey, Taşocağı Yolu Cad. No:24, 34218 Bağcılar/İstanbul, Türkiye",
+    _id: "1111aaaa2222bbbb3333f002",
+    name: "Flo",
+    phone: "00902125150019",
+    image: "https://logowik.com/content/uploads/images/t_flo7262.jpg",
+    address: {
+      city: "Istanbul",
+      country: "Türkiye",
+    },
   });
   await Firm.create({
-    _id: "65343222b67e9681f937f304",
-    name: "HEPSIBURADA",
-    phone: "0212 444 44 33",
-    image: "https://logowik.com/content/uploads/images/hepsiburada1183.jpg",
-    address:
-      "Kuştepe, Kule 5, Mecidiyeköy Yolu Cd. Trump Towers No:12 Kat 18, 34387 Şişli/İstanbul, Türkiye",
+    _id: "1111aaaa2222bbbb3333f003",
+    name: "Hepsiburada",
+    phone: "00902123330001",
+    image: "https://logowik.com/content/uploads/images/t_hepsiburada1183.jpg",
+    address: {
+      city: "Istanbul",
+      country: "Türkiye",
+    },
   });
   await Firm.create({
-    _id: "65343222b67e9681f937f305",
+    _id: "1111aaaa2222bbbb3333f004",
     name: "Trendyol",
-    phone: "0212 444 22 22",
+    phone: "00902124447700",
     image:
-      "https://seeklogo.com/images/T/trendyol-logo-EE0DAED204-seeklogo.com.png",
-    address: "Maslak, Büyükdere Cd. No:237, 34485 Sarıyer/İstanbul, Türkiye",
+      "https://logowik.com/content/uploads/images/t_trendyol6623.logowik.com.webp",
+    address: {
+      city: "Istanbul",
+      country: "Türkiye",
+    },
   });
   await Firm.create({
-    _id: "65343222b67e9681f937f310",
+    _id: "1111aaaa2222bbbb3333f005",
     name: "n11",
-    phone: "0212 444 22 66",
+    phone: "00902124440011",
     image:
-      "https://i.pinimg.com/originals/af/d7/12/afd7126448b385ea3013d41797adde20.png",
-    address:
-      "Mahmutbey, Taşocağı Yolu Cad. No:24, 34218 Bağcılar/İstanbul, Türkiye",
+      "https://logowik.com/content/uploads/images/t_n11com-yeni7175.logowik.com.webp",
+    address: {
+      city: "Istanbul",
+      country: "Türkiye",
+    },
   });
   await Firm.create({
-    _id: "65343222b67e9681f937f315",
-    name: "Morhipo",
-    phone: "0212 444 44 44",
+    _id: "1111aaaa2222bbbb3333f006",
+    name: "Shopify",
+    phone: "0014161234567",
+    image: "https://logowik.com/content/uploads/images/t_803_shopify.jpg",
+    address: {
+      city: "Toronto",
+      country: "Canada",
+    },
+  });
+  await Firm.create({
+    _id: "1111aaaa2222bbbb3333f007",
+    name: "Rakuten",
+    phone: "0081312345678",
+    image: "https://logowik.com/content/uploads/images/t_rakuten6848.jpg",
+    address: {
+      city: "Tokyo",
+      country: "Japan",
+    },
+  });
+  await Firm.create({
+    _id: "1111aaaa2222bbbb3333f008",
+    name: "Alibaba Group",
+    phone: "008621612345678",
+    image: "https://logowik.com/content/uploads/images/t_alibaba-group4891.jpg",
+    address: {
+      city: "Shanghai",
+      country: "China",
+    },
+  });
+  await Firm.create({
+    _id: "1111aaaa2222bbbb3333f009",
+    name: "Kaufhof",
+    phone: "00496912345678",
     image:
-      "https://upload.wikimedia.org/wikipedia/tr/archive/3/32/20181016101908%21Morhipo.png",
-    address:
-      "B01-Z02 Maslak Büyükdere Cad. Uso Center 245/A, 34396 Sarıyer/İstanbul, Türkiye",
-  });
-  await Firm.create({
-    _id: "65343222b67e9681f937f333",
-    name: "ÜLker",
-    phone: "2124445566",
-    image: "https://www.ulker.com.tr/documents/ulker-logo.png",
-    address: "Kısıklı, Ferah Cd. No:1, 34692 Üsküdar/İstanbul, Türkiye",
-  });
-  await Firm.create({
-    _id: "65343222b67e9681f937f334",
-    name: "Eti",
-    phone: "0212 444 00 53",
-    image: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Eti_logo.png",
-    address: "Uğur Mumcu, 2271. Sk. No:15, 34270 Sultangazi/İstanbul, Türkiye",
-  });
-  await Firm.create({
-    _id: "65343222b67e9681f937f335",
-    name: "Çetinkaya",
-    phone: "0212 444 00 55",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRU1Mug9ruTOC1x8LGeNAr-ouWrWm29Z6u91QMU8ZfE&s",
-    address:
-      "B01-Z02 Maslak Büyükdere Cad. Uso Center 245/A, 34396 Sarıyer/İstanbul, Türkiye",
+      "https://logowik.com/content/uploads/images/t_kaufhof5903.logowik.com.webp",
+    address: {
+      city: "Frankfurt",
+      country: "Germany",
+    },
   });
 
   /* Product */
@@ -248,7 +421,7 @@ module.exports = async function () {
     quantity: 900,
   });
   await Product.create({
-    _id: "65343222b67e9681f937f427",
+    _id: "65343222b67e9681f937f201",
     name: "Iphone 14 Pro",
     categoryId: "65343222b67e9681f937f204",
     brandId: "65343222b67e9681f937f131",
@@ -261,7 +434,7 @@ module.exports = async function () {
   await Purchase.create({
     _id: "65343222b67e9681f937f513",
     userId: "65343222b67e9681f937f001",
-    firmId: "65343222b67e9681f937f304",
+    firmId: "1111aaaa2222bbbb3333f003",
     brandId: "65343222b67e9681f937f123",
     productId: "65343222b67e9681f937f422",
     quantity: 1000,
@@ -270,7 +443,7 @@ module.exports = async function () {
   await Purchase.create({
     _id: "65343222b67e9681f937f514",
     userId: "65343222b67e9681f937f001",
-    firmId: "65343222b67e9681f937f304",
+    firmId: "1111aaaa2222bbbb3333f003",
     brandId: "65343222b67e9681f937f123",
     productId: "65343222b67e9681f937f423",
     quantity: 1000,
@@ -279,7 +452,7 @@ module.exports = async function () {
   await Purchase.create({
     _id: "65343222b67e9681f937f516",
     userId: "65343222b67e9681f937f001",
-    firmId: "65343222b67e9681f937f304",
+    firmId: "1111aaaa2222bbbb3333f003",
     brandId: "65343222b67e9681f937f123",
     productId: "65343222b67e9681f937f426",
     quantity: 1000,
@@ -288,7 +461,7 @@ module.exports = async function () {
   await Purchase.create({
     _id: "65343222b67e9681f937f519",
     userId: "65343222b67e9681f937f002",
-    firmId: "65343222b67e9681f937f333",
+    firmId: "1111aaaa2222bbbb3333f007",
     brandId: "65343222b67e9681f937f104",
     productId: "65343222b67e9681f937f422",
     quantity: 10,
@@ -297,9 +470,9 @@ module.exports = async function () {
   await Purchase.create({
     _id: "65343222b67e9681f937f520",
     userId: "65343222b67e9681f937f001",
-    firmId: "65343222b67e9681f937f305",
+    firmId: "1111aaaa2222bbbb3333f004",
     brandId: "65343222b67e9681f937f131",
-    productId: "65343222b67e9681f937f427",
+    productId: "65343222b67e9681f937f201",
     quantity: 10,
     price: 2500,
   });

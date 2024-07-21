@@ -53,3 +53,8 @@ To install the project, you need to have the following tools installed:
 
 6. .gitignore is created to ignore the unnecessary files and folders to be pushed to the github repository.
    `https://www.toptal.com/developers/gitignore api node`
+
+7. For the logos `https://logowik.com/` is used.
+
+8. Format Function: The formatPhoneNumber function is defined outside the controller methods.
+   This function formats the phone number by replacing + with 00 and removing any non-digit characters.

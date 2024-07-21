@@ -28,8 +28,14 @@ const FirmSchema = new mongoose.Schema(
     },
 
     address: {
-      type: String,
-      trim: true,
+      city: {
+        type: String,
+        trim: true,
+      },
+      country: {
+        type: String,
+        trim: true,
+      },
     },
 
     image: {

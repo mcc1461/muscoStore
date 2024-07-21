@@ -15,7 +15,7 @@ const dbConnection = function () {
     .connect(process.env.MONGODB)
     .then(() => {
       console.log("* DB Connected * ");
-      // Syncronization must be done manually. Because it clears the database.
+      //: Syncronization must be done manually. Because it clears the database.
       // require('./sync')()
     })
     .catch((err) => console.log("* DB Not Connected * ", err));
