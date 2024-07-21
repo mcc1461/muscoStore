@@ -68,7 +68,7 @@ module.exports = async function () {
   });
   await Brand.create({
     _id: "1111aaaa2222bbbb3333b003",
-    name: "North Face",
+    name: "The North Face",
     image: "https://logowik.com/content/uploads/images/the-north-face.jpg",
   });
   await Brand.create({
@@ -349,9 +349,20 @@ module.exports = async function () {
   });
   await Firm.create({
     _id: "1111aaaa2222bbbb3333f006",
-    name: "Shopify",
+    name: "Amazon",
     phone: "0014161234567",
-    image: "https://logowik.com/content/uploads/images/t_803_shopify.jpg",
+    image: "https://logowik.com/content/uploads/images/t_amazon-black3184.jpg",
+    address: {
+      city: "Washington",
+      country: "USA",
+    },
+  });
+  await Firm.create({
+    _id: "1111aaaa2222bbbb3333f010",
+    name: "Indigo",
+    phone: "0014161234567",
+    image:
+      "https://logowik.com/content/uploads/images/t_indigo5718.logowik.com.webp",
     address: {
       city: "Toronto",
       country: "Canada",
@@ -379,12 +390,12 @@ module.exports = async function () {
   });
   await Firm.create({
     _id: "1111aaaa2222bbbb3333f009",
-    name: "Kaufhof",
+    name: "Galeria Kaufhof",
     phone: "00496912345678",
     image:
       "https://logowik.com/content/uploads/images/t_kaufhof5903.logowik.com.webp",
     address: {
-      city: "Frankfurt",
+      city: "Duesseldorf",
       country: "Germany",
     },
   });
@@ -393,35 +404,57 @@ module.exports = async function () {
   const Product = require("../models/product");
   await Product.deleteMany();
   await Product.create({
-    _id: "65343222b67e9681f937f421",
-    name: "Tommy",
+    _id: "e311aaaa2222bbbb3333c001",
+    name: "Men's Tommy Jeans Graphic Logo T-Shirt",
     categoryId: "65343222b67e9681f937f203",
     brandId: "65343222b67e9681f937f107",
     quantity: 0,
+    price: 36.45,
+    image:
+      "https://m.media-amazon.com/images/I/616f2P4IVUL._AC_UL640_FMwebp_QL65_.jpg",
   });
   await Product.create({
-    _id: "65343222b67e9681f937f422",
-    name: "Link",
+    _id: "e312aaaa2222bbbb3333c001",
+    name: "Tommy Jeans T-Shirt",
+    categoryId: "65343222b67e9681f937f203",
+    brandId: "65343222b67e9681f937f107",
+    quantity: 0,
+    price: 41.45,
+    image:
+      "https://statics.boyner.com.tr/mnresize/1100/-/productimages/5003174886_600_02.jpg",
+  });
+  await Product.create({
+    _id: "e313aaaa2222bbbb3333c001",
+    name: "TNF Belleview Stretch-down Jacket",
     categoryId: "65343222b67e9681f937f202",
     brandId: "65343222b67e9681f937f123",
     quantity: 910,
+    price: 313.99,
+    image:
+      "https://www.flo.com.tr/urun/the-north-face-kadin-mont-belleview-stretch-down-jacket-nf0a7uk6hdc1-200776281-1.jpg",
   });
   await Product.create({
-    _id: "65343222b67e9681f937f423",
-    name: "Cola Turka",
+    _id: "e314aaaa2222bbbb3333c001",
+    name: "Koton Dinosaur Puffer Jacket Quilted Hooded Zippered",
     categoryId: "65343222b67e9681f937f202",
     brandId: "65343222b67e9681f937f123",
     quantity: 750,
+    price: 14.55,
+    image:
+      "https://cdn.hepsiglobal.com/prod/media/6962/20240213/1ed16d2f-4734-4e6b-a1cd-bc6af99236eb.jpgk",
   });
   await Product.create({
-    _id: "65343222b67e9681f937f426",
-    name: "Rondo",
+    _id: "e315aaaa2222bbbb3333c001",
+    name: "Jack Wolfskin Fleece Florsbeg Jacket",
     categoryId: "65343222b67e9681f937f201",
     brandId: "65343222b67e9681f937f123",
     quantity: 900,
+    price: 71.99,
+    image:
+      "https://www.galeria.de/cf-img-product/1e5a14200ad34d25149e7bc9822709d3/1280",
   });
   await Product.create({
-    _id: "65343222b67e9681f937f201",
+    _id: "2115aaaa2222bbbb3333c001",
     name: "Iphone 14 Pro",
     categoryId: "65343222b67e9681f937f204",
     brandId: "65343222b67e9681f937f131",
