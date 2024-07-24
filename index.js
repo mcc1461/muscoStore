@@ -1,4 +1,5 @@
 "use strict";
+
 /* -------------------------------------------------------
     NODEJS EXPRESS | MusCo Dev
 ------------------------------------------------------- */
@@ -7,7 +8,7 @@ const path = require("path");
 const app = express();
 
 /* ------------------------------------------------------- */
-//^ Required Modules:
+// Required Modules:
 
 // envVariables to process.env:
 require("dotenv").config({ path: path.join(__dirname, ".env") });
@@ -17,7 +18,12 @@ const PORT = process.env.PORT || 8061;
 // asyncErrors to errorHandler:
 require("express-async-errors");
 
+// Serve static files (including CSS)
 app.use(express.static(path.join(__dirname, "public")));
+
+// Set the view engine to EJS
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 
 /* ------------------------------------------------------- */
 // Configurations:
@@ -46,18 +52,9 @@ app.use(require("./src/middlewares/findSearchSortPage"));
 
 // HomePath:
 app.all("/api/v1/documents", (req, res) => {
-  res.send(`
-    <h3>Stock Management API Service</h3>
-    <hr>
-    <p>
-        Documents:
-        <ul> 
-            <li><a href="/api/v1/documents/swagger">SWAGGER</a></li>
-            <li><a href="/api/v1/documents/redoc">REDOC</a></li>
-            <li><a href="/api/v1/documents/json">JSON</a></li>
-        </ul>
-    </p>
-  `);
+  res.render("documents", {
+    title: "Stock Management API Service for MusCo",
+  });
 });
 
 // API Routes:
@@ -82,6 +79,6 @@ app.use(require("./src/middlewares/errorHandler"));
 app.listen(PORT, () => console.log(`http://${HOST}:${PORT}`));
 
 // Sync if in production
-// if (process.env.NODE_ENV === "production") {
-//   require("./src/configs/sync")();
-// }
+if (process.env.NODE_ENV === "production") {
+  require("./src/configs/sync")();
+}
