@@ -1,6 +1,16 @@
 # MusCo Store
 
 This project ...
+Structure:
+*FE - React and SCSS
+*BE - NodeJS and Express
+*Database - MongoDB
+*State Management - Redux Toolkit
+*Image Storage - Cloudinary
+*Email - Nodemailer | SendGrid
+*FE Deployment - Vercel
+*Be Deployment - Render
+\*First BE than FE Development
 
 ## Installation
 
