@@ -63,8 +63,11 @@ app.use("/api/v1", require("./src/routes"));
 /* ------------------------------------------------------- */
 
 // Catch-all route for serving index.html
+// app.get("*", (req, res) => {
+//   res.sendFile(path.resolve(__dirname, "public", "index.html"));
+// });
 app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "public", "index.html"));
+  res.json("Hello MusCo");
 });
 
 // 404 Handler
@@ -78,7 +81,7 @@ app.use(require("./src/middlewares/errorHandler"));
 // RUN SERVER:
 app.listen(PORT, () => console.log(`http://${HOST}:${PORT}`));
 
-// Sync if in production
-if (process.env.NODE_ENV === "production") {
-  require("./src/configs/sync")();
-}
+// // Sync if in production
+// if (process.env.NODE_ENV === "production") {
+//   require("./src/configs/sync")();
+// }
