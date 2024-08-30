@@ -75,7 +75,9 @@ const UserSchema = new mongoose.Schema(
     photo: {
       type: String,
       required: [false, "No photo."],
-      default: "https://i.ibb.co/7GdJztF/user.png",
+      default:
+        "https://firebasestorage.googleapis.com/v0/b/musco-store.appspot.com/o/avatar%20any.jpg?alt=media&token=a532f755-f98d-4f0a-9eca-fe9d6af3acba",
+    },
 
     isActive: {
       type: Boolean,
@@ -122,13 +124,13 @@ UserSchema.pre(["save", "updateOne"], function (next) {
         this.password = data.password = passwordEncrypt(data.password);
         this._update = data; // updateOne will wait data from "this._update".
       } else {
-        next(new Error("Password not validated."));
+        return next(new Error("Password not validated."));
       }
     }
 
     next(); // Allow to save.
   } else {
-    next(new Error("Email not validated."));
+    return next(new Error("Email not validated."));
   }
 });
 /* ------------------------------------------------------- */
