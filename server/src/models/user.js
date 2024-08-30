@@ -72,6 +72,10 @@ const UserSchema = new mongoose.Schema(
       trim: true,
       required: true,
     },
+    photo: {
+      type: String,
+      required: [false, "No photo."],
+      default: "https://i.ibb.co/7GdJztF/user.png",
 
     isActive: {
       type: Boolean,

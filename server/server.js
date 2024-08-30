@@ -6,6 +6,7 @@
 const express = require("express");
 const path = require("path");
 const app = express();
+const bodyParser = require("body-parser");
 
 /* ------------------------------------------------------- */
 // Required Modules:
@@ -34,9 +35,11 @@ dbConnection();
 
 /* ------------------------------------------------------- */
 // Middlewares:
+app.use(bodyParser.json());
 
 // Accept JSON:
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 // Cors:
 app.use(require("cors")());
@@ -51,14 +54,14 @@ app.use(require("./src/middlewares/findSearchSortPage"));
 // Routes:
 
 // HomePath:
-app.all("/api/v1/documents", (req, res) => {
+app.all("/api/documents", (req, res) => {
   res.render("documents", {
     title: "Stock Management API Service for MusCo",
   });
 });
 
 // API Routes:
-app.use("/api/v1", require("./src/routes"));
+app.use("/api", require("./src/routes"));
 
 /* ------------------------------------------------------- */
 
@@ -66,7 +69,7 @@ app.use("/api/v1", require("./src/routes"));
 // app.get("*", (req, res) => {
 //   res.sendFile(path.resolve(__dirname, "public", "index.html"));
 // });
-app.get("*", (req, res) => {
+app.get("/", (req, res) => {
   res.json("Hello MusCo");
 });
 

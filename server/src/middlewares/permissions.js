@@ -6,7 +6,9 @@
 
 module.exports = {
   isLogin: (req, res, next) => {
-    if (req.user && req.user.isActive) {
+    const tempBypass = true; // Set this to true to temporarily bypass the check
+
+    if (tempBypass || (req.user && req.user.isActive)) {
       next();
     } else {
       res.errorStatusCode = 403;
@@ -15,7 +17,9 @@ module.exports = {
   },
 
   isAdmin: (req, res, next) => {
-    if (req.user && req.user.isActive) {
+    const tempBypass = true; // Set this to true to temporarily bypass the check
+
+    if (tempBypass || (req.user && req.user.isActive)) {
       next();
     } else {
       res.errorStatusCode = 403;
@@ -24,7 +28,9 @@ module.exports = {
   },
 
   isStaff: (req, res, next) => {
-    if (req.user && req.user.isActive) {
+    const tempBypass = true; // Set this to true to temporarily bypass the check
+
+    if (tempBypass || (req.user && req.user.isActive)) {
       next();
     } else {
       res.errorStatusCode = 403;
