@@ -68,3 +68,7 @@ To install the project, you need to have the following tools installed:
 
 8. Format Function: The formatPhoneNumber function is defined outside the controller methods.
    This function formats the phone number by replacing + with 00 and removing any non-digit characters.
+
+9. Frontend Installations:
+   `npm create vitea@latest`
+   `npm install rechart react-icons`
