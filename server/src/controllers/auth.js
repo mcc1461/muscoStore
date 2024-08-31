@@ -50,12 +50,12 @@ module.exports = {
 
           // JWT:
           const accessToken = jwt.sign(user.toJSON(), process.env.ACCESS_KEY, {
-            expiresIn: "30m",
+            expiresIn: "10d",
           });
           const refreshToken = jwt.sign(
             { _id: user._id, password: user.password },
             process.env.REFRESH_KEY,
-            { expiresIn: "3d" }
+            { expiresIn: "30d" }
           );
 
           res.send({
