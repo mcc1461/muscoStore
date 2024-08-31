@@ -123,7 +123,7 @@ function Signup() {
 
         <p className="text-xl font-bold">
           Already have an account?{" "}
-          <Link to="/Signup" className="text-red-500 no-underline">
+          <Link to="/Signin" className="text-red-500 no-underline">
             Log In
           </Link>
         </p>

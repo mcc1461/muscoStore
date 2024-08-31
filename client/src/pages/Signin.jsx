@@ -1,18 +1,18 @@
 import { useState, useEffect } from "react";
 
 import { Link, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch, useSelector } from "react-redux";
 import { useLoginMutation } from "../slices/usersApiSlice";
 import { setCredentials } from "../slices/authSlice";
 import log from "../assets/log.png";
 import Logo1 from "../components/Logo1";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 import Loader from "../components/Loader";
 
 function Signin() {
-  const [userNameOrEmail, setUsernameOrEmail] = useState('');
-  const [password, setPassword] = useState('');
-  
+  const [userNameOrEmail, setUsernameOrEmail] = useState("");
+  const [password, setPassword] = useState("");
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -22,25 +22,23 @@ function Signin() {
 
   useEffect(() => {
     if (userInfo) {
-      navigate('/dashboard/board');
+      navigate("/dashboard/board");
     }
-  }, [navigate, userInfo] )
+  }, [navigate, userInfo]);
 
   const submitHandler = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
       const res = await login({ userNameOrEmail, password }).unwrap();
-      dispatch(setCredentials({ ...res }))
-      navigate('/dashboard/board')
+      dispatch(setCredentials({ ...res }));
+      navigate("/dashboard/board");
     } catch (err) {
-      toast.error(err?.data?.message || err.error)
+      toast.error(err?.data?.message || err.error);
     }
-  }
-
-
+  };
 
   return (
-    <div className="flex items-center justify-center w-creen h-screen">
+    <div className="flex items-center justify-center h-screen w-creen">
       <img src={log} alt="" className="h-[100%] w-[30%]" />
       <div className="h-[70%] w-[70%] flex flex-col items-center justify-between">
         <div className=" w-[60%]">
@@ -67,19 +65,32 @@ function Signin() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          {isLoading && <Loader/> }
-          
-          <Link onClick={submitHandler} to='/dashboard/board' className="w-full bg-red-500 h-[20%] text-white font-bold rounded-xl text-center flex items-center justify-center no-underline ">Log In</Link>
+          {isLoading && <Loader />}
+
+          <Link
+            onClick={submitHandler}
+            to="/dashboard/board"
+            className="w-full bg-red-500 h-[20%] text-white font-bold rounded-xl text-center flex items-center justify-center no-underline "
+          >
+            Log In
+          </Link>
           <div className="w-full ">
-            <Link to="/login/forgottenPassword" className=" text-right underline">
+            <Link
+              to="/login/forgottenPassword"
+              className="text-right underline "
+            >
               Forgot Password
             </Link>
           </div>
-          
-        <p className="text-xl font-bold">Dont have an account? <Link to='/login' className="text-red-500 no-underline ">SignUp</Link></p>
-          </div>
+
+          <p className="text-xl font-bold">
+            Don't you have an account?{" "}
+            <Link to="/signup" className="text-red-500 no-underline ">
+              SignUp
+            </Link>
+          </p>
+        </div>
       </div>
-      
     </div>
   );
 }

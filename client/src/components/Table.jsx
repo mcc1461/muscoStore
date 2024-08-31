@@ -7,31 +7,28 @@ import { Link } from "react-router-dom";
 import Search from "./search";
 import { deleteProduct, setProducts } from "../slices/products/productSlice";
 
-
 export default function Table() {
   const [showModal, setShowModal] = useState(false);
   const dispatch = useDispatch();
   const products = useSelector((state) => state.product.products);
 
   const [search, setSearch] = useState("");
-  
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("/api/products")
+        const response = await fetch("/api/products");
 
         if (response.ok) {
-          const data = await response.json()
-          dispatch(setProducts(data))
+          const data = await response.json();
+          dispatch(setProducts(data));
         }
       } catch (error) {
-        console.error("Error Fetching Products", error)
+        console.error("Error Fetching Products", error);
       }
-    }
-    fetchProducts()
-  }, [dispatch])
-
+    };
+    fetchProducts();
+  }, [dispatch]);
 
   const handleDeleteProduct = (id) => {
     dispatch(deleteProduct(id));
@@ -41,10 +38,7 @@ export default function Table() {
   return (
     <div>
       <div className="bg-white h-[15%] w-[98%] flex items-center justify-center">
-        <Search
-          value={search}
-          onChange= {(e) => setSearch(e.target.value)}
-        />
+        <Search value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
       <div className="flex flex-col items-center justify-start h-[55vh] mt-3 w-[98%] ">
         <table className="w-full text-center table-auto ">
@@ -64,13 +58,14 @@ export default function Table() {
             {products.map((product, index) => (
               <tr
                 key={product?._id}
-                className="h-[40px] bg-gray-100 border-b-2 border-white">
+                className="h-[40px] bg-gray-100 border-b-2 border-white"
+              >
                 <td>{index + 1}</td>
-                <td>{product?.name || '-'}</td>
-                <td>{product?.category || '-'}</td>
-                <td>#{product?.price || '-'}</td>
-                <td>{product?.quantity || '-'}</td>
-                <td>#{product?.value || '-'}</td>
+                <td>{product?.name || "-"}</td>
+                <td>{product?.category || "-"}</td>
+                <td>#{product?.price || "-"}</td>
+                <td>{product?.quantity || "-"}</td>
+                <td>#{product?.value || "-"}</td>
                 <td className="flex items-center justify-center mt-3 gap-3">
                   <p>
                     <Link to={`/dashboard/products/${product?._id}`}>
@@ -123,9 +118,7 @@ export default function Table() {
             <tr></tr>
           </tbody>
         </table>
-        <p className="text-center w-full text-slate-400">
-          Team Prosperio-Alx ©️ 2023
-        </p>
+        <p className="text-center w-full text-slate-400">Team M ©️ 2023</p>
       </div>
     </div>
   );

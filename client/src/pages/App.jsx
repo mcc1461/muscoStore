@@ -20,30 +20,30 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/signup" element={<Signin />} />
+      <Route path="/login" element={<Signin />} />
 
-      <Route path="/login" element={<Signup />} />
-
+      <Route path="/signup" element={<Signup />} />
 
       <Route path="/resetpassword" element={<Reset />} />
       <Route path="/login/forgottenPassword" element={<Forgetten />} />
 
-      <Route path="/resetPassword/:resetToken" element={<Reset/>}/>
-      <Route path="/login/forgottenPassword" element={<Forgetten/>}/>
-
+      <Route path="/resetPassword/:resetToken" element={<Reset />} />
+      <Route path="/login/forgottenPassword" element={<Forgetten />} />
 
       <Route path="/dashboard" element={<Dashboard />}>
         <Route path="/dashboard/board" element={<Board />} />
-        
 
         {/*Private Routes*/}
-        <Route path='' element={<PrivateRoute />}>
+        <Route path="" element={<PrivateRoute />}>
           <Route path="/dashboard/products/:id" element={<Products />} />
-        <Route path="/dashboard/editproduct/:id" element={<Editproduct />} />
-        <Route path="/dashboard/addproducts" element={<Addproducts />} />
-        <Route path="/dashboard/deleteproduct/:id" element={<Deleteproducts />} />
-        <Route path="/dashboard/profile" element={<Profile />} />
-        <Route path="/dashboard/update" element={<Updateprofile />} />
+          <Route path="/dashboard/editproduct/:id" element={<Editproduct />} />
+          <Route path="/dashboard/addproducts" element={<Addproducts />} />
+          <Route
+            path="/dashboard/deleteproduct/:id"
+            element={<Deleteproducts />}
+          />
+          <Route path="/dashboard/profile" element={<Profile />} />
+          <Route path="/dashboard/update" element={<Updateprofile />} />
         </Route>
         <Route path="/dashboard/issues" element={<Issues />} />
         <Route path="/dashboard/settings" element={<Settings />} />

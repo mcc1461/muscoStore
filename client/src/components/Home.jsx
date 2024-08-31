@@ -18,7 +18,7 @@ function Header() {
                 to="/login"
                 className=" w-16 text-center rounded-xl no-underline text-white transition ease-in-out delay-150 hover:-translate-1 hover:scale-110"
               >
-               <p className="hover:text-slate-200"> Sigup</p>
+                <p className="hover:text-slate-200"> Sigup</p>
               </Link>
               <Link
                 to="/signup"
@@ -34,9 +34,9 @@ function Header() {
                 Elevating Your Sales Management Solutions.
               </p>
               <p>
-                Prosperio is your all in one sales management solution, designed
-                to streamline your sales processes and boost your business’s
-                Success. With Prosperio, you can:
+                MusCo Store is .... is your all in one sales management
+                solution, designed to streamline your sales processes and boost
+                your business’s Success. With MusCo Store, you can:
               </p>
               <p className="flex gap-3">
                 <BsArrowRight className="text-3xl" />
