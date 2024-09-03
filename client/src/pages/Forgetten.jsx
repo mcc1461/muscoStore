@@ -5,29 +5,27 @@ import log from "../assets/log.png";
 import Logo1 from "../components/Logo1";
 import { toast } from "react-toastify";
 
-
 export default function Forgetten() {
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState("");
 
   const navigate = useNavigate();
-  const [forgotPassword, { isLoading }] = useForgotPasswordMutation()
+  const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
 
   const handleForgotPassword = async () => {
-     try {
-       const response = await forgotPassword({ email })
-       
-       if (response.data) {
-         const resetToken = response.data.resetToken
-         toast.success('Password reset link sent')
+    try {
+      const response = await forgotPassword({ email });
 
-         navigate(`/resetPassword/${resetToken}`)
-       }
-     } catch (error) {
-       toast.error('Failed to send password reset link')
-      
-     }
-   }
-  
+      if (response.data) {
+        const resetToken = response.data.resetToken;
+        toast.success("Password reset link sent");
+
+        navigate(`/resetPassword/${resetToken}`);
+      }
+    } catch (error) {
+      toast.error("Failed to send password reset link");
+    }
+  };
+
   return (
     <div className="flex items-center justify-center w-creen h-screen">
       <img src={log} alt="" className="h-[100%] w-[30%]" />
@@ -58,7 +56,7 @@ export default function Forgetten() {
           </Link>
 
           <div className="w-full ">
-            <Link to="/Signup" className=" text-right h-[15%] underline">
+            <Link to="/Register" className=" text-right h-[15%] underline">
               login
             </Link>
           </div>

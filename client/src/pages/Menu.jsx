@@ -39,6 +39,50 @@ export default function Menu() {
           </Link>
         </div>
         <div className=" w-[60%] flex items-start">
+          {" "}
+          <Link
+            to="/dashboard/board"
+            className="font-semi-bold text-xl text-[20px] flex items-center justify-center gap-3 text-black hover:text-red-500 focus:text-red-500 no-underline"
+          >
+            <p className="flex items-center gap-3 hover:text-red-500 focus:text-red-500">
+              <BsGrid1X2Fill /> Purchases
+            </p>
+          </Link>
+        </div>
+        <div className=" w-[60%] flex items-start">
+          {" "}
+          <Link
+            to="/dashboard/board"
+            className="font-semi-bold text-xl text-[20px] flex items-center justify-center gap-3 text-black hover:text-red-500 focus:text-red-500 no-underline"
+          >
+            <p className="flex items-center gap-3 hover:text-red-500 focus:text-red-500">
+              <BsGrid1X2Fill /> Sales
+            </p>
+          </Link>
+        </div>
+        <div className=" w-[60%] flex items-start">
+          {" "}
+          <Link
+            to="/dashboard/board"
+            className="font-semi-bold text-xl text-[20px] flex items-center justify-center gap-3 text-black hover:text-red-500 focus:text-red-500 no-underline"
+          >
+            <p className="flex items-center gap-3 hover:text-red-500 focus:text-red-500">
+              <BsGrid1X2Fill /> Firms
+            </p>
+          </Link>
+        </div>
+        <div className=" w-[60%] flex items-start">
+          {" "}
+          <Link
+            to="/dashboard/board"
+            className="font-semi-bold text-xl text-[20px] flex items-center justify-center gap-3 text-black hover:text-red-500 focus:text-red-500 no-underline"
+          >
+            <p className="flex items-center gap-3 hover:text-red-500 focus:text-red-500">
+              <BsGrid1X2Fill /> Brands
+            </p>
+          </Link>
+        </div>
+        <div className=" w-[60%] flex items-start">
           <Link
             to="/dashboard/addproducts"
             className="font-semi-bold text-xl text-[20px] flex items-center justify-center gap-3 text-black hover:text-red-500 focus:text-red-500 no-underline"

@@ -5,10 +5,10 @@ import { Link } from "react-router-dom";
 
 function Header() {
   return (
-    <div className="bg-red-500 h-screen w-screen flex items-center justify-center text-white">
+    <div className="flex items-center justify-center w-screen h-screen text-white bg-red-500">
       <div className="h-[90vh] w-[90vw] flex items-center justify-center">
         <div className="flex flex-col gap-3">
-          <div className="text-white flex items-center justify-between ">
+          <div className="flex items-center justify-between text-white ">
             <div>
               {" "}
               <Logo />{" "}
@@ -16,13 +16,13 @@ function Header() {
             <div className="flex items-center justify-between w-[25vh] text-xl font-semibold">
               <Link
                 to="/login"
-                className=" w-16 text-center rounded-xl no-underline text-white transition ease-in-out delay-150 hover:-translate-1 hover:scale-110"
+                className="w-16 text-center text-white no-underline transition ease-in-out delay-150  rounded-xl hover:-translate-1 hover:scale-110"
               >
-                <p className="hover:text-slate-200"> Sigup</p>
+                <p className="hover:text-slate-200"> Register</p>
               </Link>
               <Link
-                to="/signup"
-                className="text-white w-16 text-center rounded-xl no-underline transition ease-in-out delay-150 hover:-translate-1 hover:scale-110"
+                to="/register"
+                className="w-16 text-center text-white no-underline transition ease-in-out delay-150 rounded-xl hover:-translate-1 hover:scale-110"
               >
                 <p className="hover:text-slate-200">Login</p>
               </Link>

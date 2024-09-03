@@ -11,7 +11,7 @@ const PrivateRoute = () => {
   }
 
   // In production, check if user is authenticated
-  return userInfo ? <Outlet /> : <Navigate to="/Signup" replace />;
+  return userInfo ? <Outlet /> : <Navigate to="/Register" replace />;
 };
 
 export default PrivateRoute;

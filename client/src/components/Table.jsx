@@ -4,6 +4,7 @@ import { BsEye } from "react-icons/bs";
 import { HiOutlineRefresh } from "react-icons/hi";
 import { ImBin } from "react-icons/im";
 import { Link } from "react-router-dom";
+import axios from "axios"; // Import axios
 import Search from "./search";
 import { deleteProduct, setProducts } from "../slices/products/productSlice";
 
@@ -17,11 +18,10 @@ export default function Table() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("/api/products");
+        const response = await axios.get("/api/products"); // Use axios to make the GET request
 
-        if (response.ok) {
-          const data = await response.json();
-          dispatch(setProducts(data));
+        if (response.status === 200) {
+          dispatch(setProducts(response.data)); // Access data directly from response
         }
       } catch (error) {
         console.error("Error Fetching Products", error);
@@ -32,7 +32,7 @@ export default function Table() {
 
   const handleDeleteProduct = (id) => {
     dispatch(deleteProduct(id));
-    showModal(false);
+    setShowModal(false);
   };
 
   return (
@@ -66,7 +66,7 @@ export default function Table() {
                 <td>#{product?.price || "-"}</td>
                 <td>{product?.quantity || "-"}</td>
                 <td>#{product?.value || "-"}</td>
-                <td className="flex items-center justify-center mt-3 gap-3">
+                <td className="flex items-center justify-center gap-3 mt-3">
                   <p>
                     <Link to={`/dashboard/products/${product?._id}`}>
                       <BsEye className="text-[#0F1377]" />
@@ -87,21 +87,21 @@ export default function Table() {
                 {showModal ? (
                   <>
                     {/*Delete Confirmation Modal*/}
-                    <div className="flex justify-center items-center overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
-                      <div className="relative w-auto my-6 mx-auto max-w-3xl">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+                      <div className="relative w-auto max-w-3xl mx-auto my-6">
                         <div className="border-0 rounded-lg shadow-lg relative flex flex-col items-center justify-center w-[40vw] h-[40vh] bg-white outline-none focus:outline-none">
                           <p>Hey Joshua!</p>
                           <p>Are you sure you want to delete this?</p>
-                          <div className="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b">
+                          <div className="flex items-center justify-end p-6 border-t border-solid rounded-b border-blueGray-200">
                             <button
-                              className="text-white bg-green-500 background-transparent font-bold uppercase px-6 py-3 rounded text-sm outline-none focus:outline-none mr-1 mb-1 hover:bg-green-300"
+                              className="px-6 py-3 mb-1 mr-1 text-sm font-bold text-white uppercase bg-green-500 rounded outline-none background-transparent focus:outline-none hover:bg-green-300"
                               type="button"
                               onClick={() => handleDeleteProduct(product._id)}
                             >
                               Delete
                             </button>
                             <button
-                              className="text-white bg-red-500 hover:bg-red-300 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1"
+                              className="px-6 py-3 mb-1 mr-1 text-sm font-bold text-white uppercase bg-red-500 rounded shadow outline-none hover:bg-red-300 hover:shadow-lg focus:outline-none"
                               type="button"
                               onClick={() => setShowModal(false)}
                             >
@@ -118,7 +118,9 @@ export default function Table() {
             <tr></tr>
           </tbody>
         </table>
-        <p className="text-center w-full text-slate-400">Team M ©️ 2023</p>
+        <p className="w-full text-center text-slate-400">
+          by MusCo ©️ <span>{new Date().getFullYear}</span>2024
+        </p>
       </div>
     </div>
   );
