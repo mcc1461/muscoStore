@@ -24,7 +24,7 @@ export default function Dasheader() {
 
   return (
     <div className="flex items-center justify-between w-[80vw] h-[10vh] bg-white rounded-md shadow-lg px-5 text-black">
-      <p className="font-bold text-xl">
+      <p className="text-xl font-bold">
         Hello,{" "}
         {userInfo ? (
           <Link to="/dashboard/profile" className="text-red-500 no-underline ">

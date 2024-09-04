@@ -1,16 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {},
   },
-  variants:{
+  variants: {
     extend: {
-      display:['group-focus']
+      display: ["group-focus"],
     },
   },
-  plugins: [],
-}
+  plugins: [require("@tailwindcss/forms")],
+};

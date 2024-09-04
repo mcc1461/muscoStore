@@ -15,6 +15,9 @@ import Reset from "./Reset";
 import Editproduct from "./Editproduct";
 import PrivateRoute from "../components/privateRoute";
 import Deleteproducts from "./Deleteproducts";
+import FirmList from "../utils/FirmList";
+import BrandList from "../utils/BrandList";
+import ProductList from "../utils/ProductList";
 
 function App() {
   return (
@@ -29,10 +32,13 @@ function App() {
 
       <Route path="/resetPassword/:resetToken" element={<Reset />} />
       <Route path="/login/forgottenPassword" element={<Forgetten />} />
+      <Route path="/firms" element={<FirmList />} />
+      <Route path="/brands" element={<BrandList />} />
+      <Route path="/products" element={<ProductList />} />
 
       <Route path="/dashboard" element={<Dashboard />}>
+        ß
         <Route path="/dashboard/board" element={<Board />} />
-
         {/*Private Routes*/}
         <Route path="" element={<PrivateRoute />}>
           <Route path="/dashboard/products/:id" element={<Products />} />

@@ -72,3 +72,4 @@ To install the project, you need to have the following tools installed:
 9. Frontend Installations:
    `npm create vitea@latest`
    `npm install rechart react-icons`
+   `npm install @tailwindcss/forms`
