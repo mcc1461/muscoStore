@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { FaEdit, FaTrashAlt, FaPlusCircle } from "react-icons/fa";
 import { Dialog, Transition } from "@headlessui/react";
-import apiClient from "../services/apiClient";
+import apiClient from "../services/apiClient"; // Import the apiClient for making requests
 
 export default function ProductsList() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(""); // Ensure searchTerm is initialized as an empty string
   const [editingProduct, setEditingProduct] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [isAddingNewProduct, setIsAddingNewProduct] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedProductForDelete, setSelectedProductForDelete] =
     useState(null);
-  const [expandedProducts, setExpandedProducts] = useState({});
+  const [expandedProducts, setExpandedProducts] = useState({}); // Track expanded details
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -40,6 +40,8 @@ export default function ProductsList() {
   const deleteProduct = async () => {
     try {
       await apiClient.delete(`/api/products/${selectedProductForDelete._id}`);
+      console.log(selectedProductForDelete._id);
+      console.log("Product deleted successfully");
       setProducts(
         products.filter(
           (product) => product._id !== selectedProductForDelete._id
@@ -62,9 +64,9 @@ export default function ProductsList() {
   const openAddNewModal = () => {
     setEditingProduct({
       name: "",
-      quantity: 0,
-      brandId: { name: "" },
+      brandId: { name: "", image: "" },
       categoryId: { name: "" },
+      quantity: 0,
     }); // Empty form for new product
     setIsAddingNewProduct(true); // Switch to "Add New" mode
     setModalOpen(true);
@@ -126,9 +128,9 @@ export default function ProductsList() {
     }));
   };
 
-  // Filter products based on the search term
+  // Filter products based on the search term, ensuring product.name is defined
   const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    product?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -169,12 +171,15 @@ export default function ProductsList() {
               className="overflow-hidden transition-transform duration-300 transform bg-gray-100 rounded-lg shadow-lg hover:scale-105"
               onMouseLeave={() => hideDetails(product._id)} // Hide details on mouse leave
             >
-              {/* Product Name */}
+              {/* Brand Logo and Product Name */}
+              <div className="flex items-center justify-center h-56 bg-white">
+                <img
+                  src={product?.image}
+                  alt={product?.name}
+                  className="object-contain w-full h-full p-4"
+                />
+              </div>
               <div className="p-6 text-center">
-                <h3 className="text-2xl font-semibold text-gray-800">
-                  {product.name}
-                </h3>
-
                 {/* View Details Button */}
                 <button
                   onClick={() => toggleDetails(product._id)}
@@ -188,14 +193,26 @@ export default function ProductsList() {
                 {/* Details Section (Visible only if expanded) */}
                 {expandedProducts[product._id] && (
                   <div className="mt-4">
+                    <h3 className="text-2xl font-semibold text-gray-800">
+                      {product.name}
+                    </h3>
                     <p className="text-gray-600">
-                      Brand: {product.brandId?.name || "N/A"}
+                      Brand: {product.brandId?.name}
                     </p>
                     <p className="text-gray-600">
-                      Category: {product.categoryId?.name || "N/A"}
+                      Category: {product.categoryId?.name}
                     </p>
-                    <p className="mt-4 font-medium text-gray-500">
+                    <p className="text-gray-600">
                       Quantity: {product.quantity}
+                    </p>
+                    <p className="text-gray-600">Price: ${product.price}</p>
+                    <p className="text-gray-600">Product ID: {product._id}</p>
+                    <p className="text-gray-600">
+                      Created at: {new Date(product.createdAt).toLocaleString()}
+                    </p>
+                    <p className="text-gray-600">
+                      Last updated:{" "}
+                      {new Date(product.updatedAt).toLocaleString()}
                     </p>
                   </div>
                 )}
@@ -233,6 +250,20 @@ export default function ProductsList() {
               {isAddingNewProduct ? "Add New Product" : "Edit Product"}
             </h2>
 
+            {/* Brand Logo Section */}
+            <div className="mb-4">
+              <label className="block mb-2 text-sm font-semibold">
+                Brand Logo
+              </label>
+              <div className="flex items-center justify-center mb-4">
+                <img
+                  src={editingProduct?.brandId?.image}
+                  alt={editingProduct?.brandId?.name}
+                  className="object-contain w-full h-32"
+                />
+              </div>
+            </div>
+
             {/* Name */}
             <div className="mb-4">
               <label className="block mb-2 text-sm font-semibold">Name</label>
@@ -240,32 +271,6 @@ export default function ProductsList() {
                 type="text"
                 name="name"
                 value={editingProduct?.name || ""}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
-              />
-            </div>
-
-            {/* Brand */}
-            <div className="mb-4">
-              <label className="block mb-2 text-sm font-semibold">Brand</label>
-              <input
-                type="text"
-                name="brandId.name"
-                value={editingProduct?.brandId?.name || ""}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
-              />
-            </div>
-
-            {/* Category */}
-            <div className="mb-4">
-              <label className="block mb-2 text-sm font-semibold">
-                Category
-              </label>
-              <input
-                type="text"
-                name="categoryId.name"
-                value={editingProduct?.categoryId?.name || ""}
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
               />

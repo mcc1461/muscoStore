@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { FaEdit, FaTrashAlt, FaPlusCircle } from "react-icons/fa";
 import { Dialog, Transition } from "@headlessui/react";
-import apiClient from "../services/apiClient";
+import apiClient from "../services/apiClient"; // Import the apiClient for making requests
 
 export default function BrandsList() {
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(""); // Ensure searchTerm is initialized as an empty string
   const [editingBrand, setEditingBrand] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [isAddingNewBrand, setIsAddingNewBrand] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedBrandForDelete, setSelectedBrandForDelete] = useState(null);
-  const [expandedBrands, setExpandedBrands] = useState({});
+  const [expandedBrands, setExpandedBrands] = useState({}); // Track expanded details
 
   useEffect(() => {
     const fetchBrands = async () => {
@@ -115,9 +115,9 @@ export default function BrandsList() {
     }));
   };
 
-  // Filter brands based on the search term
+  // Filter brands based on the search term, ensuring brand.name is defined
   const filteredBrands = brands.filter((brand) =>
-    brand.name.toLowerCase().includes(searchTerm.toLowerCase())
+    brand?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -158,7 +158,7 @@ export default function BrandsList() {
               className="overflow-hidden transition-transform duration-300 transform bg-gray-100 rounded-lg shadow-lg hover:scale-105"
               onMouseLeave={() => hideDetails(brand._id)} // Hide details on mouse leave
             >
-              {/* Logo */}
+              {/* Logo and Name */}
               <div className="flex items-center justify-center h-56 bg-white">
                 <img
                   src={brand.image}
@@ -166,9 +166,8 @@ export default function BrandsList() {
                   className="object-contain w-full h-full p-4"
                 />
               </div>
-
-              {/* View Details Button */}
               <div className="p-6 text-center">
+                {/* View Details Button */}
                 <button
                   onClick={() => toggleDetails(brand._id)}
                   className="font-semibold text-indigo-500 hover:text-indigo-600"
