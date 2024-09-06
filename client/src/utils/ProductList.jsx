@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { FaEdit, FaTrashAlt, FaPlusCircle } from "react-icons/fa";
 import { Dialog, Transition } from "@headlessui/react";
 import apiClient from "../services/apiClient";
@@ -10,6 +10,8 @@ export default function ProductsList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedBrand, setSelectedBrand] = useState("all");
+  const [filteredCategories, setFilteredCategories] = useState([]);
+  const [filteredBrands, setFilteredBrands] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [isAddingNewProduct, setIsAddingNewProduct] = useState(false);
@@ -18,17 +20,6 @@ export default function ProductsList() {
     useState(null);
   const [expandedProducts, setExpandedProducts] = useState({});
   const [filterStockStatus, setFilterStockStatus] = useState("all");
-
-  const categories = [...new Set(products.map((p) => p.categoryId?.name))];
-  const brands = [...new Set(products.map((p) => p.brandId?.name))];
-
-  // Stock statistics
-  const totalProducts = products.length;
-  const outOfStockCount = products.filter((p) => p.quantity === 0).length;
-  const lowStockCount = products.filter(
-    (p) => p.quantity > 0 && p.quantity < 5
-  ).length;
-  const availableCount = totalProducts - outOfStockCount - lowStockCount;
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -43,6 +34,52 @@ export default function ProductsList() {
     };
     fetchProducts();
   }, []);
+
+  // Calculate total counts
+  const totalProducts = products.length;
+  const outOfStockCount = products.filter((p) => p.quantity === 0).length;
+  const lowStockCount = products.filter(
+    (p) => p.quantity > 0 && p.quantity < 5
+  ).length;
+  const availableCount = totalProducts - outOfStockCount - lowStockCount;
+
+  // Generate unique categories and brands
+  const allCategories = [...new Set(products.map((p) => p.categoryId?.name))];
+  const allBrands = [...new Set(products.map((p) => p.brandId?.name))];
+
+  // Update filtered categories and brands based on selection
+  useEffect(() => {
+    if (selectedCategory === "all" && selectedBrand === "all") {
+      setFilteredCategories(allCategories);
+      setFilteredBrands(allBrands);
+    } else {
+      if (selectedCategory !== "all") {
+        const brandsInCategory = [
+          ...new Set(
+            products
+              .filter((p) => p.categoryId?.name === selectedCategory)
+              .map((p) => p.brandId?.name)
+          ),
+        ];
+        setFilteredBrands(brandsInCategory);
+      } else {
+        setFilteredBrands(allBrands);
+      }
+
+      if (selectedBrand !== "all") {
+        const categoriesWithBrand = [
+          ...new Set(
+            products
+              .filter((p) => p.brandId?.name === selectedBrand)
+              .map((p) => p.categoryId?.name)
+          ),
+        ];
+        setFilteredCategories(categoriesWithBrand);
+      } else {
+        setFilteredCategories(allCategories);
+      }
+    }
+  }, [selectedCategory, selectedBrand, products]);
 
   const confirmDeleteProduct = (product) => {
     setSelectedProductForDelete(product);
@@ -178,7 +215,7 @@ export default function ProductsList() {
               className="w-full px-4 py-2 border rounded-lg"
             >
               <option value="all">All Categories</option>
-              {categories.map((category, index) => (
+              {filteredCategories.map((category, index) => (
                 <option key={index} value={category}>
                   {category}
                 </option>
@@ -194,7 +231,7 @@ export default function ProductsList() {
               className="w-full px-4 py-2 border rounded-lg"
             >
               <option value="all">All Brands</option>
-              {brands.map((brand, index) => (
+              {filteredBrands.map((brand, index) => (
                 <option key={index} value={brand}>
                   {brand}
                 </option>
@@ -244,41 +281,69 @@ export default function ProductsList() {
 
           {filteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredProducts.map((product) => {
+              {filteredProducts.map((product, index) => {
                 let label = "";
                 let labelStyle = "";
+                let bgColor = "bg-gray-50"; // Light gray background for available products
 
                 if (product.quantity === 0) {
                   label = "Out of Stock";
                   labelStyle = "text-red-500 font-bold";
+                  bgColor = "bg-red-100"; // Light red background
                 } else if (product.quantity < 5) {
                   label = "Low Stock";
                   labelStyle = "text-yellow-500 font-bold";
+                  bgColor = "bg-yellow-100"; // Light yellow background
                 }
 
                 return (
                   <div
                     key={product._id}
-                    className="relative p-4 bg-gray-100 rounded-lg shadow-md transition-transform duration-300 transform hover:scale-105"
+                    className={`relative p-4 rounded-lg shadow-md transition-transform duration-300 transform hover:scale-105 ${bgColor}`}
                     onMouseLeave={() => hideDetails(product._id)}
                   >
-                    <div className="flex items-center justify-center h-56 bg-white">
+                    {/* Stock Status Label */}
+                    <div className="absolute top-2 left-2 z-20">
+                      <span
+                        className={`px-2 py-1 rounded text-white ${labelStyle}`}
+                        style={{
+                          backgroundColor:
+                            label === "Out of Stock"
+                              ? "#FF4D4F" // Red for out of stock
+                              : label === "Low Stock"
+                              ? "#FFA500" // Orange for low stock
+                              : // : "#4CAF50", // Green for normal stock
+                                "", // Green for normal stock
+                        }}
+                      >
+                        {label || "In Stock"}
+                      </span>
+                    </div>
+
+                    {/* Image with hover effect */}
+                    <div className="relative flex items-center justify-center h-56 bg-white group">
                       <img
                         src={product?.image}
                         alt={product?.name}
                         className="object-contain w-full h-full p-4"
                       />
+                      {/* Tooltip to show full name when hovering over the image */}
+                      <div className="absolute hidden group-hover:block bottom-0 bg-gray-800 text-white text-sm p-2 rounded-t-lg w-max max-w-full text-center overflow-hidden text-ellipsis">
+                        {product.name}
+                      </div>
                     </div>
 
                     <div className="p-6">
-                      <div className="flex justify-between">
-                        <h3
-                          className="text-lg font-semibold truncate"
-                          title={product.name}
-                        >
-                          {product.name}
-                        </h3>
-                        <span className={`${labelStyle}`}>{label}</span>
+                      <div className="flex justify-between items-center">
+                        <div className="relative group w-full">
+                          <h3 className="text-lg font-semibold overflow-hidden whitespace-nowrap text-ellipsis max-w-[90%]">
+                            {product.name}
+                          </h3>
+                          {/* Tooltip with full name on hover */}
+                          <div className="absolute hidden group-hover:block z-10 p-2 bg-gray-200 rounded shadow-lg w-max max-w-full left-0 right-0 text-center overflow-hidden text-ellipsis">
+                            {product.name}
+                          </div>
+                        </div>
                       </div>
 
                       <p className="text-gray-600">
