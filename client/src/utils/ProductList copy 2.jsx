@@ -15,10 +15,6 @@ export default function ProductsList() {
   const [selectedProductForDelete, setSelectedProductForDelete] =
     useState(null);
   const [expandedProducts, setExpandedProducts] = useState({}); // Track expanded details
-  const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedBrand, setSelectedBrand] = useState("");
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -35,30 +31,6 @@ export default function ProductsList() {
     fetchProducts();
   }, []);
 
-  useEffect(() => {
-    // Assuming you have API endpoints for categories and brands
-    const fetchCategories = async () => {
-      try {
-        const response = await apiClient.get("/api/categories");
-        setCategories(response.data.data);
-      } catch (error) {
-        console.error("Error fetching categories", error);
-      }
-    };
-
-    const fetchBrands = async () => {
-      try {
-        const response = await apiClient.get("/api/brands");
-        setBrands(response.data.data);
-      } catch (error) {
-        console.error("Error fetching brands", error);
-      }
-    };
-
-    fetchCategories();
-    fetchBrands();
-  }, []);
-
   // Delete a product with confirmation modal
   const confirmDeleteProduct = (product) => {
     setSelectedProductForDelete(product);
@@ -68,6 +40,8 @@ export default function ProductsList() {
   const deleteProduct = async () => {
     try {
       await apiClient.delete(`/api/products/${selectedProductForDelete._id}`);
+      console.log(selectedProductForDelete._id);
+      console.log("Product deleted successfully");
       setProducts(
         products.filter(
           (product) => product._id !== selectedProductForDelete._id
@@ -154,17 +128,10 @@ export default function ProductsList() {
     }));
   };
 
-  // Filter products based on the search term, category, and brand
-  const filteredProducts = products
-    .filter((product) =>
-      product?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .filter(
-      (product) =>
-        (selectedCategory === "" ||
-          product?.categoryId?._id === selectedCategory) &&
-        (selectedBrand === "" || product?.brandId?._id === selectedBrand)
-    );
+  // Filter products based on the search term, ensuring product.name is defined
+  const filteredProducts = products.filter((product) =>
+    product?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return <p>Loading products...</p>;
@@ -176,151 +143,104 @@ export default function ProductsList() {
 
   return (
     <>
-      <div className="flex">
-        {/* Sidebar for Category and Brand Filters */}
-        <div className="w-1/4 p-4 bg-white border-r">
-          <h2 className="mb-4 text-xl font-bold">Filter Products</h2>
+      {/* Add New Product Button */}
+      <div className="flex items-center justify-between px-4 py-2">
+        {/* Search Input */}
+        <input
+          type="text"
+          placeholder="Search products..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-1/2 px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
+        />
 
-          {/* Category Filter */}
-          <div className="mb-6">
-            <h3 className="mb-2 text-lg font-semibold">Categories</h3>
-            <select
-              className="w-full p-2 border rounded-lg"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
-              <option value="">All Categories</option>
-              {categories.map((category) => (
-                <option key={category._id} value={category._id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Brand Filter */}
-          <div className="mb-6">
-            <h3 className="mb-2 text-lg font-semibold">Brands</h3>
-            <select
-              className="w-full p-2 border rounded-lg"
-              value={selectedBrand}
-              onChange={(e) => setSelectedBrand(e.target.value)}
-            >
-              <option value="">All Brands</option>
-              {brands.map((brand) => (
-                <option key={brand._id} value={brand._id}>
-                  {brand.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1">
-          {/* Add New Product Button */}
-          <div className="flex items-center justify-between px-4 py-2">
-            {/* Search Input */}
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-1/2 px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
-            />
-
-            <button
-              onClick={openAddNewModal}
-              className="px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600"
-            >
-              <FaPlusCircle className="inline-block mr-2" /> Add New Product
-            </button>
-          </div>
-
-          {/* Products List */}
-          {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 px-4 py-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-              {filteredProducts.map((product) => (
-                <div
-                  key={product._id}
-                  className="overflow-hidden transition-transform duration-300 transform bg-gray-100 rounded-lg shadow-lg hover:scale-105"
-                  onMouseLeave={() => hideDetails(product._id)} // Hide details on mouse leave
-                >
-                  {/* Brand Logo and Product Name */}
-                  <div className="flex items-center justify-center h-56 bg-white">
-                    <img
-                      src={product?.image}
-                      alt={product?.name}
-                      className="object-contain w-full h-full p-4"
-                    />
-                  </div>
-                  <div className="p-6 text-center">
-                    {/* View Details Button */}
-                    <button
-                      onClick={() => toggleDetails(product._id)}
-                      className="font-semibold text-indigo-500 hover:text-indigo-600"
-                    >
-                      {expandedProducts[product._id]
-                        ? "Hide Details"
-                        : "View Details"}
-                    </button>
-
-                    {/* Details Section (Visible only if expanded) */}
-                    {expandedProducts[product._id] && (
-                      <div className="mt-4">
-                        <h3 className="text-2xl font-semibold text-gray-800">
-                          {product.name}
-                        </h3>
-                        <p className="text-gray-600">
-                          Brand: {product.brandId?.name}
-                        </p>
-                        <p className="text-gray-600">
-                          Category: {product.categoryId?.name}
-                        </p>
-                        <p className="text-gray-600">
-                          Quantity: {product.quantity}
-                        </p>
-                        <p className="text-gray-600">Price: ${product.price}</p>
-                        <p className="text-gray-600">
-                          Product ID: {product._id}
-                        </p>
-                        <p className="text-gray-600">
-                          Created at:{" "}
-                          {new Date(product.createdAt).toLocaleString()}
-                        </p>
-                        <p className="text-gray-600">
-                          Last updated:{" "}
-                          {new Date(product.updatedAt).toLocaleString()}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Edit and Delete Icons */}
-                  <div className="flex justify-center p-4">
-                    <button
-                      className="mr-3 text-blue-500 hover:text-blue-700"
-                      onClick={() => openEditModal(product)} // Open modal to edit product
-                    >
-                      <FaEdit className="w-5 h-5" />
-                    </button>
-                    <button
-                      className="text-red-500 hover:text-red-700"
-                      onClick={() => confirmDeleteProduct(product)} // Ask for confirmation before deleting
-                    >
-                      <FaTrashAlt className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-center text-gray-600">
-              No products found for your search.
-            </p>
-          )}
-        </div>
+        <button
+          onClick={openAddNewModal}
+          className="px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600"
+        >
+          <FaPlusCircle className="inline-block mr-2" /> Add New Product
+        </button>
       </div>
+
+      {/* Products List */}
+      {filteredProducts.length > 0 ? (
+        <div className="grid grid-cols-1 gap-6 px-4 py-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+          {filteredProducts.map((product) => (
+            <div
+              key={product._id}
+              className="overflow-hidden transition-transform duration-300 transform bg-gray-100 rounded-lg shadow-lg hover:scale-105"
+              onMouseLeave={() => hideDetails(product._id)} // Hide details on mouse leave
+            >
+              {/* Brand Logo and Product Name */}
+              <div className="flex items-center justify-center h-56 bg-white">
+                <img
+                  src={product?.image}
+                  alt={product?.name}
+                  className="object-contain w-full h-full p-4"
+                />
+              </div>
+              <div className="p-6 text-center">
+                {/* View Details Button */}
+                <button
+                  onClick={() => toggleDetails(product._id)}
+                  className="font-semibold text-indigo-500 hover:text-indigo-600"
+                >
+                  {expandedProducts[product._id]
+                    ? "Hide Details"
+                    : "View Details"}
+                </button>
+
+                {/* Details Section (Visible only if expanded) */}
+                {expandedProducts[product._id] && (
+                  <div className="mt-4">
+                    <h3 className="text-2xl font-semibold text-gray-800">
+                      {product.name}
+                    </h3>
+                    <p className="text-gray-600">
+                      Brand: {product.brandId?.name}
+                    </p>
+                    <p className="text-gray-600">
+                      Category: {product.categoryId?.name}
+                    </p>
+                    <p className="text-gray-600">
+                      Quantity: {product.quantity}
+                    </p>
+                    <p className="text-gray-600">Price: ${product.price}</p>
+                    <p className="text-gray-600">Product ID: {product._id}</p>
+                    <p className="text-gray-600">
+                      Created at: {new Date(product.createdAt).toLocaleString()}
+                    </p>
+                    <p className="text-gray-600">
+                      Last updated:{" "}
+                      {new Date(product.updatedAt).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Edit and Delete Icons */}
+              <div className="flex justify-center p-4">
+                <button
+                  className="mr-3 text-blue-500 hover:text-blue-700"
+                  onClick={() => openEditModal(product)} // Open modal to edit product
+                >
+                  <FaEdit className="w-5 h-5" />
+                </button>
+                <button
+                  className="text-red-500 hover:text-red-700"
+                  onClick={() => confirmDeleteProduct(product)} // Ask for confirmation before deleting
+                >
+                  <FaTrashAlt className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-center text-gray-600">
+          No products found for your search.
+        </p>
+      )}
 
       {/* Modal for Editing or Adding Product */}
       {modalOpen && (
