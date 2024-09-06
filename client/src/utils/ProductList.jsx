@@ -166,6 +166,28 @@ export default function ProductsList() {
         (selectedBrand === "" || product?.brandId?._id === selectedBrand)
     );
 
+  // Get filtered brands based on selected category
+  const filteredBrands = selectedCategory
+    ? brands.filter((brand) =>
+        products.some(
+          (product) =>
+            product.brandId._id === brand._id &&
+            product.categoryId._id === selectedCategory
+        )
+      )
+    : brands;
+
+  // Get filtered categories based on selected brand
+  const filteredCategories = selectedBrand
+    ? categories.filter((category) =>
+        products.some(
+          (product) =>
+            product.categoryId._id === category._id &&
+            product.brandId._id === selectedBrand
+        )
+      )
+    : categories;
+
   if (loading) {
     return <p>Loading products...</p>;
   }
@@ -190,7 +212,7 @@ export default function ProductsList() {
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
               <option value="">All Categories</option>
-              {categories.map((category) => (
+              {filteredCategories.map((category) => (
                 <option key={category._id} value={category._id}>
                   {category.name}
                 </option>
@@ -207,7 +229,7 @@ export default function ProductsList() {
               onChange={(e) => setSelectedBrand(e.target.value)}
             >
               <option value="">All Brands</option>
-              {brands.map((brand) => (
+              {filteredBrands.map((brand) => (
                 <option key={brand._id} value={brand._id}>
                   {brand.name}
                 </option>
