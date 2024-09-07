@@ -35,6 +35,7 @@ export default function ProductsList() {
     fetchProducts();
   }, []);
 
+  // Calculate total counts
   const totalProducts = products.length;
   const outOfStockCount = products.filter((p) => p.quantity === 0).length;
   const lowStockCount = products.filter(
@@ -42,9 +43,11 @@ export default function ProductsList() {
   ).length;
   const availableCount = totalProducts - outOfStockCount - lowStockCount;
 
+  // Generate unique categories and brands
   const allCategories = [...new Set(products.map((p) => p.categoryId?.name))];
   const allBrands = [...new Set(products.map((p) => p.brandId?.name))];
 
+  // Update filtered categories and brands based on selection
   useEffect(() => {
     if (selectedCategory === "all" && selectedBrand === "all") {
       setFilteredCategories(allCategories);
@@ -180,8 +183,6 @@ export default function ProductsList() {
         ? true
         : filterStockStatus === "low"
         ? product.quantity > 0 && product.quantity < 5
-        : filterStockStatus === "available"
-        ? product.quantity >= 1
         : product.quantity === 0
     )
     .filter((product) =>
@@ -198,19 +199,13 @@ export default function ProductsList() {
 
   return (
     <>
-      {/* Sticky Header */}
-      {/* <div className="sticky top-0 z-10 bg-blue-500 shadow-md transperent"> */}
-      {/* <div className="sticky top-0 z-10 shadow-md bg-none transparent"> */}
-      <div className="fixed top-0 z-10 w-full bg-blue-500 shadow-md">
-        <div className="flex items-center justify-between px-4 py-4 text-white">
-          <h1 className="text-3xl font-bold">Products ({totalProducts})</h1>
-        </div>
+      <div className="flex items-center justify-between px-4 py-4 bg-blue-500 text-white">
+        <h1 className="text-3xl font-bold">Product Inventory</h1>
       </div>
 
       <div className="flex">
-        {/* Sidebar */}
-        <aside className="fixed top-[5.7rem] left-0 w-1/4 h-[calc(100vh-5rem)] p-4 bg-gray-100 z-50">
-          <h2 className="mb-4 text-xl font-bold">Filters</h2>
+        <aside className="w-1/4 p-4 bg-gray-100">
+          <h2 className="text-xl font-bold mb-4">Filters</h2>
 
           <div className="mb-4">
             <label className="block text-sm font-semibold">Category</label>
@@ -252,14 +247,13 @@ export default function ProductsList() {
               className="w-full px-4 py-2 border rounded-lg"
             >
               <option value="all">All Stock Levels</option>
-              <option value="available">Available</option>
               <option value="low">Low Stock</option>
               <option value="out">Out of Stock</option>
             </select>
           </div>
 
           <div className="mt-6">
-            <h3 className="mb-2 text-lg font-bold">Stock Summary</h3>
+            <h3 className="text-lg font-bold mb-2">Stock Summary</h3>
             <p>Total Products: {totalProducts}</p>
             <p>Available: {availableCount}</p>
             <p>Low Stock: {lowStockCount}</p>
@@ -267,9 +261,8 @@ export default function ProductsList() {
           </div>
         </aside>
 
-        {/* Main Products Section */}
-        <main className="w-3/4 h-screen overflow-y-auto ml-[25%]">
-          <div className="fixed top-[5.7rem]  w-[75%] z-50 flex items-center justify-between p-3 mb-4 bg-gray-100">
+        <main className="w-3/4 p-6">
+          <div className="flex items-center justify-between mb-4">
             <input
               type="text"
               placeholder="Search products..."
@@ -287,7 +280,7 @@ export default function ProductsList() {
           </div>
 
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 p-4 mt-40 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {filteredProducts.map((product, index) => {
                 let label = "";
                 let labelStyle = "";
@@ -309,7 +302,8 @@ export default function ProductsList() {
                     className={`relative p-4 rounded-lg shadow-md transition-transform duration-300 transform hover:scale-105 ${bgColor}`}
                     onMouseLeave={() => hideDetails(product._id)}
                   >
-                    <div className="absolute z-20 top-2 left-2">
+                    {/* Stock Status Label */}
+                    <div className="absolute top-2 left-2 z-20">
                       <span
                         className={`px-2 py-1 rounded text-white ${labelStyle}`}
                         style={{
@@ -326,24 +320,27 @@ export default function ProductsList() {
                       </span>
                     </div>
 
+                    {/* Image with hover effect */}
                     <div className="relative flex items-center justify-center h-56 bg-white group">
                       <img
                         src={product?.image}
                         alt={product?.name}
                         className="object-contain w-full h-full p-4"
                       />
-                      <div className="absolute bottom-0 hidden max-w-full p-2 overflow-hidden text-sm text-center text-white bg-gray-800 rounded-t-lg group-hover:block w-max text-ellipsis">
+                      {/* Tooltip to show full name when hovering over the image */}
+                      <div className="absolute hidden group-hover:block bottom-0 bg-gray-800 text-white text-sm p-2 rounded-t-lg w-max max-w-full text-center overflow-hidden text-ellipsis">
                         {product.name}
                       </div>
                     </div>
 
                     <div className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="relative w-full group">
+                      <div className="flex justify-between items-center">
+                        <div className="relative group w-full">
                           <h3 className="text-lg font-semibold overflow-hidden whitespace-nowrap text-ellipsis max-w-[90%]">
                             {product.name}
                           </h3>
-                          <div className="absolute left-0 right-0 z-10 hidden max-w-full p-2 overflow-hidden text-center bg-gray-200 rounded shadow-lg group-hover:block w-max text-ellipsis">
+                          {/* Tooltip with full name on hover */}
+                          <div className="absolute hidden group-hover:block z-10 p-2 bg-gray-200 rounded shadow-lg w-max max-w-full left-0 right-0 text-center overflow-hidden text-ellipsis">
                             {product.name}
                           </div>
                         </div>
@@ -405,6 +402,7 @@ export default function ProductsList() {
         </main>
       </div>
 
+      {/* Modal for Adding or Editing Products */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="p-8 bg-white rounded-lg shadow-lg w-96">
@@ -513,6 +511,7 @@ export default function ProductsList() {
         </div>
       )}
 
+      {/* Confirm Delete Modal */}
       <Transition show={confirmOpen} as={React.Fragment}>
         <Dialog
           as="div"

@@ -7,13 +7,12 @@ export default function BrandsList() {
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState(""); // Ensure searchTerm is initialized as an empty string
+  const [searchTerm, setSearchTerm] = useState("");
   const [editingBrand, setEditingBrand] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [isAddingNewBrand, setIsAddingNewBrand] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedBrandForDelete, setSelectedBrandForDelete] = useState(null);
-  const [expandedBrands, setExpandedBrands] = useState({}); // Track expanded details
 
   useEffect(() => {
     const fetchBrands = async () => {
@@ -30,7 +29,6 @@ export default function BrandsList() {
     fetchBrands();
   }, []);
 
-  // Delete a brand with confirmation modal
   const confirmDeleteBrand = (brand) => {
     setSelectedBrandForDelete(brand);
     setConfirmOpen(true); // Open the confirm dialog
@@ -48,35 +46,29 @@ export default function BrandsList() {
     }
   };
 
-  // Open modal to edit a brand
   const openEditModal = (brand) => {
     setEditingBrand(brand);
     setIsAddingNewBrand(false); // Ensure it's not in "Add New" mode
     setModalOpen(true); // Open the modal
   };
 
-  // Open modal to add a new brand
   const openAddNewModal = () => {
     setEditingBrand({ name: "", image: "" }); // Empty form for new brand
     setIsAddingNewBrand(true); // Switch to "Add New" mode
     setModalOpen(true);
   };
 
-  // Close modal
   const closeModal = () => {
     setModalOpen(false);
     setEditingBrand(null);
   };
 
-  // Save edited or new brand details
   const saveBrandDetails = async () => {
     try {
       if (isAddingNewBrand) {
-        // POST request to add a new brand
         const response = await apiClient.post("/api/brands", editingBrand);
-        setBrands([...brands, response.data]); // Add new brand to list without reload
+        setBrands((prevBrands) => [...prevBrands, response.data.data]);
       } else {
-        // PUT request to update an existing brand
         await apiClient.put(`/api/brands/${editingBrand._id}`, editingBrand);
         setBrands((prevBrands) =>
           prevBrands.map((brand) =>
@@ -84,13 +76,12 @@ export default function BrandsList() {
           )
         );
       }
-      closeModal(); // Close modal after saving
+      closeModal();
     } catch (error) {
       console.error("Error saving the brand:", error);
     }
   };
 
-  // Handle input change in the modal form
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEditingBrand((prev) => ({
@@ -99,23 +90,6 @@ export default function BrandsList() {
     }));
   };
 
-  // Toggle details on button click
-  const toggleDetails = (id) => {
-    setExpandedBrands((prev) => ({
-      ...prev,
-      [id]: !prev[id], // Toggle the state for the specific brand
-    }));
-  };
-
-  // Hide details when mouse leaves the card
-  const hideDetails = (id) => {
-    setExpandedBrands((prev) => ({
-      ...prev,
-      [id]: false, // Set the state to false when mouse leaves
-    }));
-  };
-
-  // Filter brands based on the search term, ensuring brand.name is defined
   const filteredBrands = brands.filter((brand) =>
     brand?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -130,23 +104,33 @@ export default function BrandsList() {
 
   return (
     <>
-      {/* Add New Brand Button */}
-      <div className="flex items-center justify-between px-4 py-2">
-        {/* Search Input */}
-        <input
-          type="text"
-          placeholder="Search brands..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-1/2 px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
-        />
+      {/* Sticky Header Section */}
+      <div className="sticky top-0 z-10 bg-blue-500 shadow-md">
+        {/* Title Section */}
+        <div className="flex items-center justify-between px-4 py-4 text-white">
+          <h1 className="text-3xl font-bold">
+            Brand Inventory ({brands.length})
+          </h1>
+        </div>
 
-        <button
-          onClick={openAddNewModal}
-          className="px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600"
-        >
-          <FaPlusCircle className="inline-block mr-2" /> Add New Brand
-        </button>
+        {/* Search and Add Button Section */}
+        <div className="flex items-center justify-between px-4 py-2 bg-blue-500">
+          {/* Search Input */}
+          <input
+            type="text"
+            placeholder="Search brands..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-1/2 px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
+          />
+
+          <button
+            onClick={openAddNewModal}
+            className="px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600"
+          >
+            <FaPlusCircle className="inline-block mr-2" /> Add New Brand
+          </button>
+        </div>
       </div>
 
       {/* Brands List */}
@@ -156,9 +140,8 @@ export default function BrandsList() {
             <div
               key={brand._id}
               className="overflow-hidden transition-transform duration-300 transform bg-gray-100 rounded-lg shadow-lg hover:scale-105"
-              onMouseLeave={() => hideDetails(brand._id)} // Hide details on mouse leave
             >
-              {/* Logo and Name */}
+              {/* Logo */}
               <div className="flex items-center justify-center h-56 bg-white">
                 <img
                   src={brand.image}
@@ -167,28 +150,10 @@ export default function BrandsList() {
                 />
               </div>
               <div className="p-6 text-center">
-                {/* View Details Button */}
-                <button
-                  onClick={() => toggleDetails(brand._id)}
-                  className="font-semibold text-indigo-500 hover:text-indigo-600"
-                >
-                  {expandedBrands[brand._id] ? "Hide Details" : "View Details"}
-                </button>
-
-                {/* Details Section (Visible only if expanded) */}
-                {expandedBrands[brand._id] && (
-                  <div className="mt-4">
-                    <h3 className="text-2xl font-semibold text-gray-800">
-                      {brand.name}
-                    </h3>
-                    <p className="text-gray-600">
-                      Created at: {new Date(brand.createdAt).toLocaleString()}
-                    </p>
-                    <p className="text-gray-600">
-                      Last updated: {new Date(brand.updatedAt).toLocaleString()}
-                    </p>
-                  </div>
-                )}
+                {/* Display Brand Name */}
+                <h3 className="text-2xl font-semibold text-gray-800">
+                  {brand.name}
+                </h3>
               </div>
 
               {/* Edit and Delete Icons */}

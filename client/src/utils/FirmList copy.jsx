@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FaEdit, FaTrashAlt, FaPlusCircle } from "react-icons/fa";
 import { Dialog, Transition } from "@headlessui/react";
-import apiClient from "../services/apiClient"; // Ensure the path is correct
+import apiClient from "../services/apiClient";
 
 export default function FirmsList() {
   const [firms, setFirms] = useState([]);
@@ -19,28 +19,13 @@ export default function FirmsList() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6); // Default items per page
-  const [cardsPerRow, setCardsPerRow] = useState(1); // Cards that fit per row
 
-  // Card dimension constants
-  const CARD_WIDTH = 300; // Width of a card
-  const CARD_HEIGHT = 400; // Height of a card
+  // Define estimated card width and height (in pixels)
+  const CARD_WIDTH = 300; // Approximate width of each card in pixels
+  const CARD_HEIGHT = 400; // Approximate height of each card in pixels (including spacing)
 
-  // Calculate itemsPerPage based on window size
-  const calculateItemsPerPage = () => {
-    const containerWidth = window.innerWidth - 64; // Width of the container (subtracting padding/margins)
-    const containerHeight = window.innerHeight - 200; // Height of the container (subtracting header/pagination height)
-
-    // Cards per row
-    const cardsPerRow = Math.floor(containerWidth / CARD_WIDTH);
-    setCardsPerRow(cardsPerRow);
-
-    // Rows per page based on available height
-    const rowsPerPage = Math.floor(containerHeight / CARD_HEIGHT);
-
-    // Total items per page
-    const totalItemsPerPage = cardsPerRow * rowsPerPage;
-    setItemsPerPage(totalItemsPerPage > 0 ? totalItemsPerPage : 1);
-  };
+  // Header height (you might have this value based on your layout)
+  const HEADER_HEIGHT = 100; // Adjust this based on your actual header size
 
   useEffect(() => {
     const fetchFirms = async () => {
@@ -55,9 +40,31 @@ export default function FirmsList() {
     };
 
     fetchFirms();
+
+    // Function to calculate itemsPerPage based on screen size
+    const calculateItemsPerPage = () => {
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight - HEADER_HEIGHT; // Subtract the height of the header
+
+      // Calculate how many cards fit in a row based on the screen width
+      const cardsPerRow = Math.floor(screenWidth / CARD_WIDTH);
+
+      // Calculate how many rows fit on the screen based on the remaining height
+      const rowsPerPage = Math.floor(screenHeight / CARD_HEIGHT);
+
+      // Total items per page (cards per row * rows per page)
+      const totalItems = cardsPerRow * rowsPerPage;
+
+      setItemsPerPage(totalItems > 0 ? totalItems : 1); // Ensure at least one item is shown
+    };
+
+    // Initial setting of itemsPerPage
     calculateItemsPerPage();
+
+    // Add event listener for window resize to adjust itemsPerPage dynamically
     window.addEventListener("resize", calculateItemsPerPage);
 
+    // Cleanup the event listener on component unmount
     return () => window.removeEventListener("resize", calculateItemsPerPage);
   }, []);
 
@@ -106,14 +113,17 @@ export default function FirmsList() {
       }
 
       if (isAddingNewFirm) {
+        // POST request to add a new firm
         const response = await apiClient.post("/api/firms", editingFirm);
-        setFirms([...firms, response.data.data]);
+        setFirms([...firms, response.data.data]); // Add new firm to the list
       } else {
+        // PUT request to update an existing firm
         const updateResponse = await apiClient.put(
           `/api/firms/${editingFirm._id}`,
           editingFirm
         );
 
+        // If update was successful, update the firm in the state
         if (updateResponse.status === 202 || updateResponse.status === 200) {
           setFirms((prevFirms) =>
             prevFirms.map((firm) =>
@@ -125,8 +135,9 @@ export default function FirmsList() {
         }
       }
 
-      closeModal();
+      closeModal(); // Close the modal after saving
     } catch (error) {
+      console.error("Error saving the firm:", error);
       setFormError(
         error.response?.data?.message ||
           "Error saving the firm. Please try again."
@@ -207,13 +218,48 @@ export default function FirmsList() {
         </div>
       </div>
 
-      {/* Firm Cards */}
-      <div className="px-4 py-6">
-        {currentFirms.length > 0 ? (
+      {/* Pagination Controls at the Top */}
+      <nav
+        aria-label="Pagination"
+        className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200 sm:px-6"
+      >
+        <div className="hidden sm:block">
+          <p className="text-sm text-gray-700">
+            Showing <span className="font-medium">{indexOfFirstFirm + 1}</span>{" "}
+            to{" "}
+            <span className="font-medium">
+              {indexOfLastFirm > filteredFirms.length
+                ? filteredFirms.length
+                : indexOfLastFirm}
+            </span>{" "}
+            of <span className="font-medium">{filteredFirms.length}</span>{" "}
+            results
+          </p>
+        </div>
+        <div className="flex justify-between flex-1 sm:justify-end">
+          <button
+            onClick={handlePreviousPage}
+            disabled={currentPage === 1}
+            className="relative inline-flex items-center px-3 py-2 text-sm font-semibold text-gray-900 bg-white rounded-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
+          >
+            Previous
+          </button>
+          <button
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages}
+            className="relative inline-flex items-center px-3 py-2 ml-3 text-sm font-semibold text-gray-900 bg-white rounded-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
+          >
+            Next
+          </button>
+        </div>
+      </nav>
+
+      {currentFirms.length > 0 ? (
+        <>
           <div
-            className="grid gap-6"
+            className="grid gap-6 px-4 py-6"
             style={{
-              gridTemplateColumns: `repeat(${cardsPerRow}, 1fr)`, // Dynamically set grid columns based on the calculated cardsPerRow
+              gridTemplateColumns: `repeat(auto-fit, minmax(${CARD_WIDTH}px, 1fr))`, // Automatically fit the cards in the row
             }}
           >
             {currentFirms.map((firm) => (
@@ -267,50 +313,12 @@ export default function FirmsList() {
               </div>
             ))}
           </div>
-        ) : (
-          <p className="text-center text-gray-600">
-            No firms found for your search.
-          </p>
-        )}
-      </div>
-
-      {/* Pagination */}
-      <div className="sticky bottom-0 left-0 w-full py-4 bg-white border-t">
-        <nav
-          aria-label="Pagination"
-          className="flex items-center justify-between px-4 sm:px-6"
-        >
-          <div className="hidden sm:block">
-            <p className="text-sm text-gray-700">
-              Showing{" "}
-              <span className="font-medium">{indexOfFirstFirm + 1}</span> to{" "}
-              <span className="font-medium">
-                {indexOfLastFirm > filteredFirms.length
-                  ? filteredFirms.length
-                  : indexOfLastFirm}
-              </span>{" "}
-              of <span className="font-medium">{filteredFirms.length}</span>{" "}
-              results
-            </p>
-          </div>
-          <div className="flex justify-between flex-1 sm:justify-end">
-            <button
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              className="relative inline-flex items-center px-3 py-2 text-sm font-semibold text-gray-900 bg-white rounded-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
-            >
-              Previous
-            </button>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className="relative inline-flex items-center px-3 py-2 ml-3 text-sm font-semibold text-gray-900 bg-white rounded-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
-            >
-              Next
-            </button>
-          </div>
-        </nav>
-      </div>
+        </>
+      ) : (
+        <p className="text-center text-gray-600">
+          No firms found for your search.
+        </p>
+      )}
 
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
