@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { FaEdit, FaTrashAlt, FaPlusCircle, FaSearch } from "react-icons/fa";
+import React, { useEffect, useState, useRef } from "react";
+import { FaEdit, FaTrashAlt, FaPlusCircle } from "react-icons/fa";
 import { Dialog, Transition } from "@headlessui/react";
 import apiClient from "../services/apiClient";
 
@@ -20,9 +20,6 @@ export default function ProductsList() {
     useState(null);
   const [expandedProducts, setExpandedProducts] = useState({});
   const [filterStockStatus, setFilterStockStatus] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(6);
-  const [isSearchOpen, setIsSearchOpen] = useState(false); // Toggle for search bar in small screens
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -191,23 +188,6 @@ export default function ProductsList() {
       product?.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-  // Pagination logic
-  const indexOfLastProduct = currentPage * itemsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - itemsPerPage;
-  const currentProducts = filteredProducts.slice(
-    indexOfFirstProduct,
-    indexOfLastProduct
-  );
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
-  };
-
   if (loading) {
     return <p>Loading products...</p>;
   }
@@ -219,6 +199,8 @@ export default function ProductsList() {
   return (
     <>
       {/* Sticky Header */}
+      {/* <div className="sticky top-0 z-10 bg-blue-500 shadow-md transperent"> */}
+      {/* <div className="sticky top-0 z-10 shadow-md bg-none transparent"> */}
       <div className="fixed top-0 z-10 w-full bg-blue-500 shadow-md">
         <div className="flex items-center justify-between px-4 py-4 text-white">
           <h1 className="text-3xl font-bold">Products ({totalProducts})</h1>
@@ -227,7 +209,7 @@ export default function ProductsList() {
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className="fixed top-[5.7rem] left-0 w-1/4 h-[calc(100vh-5rem)] p-4 bg-gray-100 z-50 hidden sm:block">
+        <aside className="fixed top-[5.7rem] left-0 w-1/4 h-[calc(100vh-5rem)] p-4 bg-gray-100 z-50">
           <h2 className="mb-4 text-xl font-bold">Filters</h2>
 
           <div className="mb-4">
@@ -286,54 +268,27 @@ export default function ProductsList() {
         </aside>
 
         {/* Main Products Section */}
-        <main className="w-full sm:w-3/4 h-screen overflow-y-auto sm:ml-[25%]">
-          <div className="fixed top-[5.7rem]  w-full sm:w-[75%] z-50 flex items-center justify-between p-3 mb-4 bg-gray-100">
-            {/* Magnifying glass for small screens */}
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="text-white sm:hidden"
-              >
-                <FaSearch size={24} className="text-blue-500" />
-              </button>
+        <main className="w-3/4 h-screen overflow-y-auto ml-[25%]">
+          <div className="fixed top-[5.7rem]  w-[75%] z-50 flex items-center justify-between p-3 mb-4 bg-gray-100">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-1/2 px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
+            />
 
-              {isSearchOpen && (
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full px-4 py-2 border rounded-lg sm:hidden focus:ring focus:ring-indigo-200"
-                />
-              )}
-
-              {/* Regular search bar for larger screens */}
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="hidden w-full px-4 py-2 border rounded-lg sm:block focus:ring focus:ring-indigo-200"
-              />
-            </div>
-
-            {/* Plus icon for small screens */}
-            <button onClick={openAddNewModal} className="text-white sm:hidden">
-              <FaPlusCircle size={24} className="text-green-500" />
-            </button>
-
-            {/* Add New Product button for larger screens */}
             <button
               onClick={openAddNewModal}
-              className="hidden px-4 py-2 text-white bg-green-500 rounded-lg sm:flex hover:bg-green-600"
+              className="px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600"
             >
               <FaPlusCircle className="inline-block mr-2" /> Add New Product
             </button>
           </div>
 
-          {currentProducts.length > 0 ? (
+          {filteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 p-4 mt-40 sm:grid-cols-2 lg:grid-cols-3">
-              {currentProducts.map((product, index) => {
+              {filteredProducts.map((product, index) => {
                 let label = "";
                 let labelStyle = "";
                 let bgColor = "bg-gray-50"; // Light gray background for available products
@@ -363,7 +318,8 @@ export default function ProductsList() {
                               ? "#FF4D4F" // Red for out of stock
                               : label === "Low Stock"
                               ? "#FFA500" // Orange for low stock
-                              : "", // Green for normal stock
+                              : // : "#4CAF50", // Green for normal stock
+                                "", // Green for normal stock
                         }}
                       >
                         {label || "In Stock"}
@@ -446,46 +402,6 @@ export default function ProductsList() {
               No products found for your search.
             </p>
           )}
-
-          {/* Pagination */}
-          <div className="sticky bottom-0 left-0 w-full py-4 bg-white border-t">
-            <nav
-              aria-label="Pagination"
-              className="flex items-center justify-between px-4 sm:px-6"
-            >
-              <div className="hidden sm:block">
-                <p className="text-sm text-gray-700">
-                  Showing{" "}
-                  <span className="font-medium">{indexOfFirstProduct + 1}</span>{" "}
-                  to{" "}
-                  <span className="font-medium">
-                    {indexOfLastProduct > filteredProducts.length
-                      ? filteredProducts.length
-                      : indexOfLastProduct}
-                  </span>{" "}
-                  of{" "}
-                  <span className="font-medium">{filteredProducts.length}</span>{" "}
-                  results
-                </p>
-              </div>
-              <div className="flex justify-between flex-1 sm:justify-end">
-                <button
-                  onClick={handlePreviousPage}
-                  disabled={currentPage === 1}
-                  className="relative inline-flex items-center px-3 py-2 text-sm font-semibold text-gray-900 bg-white rounded-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={handleNextPage}
-                  disabled={currentPage === totalPages}
-                  className="relative inline-flex items-center px-3 py-2 ml-3 text-sm font-semibold text-gray-900 bg-white rounded-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
-                >
-                  Next
-                </button>
-              </div>
-            </nav>
-          </div>
         </main>
       </div>
 

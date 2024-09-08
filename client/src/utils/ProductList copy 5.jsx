@@ -22,7 +22,7 @@ export default function ProductsList() {
   const [filterStockStatus, setFilterStockStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6);
-  const [isSearchOpen, setIsSearchOpen] = useState(false); // Toggle for search bar in small screens
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -313,7 +313,7 @@ export default function ProductsList() {
                 placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="hidden w-full px-4 py-2 border rounded-lg sm:block focus:ring focus:ring-indigo-200"
+                className="hidden w-1/2 px-4 py-2 border rounded-lg sm:block focus:ring focus:ring-indigo-200"
               />
             </div>
 

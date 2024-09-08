@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FaEdit, FaTrashAlt, FaPlusCircle, FaSearch } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaPlusCircle } from "react-icons/fa";
 import { Dialog, Transition } from "@headlessui/react";
 import apiClient from "../services/apiClient"; // Ensure the path is correct
 
@@ -15,7 +15,6 @@ export default function FirmsList() {
   const [selectedFirmForDelete, setSelectedFirmForDelete] = useState(null);
   const [expandedFirms, setExpandedFirms] = useState({});
   const [formError, setFormError] = useState(null);
-  const [isSearchOpen, setIsSearchOpen] = useState(false); // Toggle search for mobile view
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -191,48 +190,19 @@ export default function FirmsList() {
         </div>
 
         <div className="flex items-center justify-between px-4 py-2 bg-blue-500">
-          {/* Search Input for large screens */}
-          <div className="flex items-center space-x-4">
-            <input
-              type="text"
-              placeholder="Search firms..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={`hidden md:block w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200 ${
-                isSearchOpen ? "block" : "hidden"
-              }`}
-            />
-
-            {/* Magnifying glass icon for mobile screens */}
-            <button
-              onClick={() => setIsSearchOpen(!isSearchOpen)} // Toggle search input for small screens
-              className="text-white md:hidden"
-            >
-              <FaSearch size={24} />
-            </button>
-
-            {/* Conditionally show the search input on small screens */}
-            {isSearchOpen && (
-              <input
-                type="text"
-                placeholder="Search firms..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full px-4 py-2 border rounded-lg md:hidden focus:ring focus:ring-indigo-200"
-              />
-            )}
-          </div>
+          <input
+            type="text"
+            placeholder="Search firms..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-1/2 px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
+          />
 
           <button
             onClick={openAddNewModal}
-            className="hidden px-4 py-2 text-white bg-green-500 rounded-lg md:flex hover:bg-green-600"
+            className="px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600"
           >
             <FaPlusCircle className="inline-block mr-2" /> Add New Firm
-          </button>
-
-          {/* Plus icon for small screens */}
-          <button onClick={openAddNewModal} className="text-white md:hidden">
-            <FaPlusCircle size={24} />
           </button>
         </div>
       </div>
@@ -342,7 +312,6 @@ export default function FirmsList() {
         </nav>
       </div>
 
-      {/* Modal for Editing or Adding Firm */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="p-8 bg-white rounded-lg shadow-lg w-96">

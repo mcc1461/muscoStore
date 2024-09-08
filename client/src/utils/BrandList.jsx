@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { FaEdit, FaTrashAlt, FaPlusCircle } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaPlusCircle, FaSearch } from "react-icons/fa";
 import { Dialog, Transition } from "@headlessui/react";
-import apiClient from "../services/apiClient"; // Import the apiClient for making requests
+import apiClient from "../services/apiClient";
 
 export default function BrandsList() {
   const [brands, setBrands] = useState([]);
@@ -13,6 +13,16 @@ export default function BrandsList() {
   const [isAddingNewBrand, setIsAddingNewBrand] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedBrandForDelete, setSelectedBrandForDelete] = useState(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false); // State for showing search input in mobile view
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(6); // Default items per page
+  const [cardsPerRow, setCardsPerRow] = useState(1); // Cards that fit per row
+
+  // Card dimension constants
+  const CARD_WIDTH = 300; // Width of a card
+  const CARD_HEIGHT = 400; // Height of a card
 
   useEffect(() => {
     const fetchBrands = async () => {
@@ -27,7 +37,28 @@ export default function BrandsList() {
     };
 
     fetchBrands();
+    calculateItemsPerPage();
+    window.addEventListener("resize", calculateItemsPerPage);
+
+    return () => window.removeEventListener("resize", calculateItemsPerPage);
   }, []);
+
+  // Function to calculate itemsPerPage based on window size
+  const calculateItemsPerPage = () => {
+    const containerWidth = window.innerWidth - 64; // Subtracting padding/margins
+    const containerHeight = window.innerHeight - 200; // Subtracting header/pagination height
+
+    // Cards per row
+    const cardsPerRow = Math.floor(containerWidth / CARD_WIDTH);
+    setCardsPerRow(cardsPerRow);
+
+    // Rows per page based on available height
+    const rowsPerPage = Math.floor(containerHeight / CARD_HEIGHT);
+
+    // Total items per page
+    const totalItemsPerPage = cardsPerRow * rowsPerPage;
+    setItemsPerPage(totalItemsPerPage > 0 ? totalItemsPerPage : 1); // Ensure at least 1 item
+  };
 
   const confirmDeleteBrand = (brand) => {
     setSelectedBrandForDelete(brand);
@@ -94,6 +125,23 @@ export default function BrandsList() {
     brand?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Pagination logic
+  const indexOfLastBrand = currentPage * itemsPerPage;
+  const indexOfFirstBrand = indexOfLastBrand - itemsPerPage;
+  const currentBrands = filteredBrands.slice(
+    indexOfFirstBrand,
+    indexOfLastBrand
+  );
+  const totalPages = Math.ceil(filteredBrands.length / itemsPerPage);
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
+  };
+
   if (loading) {
     return <p>Loading brands...</p>;
   }
@@ -115,28 +163,66 @@ export default function BrandsList() {
 
         {/* Search and Add Button Section */}
         <div className="flex items-center justify-between px-4 py-2 bg-blue-500">
-          {/* Search Input */}
-          <input
-            type="text"
-            placeholder="Search brands..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-1/2 px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
-          />
+          {/* Search Input and Icon */}
+          <div className="flex items-center space-x-4">
+            {/* Full search input for larger screens */}
+            <input
+              type="text"
+              placeholder="Search brands..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={`hidden md:block w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200 ${
+                isSearchOpen ? "block" : "hidden"
+              }`}
+            />
 
-          <button
-            onClick={openAddNewModal}
-            className="px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600"
-          >
-            <FaPlusCircle className="inline-block mr-2" /> Add New Brand
-          </button>
+            {/* Magnifying glass icon for smaller screens */}
+            <button
+              onClick={() => setIsSearchOpen(!isSearchOpen)} // Toggle the search input
+              className="text-white md:hidden"
+            >
+              <FaSearch size={24} />
+            </button>
+
+            {/* Conditionally show search input on small screens */}
+            {isSearchOpen && (
+              <input
+                type="text"
+                placeholder="Search brands..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="block w-full px-4 py-2 border rounded-lg md:hidden focus:ring focus:ring-indigo-200"
+              />
+            )}
+          </div>
+
+          {/* Add New Button */}
+          <div className="flex items-center space-x-4">
+            {/* Full button for larger screens */}
+            <button
+              onClick={openAddNewModal}
+              className="hidden px-4 py-2 text-white bg-green-500 rounded-lg md:flex hover:bg-green-600"
+            >
+              <FaPlusCircle className="inline-block mr-2" /> Add New Brand
+            </button>
+
+            {/* Plus icon for smaller screens */}
+            <button onClick={openAddNewModal} className="text-white md:hidden">
+              <FaPlusCircle size={24} />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Brands List */}
-      {filteredBrands.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 px-4 py-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-          {filteredBrands.map((brand) => (
+      {currentBrands.length > 0 ? (
+        <div
+          className="grid gap-6 px-4 py-6"
+          style={{
+            gridTemplateColumns: `repeat(${cardsPerRow}, 1fr)`, // Dynamically set grid columns based on cardsPerRow
+          }}
+        >
+          {currentBrands.map((brand) => (
             <div
               key={brand._id}
               className="overflow-hidden transition-transform duration-300 transform bg-gray-100 rounded-lg shadow-lg hover:scale-105"
@@ -179,6 +265,44 @@ export default function BrandsList() {
           No brands found for your search.
         </p>
       )}
+
+      {/* Pagination */}
+      <div className="sticky bottom-0 left-0 w-full py-4 bg-white border-t">
+        <nav
+          aria-label="Pagination"
+          className="flex items-center justify-between px-4 sm:px-6"
+        >
+          <div className="hidden sm:block">
+            <p className="text-sm text-gray-700">
+              Showing{" "}
+              <span className="font-medium">{indexOfFirstBrand + 1}</span> to{" "}
+              <span className="font-medium">
+                {indexOfLastBrand > filteredBrands.length
+                  ? filteredBrands.length
+                  : indexOfLastBrand}
+              </span>{" "}
+              of <span className="font-medium">{filteredBrands.length}</span>{" "}
+              results
+            </p>
+          </div>
+          <div className="flex justify-between flex-1 sm:justify-end">
+            <button
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+              className="relative inline-flex items-center px-3 py-2 text-sm font-semibold text-gray-900 bg-white rounded-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
+            >
+              Previous
+            </button>
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              className="relative inline-flex items-center px-3 py-2 ml-3 text-sm font-semibold text-gray-900 bg-white rounded-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
+            >
+              Next
+            </button>
+          </div>
+        </nav>
+      </div>
 
       {/* Modal for Editing or Adding Brand */}
       {modalOpen && (
