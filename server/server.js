@@ -1,7 +1,7 @@
 "use strict";
 
 /* -------------------------------------------------------
-    NODEJS EXPRESS | MusCo Dev
+    NODEJS EXPRESS SERVER - server.js | MusCo Dev
 ------------------------------------------------------- */
 const express = require("express");
 const path = require("path");
@@ -19,9 +19,6 @@ const PORT = process.env.PORT || 8061;
 // asyncErrors to errorHandler:
 require("express-async-errors");
 
-// Serve static files (including CSS)
-app.use(express.static(path.join(__dirname, "public")));
-
 // Set the view engine to EJS
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -36,18 +33,27 @@ dbConnection();
 /* ------------------------------------------------------- */
 // Middlewares:
 
-// Cors:
+// CORS:
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
       "http://127.0.0.1:5173",
       "https://tailwindui.com",
-    ], // List all allowed origins
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true, // Include this if cookies/auth are required
+    credentials: true,
   })
 );
+
+// Add CORS headers for static files
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  next();
+});
+
+// Serve static files (including CSS)
+app.use(express.static(path.join(__dirname, "public")));
 
 // Accept JSON and URL Encoded Requests:
 app.use(express.json());
