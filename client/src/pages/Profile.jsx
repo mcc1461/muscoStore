@@ -1,130 +1,95 @@
-import { useState, useEffect } from "react";
+// src/components/Profile.jsx
+
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setCredentials } from "../slices/authSlice";
-import Loader from "../components/Loader";
+import { useProfileQuery } from "../slices/usersApiSlice";
 import { Link, useNavigate } from "react-router-dom";
-import { useProfileMutation } from "../slices/usersApiSlice";
-import { toast } from 'react-toastify';
-import photo  from '../assets/nymous 2.jfif'
-
-
+import Loader from "../components/Loader";
+import { toast } from "react-toastify";
 
 export default function Profile() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
-  const { userInfo } = useSelector((state) => state.auth);
-  const { mutate: profileinfo } = useProfileMutation()
-  
 
-  const initialState = {
-    firstName: userInfo?.firstName,
-    lastName: userInfo?.lastName,
-    userName: userInfo?.userName,
-    email: userInfo?.email,
-    phoneNumber: userInfo?.phoneNumber,
-    bio: userInfo?.bio,
-    profileImage: userInfo?.photo
+  // Access userInfo from Redux store
+  const { userInfo } = useSelector((state) => state.auth);
+
+  // Fetch profile data using RTK Query
+  const { data: profileData, error, isLoading } = useProfileQuery();
+
+  // Redirect to login page if user is not authenticated
+  useEffect(() => {
+    if (!userInfo) {
+      navigate("/login");
+    }
+  }, [userInfo, navigate]);
+
+  // Show loader while data is being fetched
+  if (isLoading) {
+    return <Loader />;
   }
 
-  const [profile] = useState(initialState)
-  
-  
-  const [isLoading, setIsLoading] = useState(false)
+  // Handle errors during data fetching
+  if (error) {
+    console.error("Error fetching profile info:", error);
+    toast.error(error.data?.message || "Error fetching profile info");
+    return <div>Error loading profile</div>;
+  }
 
-  useEffect(() => {
-    
-    if (!userInfo) {
-      navigate('/dashboard/profile');
-    }
-  }, [navigate, userInfo]);
-
- 
-
- 
-
-  const submitHandler = async (e) => {
-    e.preventDefault();
-
-    try {
-
-      // Save Profile
-      const formData = {
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        phoneNumber: profile.phoneNumber,
-        bio: profile.bio,
-        email: profile.email,
-        userName: profile.userName,
-        profileImage: profile.profileImage
-      };
-
-      const updatedProfile = await profileinfo(formData);
-
-      dispatch(setCredentials(updatedProfile));
-      toast.success('Profile info fetched successfully')
-      navigate("/dashboard/profile");
-    } catch (error) {
-      console.error('Error Fetching profile info:', error)
-      toast.error(error.message);
-    } finally {
-      setIsLoading(false)
-    }
-  };
+  // Destructure profile data
+  const profile = profileData || {};
 
   return (
-    <div className="flex flex-col justify-center w-[80vw] h-[85vh]" onSubmit={submitHandler}>
-      <div className="flex items-start justify-center h-[100%] w-[90%] gap-10 mt-5">
-        <div className="bg-white rounded-lg shadow-lg w-[45%] h-[100%] flex flex-col items-center justify-center ">
-          <div className="h-[100%] w-[95%] flex flex-col gap-2 ">
+    <div className="flex flex-col justify-center w-[80vw] h-[85vh]">
+      <div className="flex items-start justify-center h-full w-[90%] gap-10 mt-5">
+        {/* Profile Details Section */}
+        <div className="bg-white rounded-lg shadow-lg w-[45%] h-full flex flex-col items-center justify-center">
+          <div className="h-full w-[95%] flex flex-col gap-2">
             <h2 className="text-2xl font-bold border-b-2 border-gray-300">
               Profile Details
             </h2>
 
-            {isLoading ? (
-              <Loader />
-            ) : (
-              <>
-                <p className="font-bold  border-gray-300 mb-0 mt-1">Name : </p>
-                <p className="text-gray-500 font-semibold mb-1 mt-0">
-                    {`${profile.firstName} ${profile.lastName}`}
-                </p>
+            <p className="mt-1 font-bold">Name:</p>
+            <p className="mb-1 font-semibold text-gray-500">
+              {`${profile.firstName} ${profile.lastName}`}
+            </p>
 
-                <p className="font-bold  border-gray-300 mb-0 mt-1">Username : </p>
-.                <p className="text-gray-500 font-semibold mb-1 mt-0">
-                  {profile.userName}
-                </p>
+            <p className="mt-1 font-bold">Username:</p>
+            <p className="mb-1 font-semibold text-gray-500">
+              {profile.userName}
+            </p>
 
-                <p className="font-bold  border-gray-300 mb-0 mt-1">Email : </p>
-                <p className="text-gray-500 font-semibold mb-1 mt-0">
-                  {profile.email}
-                </p>
+            <p className="mt-1 font-bold">Email:</p>
+            <p className="mb-1 font-semibold text-gray-500">{profile.email}</p>
 
-                <p className="font-bold  border-gray-300 mb-0 mt-1">Phone number : </p>
-                <p className="text-gray-500 font-semibold mb-1 mt-0">
-                  {profile.phoneNumber}
-                </p>
+            <p className="mt-1 font-bold">Phone Number:</p>
+            <p className="mb-1 font-semibold text-gray-500">
+              {profile.phoneNumber || "N/A"}
+            </p>
 
-                <b className="mb-0 mt-1">Description:</b>
-                <p className="text-gray-500 font-semibold mb-1 mt-0">
-                  {profile.bio || "No description available"}
-                </p>
-                <>
-                  <div>
-                    <Link to="/dashboard/update">
-                      <button className="bg-red-500 hover:bg-red-600 text-white font-semibold text-center p-1 rounded mt-2 no-underline">
-                        Edit Profile
-                      </button>
-                    </Link>
-                  </div>
-                </>
-              </>
-            )}
+            <p className="mt-1 font-bold">Description:</p>
+            <p className="mb-1 font-semibold text-gray-500">
+              {profile.bio || "No description available"}
+            </p>
+
+            <div>
+              <Link to="/dashboard/update">
+                <button className="px-4 py-2 mt-2 font-semibold text-center text-white no-underline bg-red-500 rounded hover:bg-red-600">
+                  Edit Profile
+                </button>
+              </Link>
+            </div>
           </div>
         </div>
-        <div className="w-[45%] h-[100%] flex flex-col gap-7">
+
+        {/* Profile Image Section */}
+        <div className="w-[45%] h-full flex flex-col items-center gap-7">
           <p className="text-xl">Profile Image:</p>
-          <img src={profile.profileImage} alt="Image of anonymous" />
+          <img
+            src={profile.profileImage || "/default-profile.png"}
+            alt="Profile"
+            className="object-cover w-48 h-48 rounded-full"
+          />
         </div>
       </div>
     </div>

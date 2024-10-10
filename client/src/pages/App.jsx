@@ -37,22 +37,18 @@ function App() {
       <Route path="/products" element={<ProductList />} />
 
       <Route path="/dashboard" element={<Dashboard />}>
-        ß
-        <Route path="/dashboard/board" element={<Board />} />
+        <Route path="board" element={<Board />} />
         {/*Private Routes*/}
         <Route path="" element={<PrivateRoute />}>
-          <Route path="/dashboard/products/:id" element={<Products />} />
-          <Route path="/dashboard/editproduct/:id" element={<Editproduct />} />
-          <Route path="/dashboard/addproducts" element={<Addproducts />} />
-          <Route
-            path="/dashboard/deleteproduct/:id"
-            element={<Deleteproducts />}
-          />
-          <Route path="/dashboard/profile" element={<Profile />} />
-          <Route path="/dashboard/update" element={<Updateprofile />} />
+          <Route path="products/:id" element={<Products />} />
+          <Route path="editproduct/:id" element={<Editproduct />} />
+          <Route path="addproducts" element={<Addproducts />} />
+          <Route path="deleteproduct/:id" element={<Deleteproducts />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="update" element={<Updateprofile />} />
         </Route>
-        <Route path="/dashboard/issues" element={<Issues />} />
-        <Route path="/dashboard/settings" element={<Settings />} />
+        <Route path="issues" element={<Issues />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
     </Routes>
   );

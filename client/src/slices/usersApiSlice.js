@@ -1,73 +1,92 @@
-import { apiSlice } from './apiSlice';
-const USERS_URL = '/api/users';
+// src/slices/usersApiSlice.js
+
+import { apiSlice } from "./apiSlice";
+
+const USERS_URL = "/users";
 
 export const usersApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    // Login
     login: builder.mutation({
       query: (data) => ({
         url: `${USERS_URL}/login`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     }),
+
+    // Register
     register: builder.mutation({
       query: (data) => ({
-        url: `${USERS_URL}`,
-        method: 'POST',
+        url: `${USERS_URL}/register`, // Adjust if your server expects /register
+        method: "POST",
         body: data,
       }),
     }),
+
+    // Logout
     logout: builder.mutation({
       query: () => ({
         url: `${USERS_URL}/logout`,
-        method: 'POST',
-        
+        method: "POST", // Adjust to 'GET' if your server expects it
       }),
     }),
-     updateUser: builder.mutation({
+
+    // Update User Profile
+    updateUser: builder.mutation({
       query: (data) => ({
         url: `${USERS_URL}/updateProfile`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-     }),
-     profile: builder.mutation({
-      query: (data) => ({
-        url: `${USERS_URL}/me`,
-        method: 'GET',
-        body: data,
-      }),
+      invalidatesTags: ["User"],
     }),
+
+    // Get User Profile
+    profile: builder.query({
+      query: () => ({
+        url: `${USERS_URL}/me`,
+        method: "GET",
+      }),
+      providesTags: ["User"],
+    }),
+
+    // Forgot Password
     forgotPassword: builder.mutation({
       query: (data) => ({
         url: `${USERS_URL}/forgotPassword`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     }),
+
+    // Reset Password
     resetPassword: builder.mutation({
-      query: (data, resetToken) => ({
+      query: ({ data, resetToken }) => ({
         url: `${USERS_URL}/resetPassword/${resetToken}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
     }),
+
+    // Report Issues
     reportIssues: builder.mutation({
       query: (data) => ({
-        url: `/api/contactUs`,
-        method: 'POST',
+        url: `/contactUs`,
+        method: "POST",
         body: data,
-      })
-    })
+      }),
+    }),
   }),
+  overrideExisting: false,
 });
 
 export const {
   useLoginMutation,
-  useLogoutMutation,
   useRegisterMutation,
+  useLogoutMutation,
   useUpdateUserMutation,
-  useProfileMutation,
+  useProfileQuery,
   useForgotPasswordMutation,
   useResetPasswordMutation,
   useReportIssuesMutation,

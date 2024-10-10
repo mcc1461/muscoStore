@@ -1,5 +1,6 @@
 //user.Routes.js
-"use strict";
+import App from "../../../client/src/pages/App";
+("use strict");
 /* -------------------------------------------------------
     NODEJS EXPRESS | MusCo Dev
 ------------------------------------------------------- */
@@ -20,6 +21,10 @@ router
   .put(permissions.isLogin, user.update)
   .patch(permissions.isLogin, user.update)
   .delete(permissions.isAdmin, user.delete);
+
+router.route("/login", permissions.isLogin).post(user.login);
+
+router.route("/logout", permissions.isLogin).post(user.logout);
 
 /* ------------------------------------------------------- */
 module.exports = router;

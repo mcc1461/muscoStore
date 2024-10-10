@@ -46,12 +46,6 @@ app.use(
   })
 );
 
-// Add CORS headers for static files
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  next();
-});
-
 // Serve static files (including CSS)
 app.use(express.static(path.join(__dirname, "public")));
 

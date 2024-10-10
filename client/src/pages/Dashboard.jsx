@@ -63,17 +63,20 @@ export default function Example() {
   return (
     <>
       <div>
-        <Dialog
-          open={sidebarOpen}
-          onClose={setSidebarOpen}
-          className="relative z-50 lg:hidden"
-        >
+        <Transition show={sidebarOpen} as={Dialog} onClose={setSidebarOpen}>
           <Dialog.Overlay className="fixed inset-0 bg-gray-900/80" />
 
           <div className="fixed inset-0 flex">
-            <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1 transform transition duration-300 ease-in-out data-[closed]:-translate-x-full">
-              <Transition.Child>
-                <div className="absolute left-full top-0 flex w-16 justify-center pt-5 duration-300 ease-in-out data-[closed]:opacity-0">
+            <Transition.Child
+              enter="transition ease-out duration-300"
+              enterFrom="-translate-x-full opacity-0"
+              enterTo="translate-x-0 opacity-100"
+              leave="transition ease-in duration-200"
+              leaveFrom="translate-x-0 opacity-100"
+              leaveTo="-translate-x-full opacity-0"
+            >
+              <Dialog.Panel className="relative flex flex-1 w-full max-w-xs mr-16 bg-gray-900">
+                <div className="absolute top-0 flex justify-center w-16 pt-5 left-full">
                   <button
                     type="button"
                     onClick={() => setSidebarOpen(false)}
@@ -86,44 +89,45 @@ export default function Example() {
                     />
                   </button>
                 </div>
-              </Transition.Child>
 
-              {/* Sidebar content */}
-              <div className="flex flex-col px-6 pb-4 overflow-y-auto bg-gray-900 grow gap-y-5 ring-1 ring-white/10">
-                <div className="flex items-center h-16 shrink-0">
-                  <img
-                    alt="Your Company"
-                    src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
-                    className="w-auto h-8"
-                  />
+                {/* Sidebar content */}
+                <div className="flex flex-col px-6 pb-4 overflow-y-auto bg-gray-900 grow gap-y-5 ring-1 ring-white/10">
+                  <div className="flex items-center h-16 shrink-0">
+                    <img
+                      alt="Your Company"
+                      $1$2$3
+                      crossOrigin="anonymous"
+                      className="w-auto h-8"
+                    />
+                  </div>
+                  <nav className="flex flex-col flex-1">
+                    <ul role="list" className="flex flex-col flex-1 gap-y-7">
+                      {navigation.map((item) => (
+                        <li key={item.name}>
+                          <a
+                            href={item.href}
+                            className={classNames(
+                              item.current
+                                ? "bg-gray-800 text-white"
+                                : "text-gray-400 hover:bg-gray-800 hover:text-white",
+                              "group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6"
+                            )}
+                          >
+                            <item.icon
+                              aria-hidden="true"
+                              className="w-6 h-6 shrink-0"
+                            />
+                            {item.name}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
                 </div>
-                <nav className="flex flex-col flex-1">
-                  <ul role="list" className="flex flex-col flex-1 gap-y-7">
-                    {navigation.map((item) => (
-                      <li key={item.name}>
-                        <a
-                          href={item.href}
-                          className={classNames(
-                            item.current
-                              ? "bg-gray-800 text-white"
-                              : "text-gray-400 hover:bg-gray-800 hover:text-white",
-                            "group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6"
-                          )}
-                        >
-                          <item.icon
-                            aria-hidden="true"
-                            className="w-6 h-6 shrink-0"
-                          />
-                          {item.name}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </nav>
-              </div>
-            </Dialog.Panel>
+              </Dialog.Panel>
+            </Transition.Child>
           </div>
-        </Dialog>
+        </Transition>
 
         {/* Static sidebar for desktop */}
         <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
@@ -222,37 +226,44 @@ export default function Example() {
                       />
                     </span>
                   </Menu.Button>
-                  <Menu.Items
-                    transition
-                    className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
+                  <Transition
+                    as={Menu.Items}
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
                   >
-                    <Menu.Item>
-                      {({ active }) => (
-                        <Link
-                          to="/profile"
-                          className={classNames(
-                            active ? "bg-gray-100" : "",
-                            "block px-3 py-1 text-sm leading-6 text-gray-900"
-                          )}
-                        >
-                          Your profile
-                        </Link>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <button
-                          onClick={logoutHandler}
-                          className={classNames(
-                            active ? "bg-gray-100" : "",
-                            "block px-3 py-1 text-sm leading-6 text-gray-900 underline"
-                          )}
-                        >
-                          Logout
-                        </button>
-                      )}
-                    </Menu.Item>
-                  </Menu.Items>
+                    <Menu.Items className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
+                      <Menu.Item>
+                        {({ active }) => (
+                          <Link
+                            to="/dashboard/profile"
+                            className={classNames(
+                              active ? "bg-gray-100" : "",
+                              "block px-3 py-1 text-sm leading-6 text-gray-900"
+                            )}
+                          >
+                            Your profile
+                          </Link>
+                        )}
+                      </Menu.Item>
+                      <Menu.Item>
+                        {({ active }) => (
+                          <button
+                            onClick={logoutHandler}
+                            className={classNames(
+                              active ? "bg-gray-100" : "",
+                              "block px-3 py-1 text-sm leading-6 text-gray-900 underline"
+                            )}
+                          >
+                            Logout
+                          </button>
+                        )}
+                      </Menu.Item>
+                    </Menu.Items>
+                  </Transition>
                 </Menu>
               </div>
             </div>
