@@ -1,5 +1,3 @@
-//server.js
-
 "use strict";
 
 /* -------------------------------------------------------
@@ -8,7 +6,6 @@
 const express = require("express");
 const path = require("path");
 const app = express();
-const bodyParser = require("body-parser");
 const cors = require("cors");
 
 /* ------------------------------------------------------- */
@@ -38,14 +35,19 @@ dbConnection();
 
 /* ------------------------------------------------------- */
 // Middlewares:
-app.use(bodyParser.json());
-
-// Accept JSON:
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
 // Cors:
-app.use(require("cors")());
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://127.0.0.1:5173"], // Change to match your front-end's URL
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true, // Include this if cookies/auth are required
+  })
+);
+
+// Accept JSON and URL Encoded Requests:
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 // Check Authentication:
 app.use(require("./src/middlewares/authentication"));
@@ -66,16 +68,18 @@ app.all("/api/documents", (req, res) => {
 // API Routes:
 app.use("/api", require("./src/routes"));
 
-/* ------------------------------------------------------- */
-
-// Catch-all route for serving index.html
-// app.get("*", (req, res) => {
-//   res.sendFile(path.resolve(__dirname, "public", "index.html"));
-// });
-app.get("/", (req, res) => {
-  res.json("Hello MusCo");
+// Catch-all route for serving index.html if needed:
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "public", "index.html"));
 });
 
+// Simple Welcome Message
+app.get("/", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.json({ message: "Hello MusCo" });
+});
+
+/* ------------------------------------------------------- */
 // 404 Handler
 app.use((req, res) => {
   res.status(404).json({ msg: "not found" });
