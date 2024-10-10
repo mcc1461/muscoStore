@@ -42,8 +42,8 @@ app.use(
     origin: [
       "http://localhost:5173",
       "http://127.0.0.1:5173",
-      "https://tailwindui.com/*",
-    ], // Change to match your front-end's URL
+      "https://tailwindui.com",
+    ], // List all allowed origins
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true, // Include this if cookies/auth are required
   })
