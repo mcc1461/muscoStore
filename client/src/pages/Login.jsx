@@ -45,6 +45,7 @@ function Login() {
 
       navigate("/dashboard/board");
     } catch (err) {
+      console.error("login error:", err);
       toast.error(err?.data?.message || err.error);
     }
   };

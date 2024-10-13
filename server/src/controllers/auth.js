@@ -1,7 +1,7 @@
 "use strict";
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
-const passwordEncrypt = require("../helpers/passwordEncrypt");
+const bcrypt = require("bcryptjs"); // Ensure bcrypt is required for password comparison
 
 module.exports = {
   // Login function
@@ -23,53 +23,70 @@ module.exports = {
     const { username, email, password } = req.body;
 
     if ((username || email) && password) {
-      // Find user by username or email
-      const user = await User.findOne({ $or: [{ username }, { email }] });
+      try {
+        // Find user by username or email
+        const user = await User.findOne({ $or: [{ username }, { email }] });
 
-      if (user && user.password === passwordEncrypt(password)) {
-        if (user.isActive) {
-          // Generate JWT access token
-          const accessToken = jwt.sign(
-            {
-              _id: user._id,
-              username: user.username,
-              isAdmin: user.isAdmin,
-              isStaff: user.isStaff,
-              isActive: user.isActive,
-            },
-            process.env.ACCESS_KEY,
-            {
-              expiresIn: "10d", // Access token expires in 10 days
+        if (user) {
+          // Compare the provided password with the stored hashed password
+          const isMatch = await bcrypt.compare(password, user.password);
+
+          if (isMatch) {
+            if (user.isActive) {
+              // Generate JWT access token
+              const accessToken = jwt.sign(
+                {
+                  _id: user._id,
+                  username: user.username,
+                  role: user.role, // Use 'role' instead of 'isAdmin' and 'isStaff'
+                  isActive: user.isActive,
+                },
+                process.env.ACCESS_KEY,
+                {
+                  expiresIn: "10d", // Access token expires in 10 days
+                }
+              );
+              console.log("Access Token: ", accessToken);
+
+              // Generate JWT refresh token
+              const refreshToken = jwt.sign(
+                {
+                  _id: user._id,
+                  // Do not include password in the token payload
+                },
+                process.env.REFRESH_KEY,
+                {
+                  expiresIn: "30d", // Refresh token expires in 30 days
+                }
+              );
+              console.log("Refresh Token: ", refreshToken);
+
+              // Send response with tokens and user data
+              res.send({
+                error: false,
+                bearer: { accessToken, refreshToken },
+                user,
+              });
+            } else {
+              res
+                .status(401)
+                .json({ error: true, message: "This account is not active." });
             }
-          );
-
-          // Generate JWT refresh token
-          const refreshToken = jwt.sign(
-            {
-              _id: user._id,
-              password: user.password, // It's generally not recommended to include password in token payload
-            },
-            process.env.REFRESH_KEY,
-            {
-              expiresIn: "30d", // Refresh token expires in 30 days
-            }
-          );
-
-          // Send response with tokens and user data
-          res.send({
-            error: false,
-            bearer: { accessToken, refreshToken },
-            user,
-          });
+          } else {
+            res.status(401).json({
+              error: true,
+              message: "Wrong username/email or password.",
+            });
+          }
         } else {
-          res
-            .status(401)
-            .json({ error: true, message: "This account is not active." });
+          res.status(401).json({
+            error: true,
+            message: "Wrong username/email or password.",
+          });
         }
-      } else {
-        res
-          .status(401)
-          .json({ error: true, message: "Wrong username/email or password." });
+      } catch (error) {
+        console.error("Login error:", error);
+        res.status(500).json({ error: true, message: "Server error." });
       }
     } else {
       res.status(400).json({
@@ -87,46 +104,52 @@ module.exports = {
       jwt.verify(
         refreshToken,
         process.env.REFRESH_KEY,
-        async (err, userData) => {
+        async (err, decoded) => {
           if (err) {
             res
               .status(401)
               .json({ error: true, message: "Invalid refresh token." });
           } else {
-            const { _id, password } = userData;
+            const { _id } = decoded;
 
-            if (_id && password) {
-              // Find user by ID
-              const user = await User.findOne({ _id });
+            if (_id) {
+              try {
+                // Find user by ID
+                const user = await User.findById(_id);
 
-              if (user && user.password === password) {
-                if (user.isActive) {
-                  // Generate new access token
-                  const accessToken = jwt.sign(
-                    {
-                      _id: user._id,
-                      username: user.username,
-                      isAdmin: user.isAdmin,
-                      isStaff: user.isStaff,
-                      isActive: user.isActive,
-                    },
-                    process.env.ACCESS_KEY,
-                    { expiresIn: "30m" } // Access token expires in 30 minutes
-                  );
+                if (user) {
+                  if (user.isActive) {
+                    // Generate new access token
+                    const accessToken = jwt.sign(
+                      {
+                        _id: user._id,
+                        username: user.username,
+                        role: user.role,
+                        isActive: user.isActive,
+                      },
+                      process.env.ACCESS_KEY,
+                      { expiresIn: "10d" } // Access token expires in 10 days
+                    );
 
-                  // Send new access token
-                  res.send({
-                    error: false,
-                    bearer: { accessToken },
-                  });
+                    // Send new access token
+                    res.send({
+                      error: false,
+                      bearer: { accessToken },
+                    });
+                  } else {
+                    res.status(401).json({
+                      error: true,
+                      message: "This account is not active.",
+                    });
+                  }
                 } else {
-                  res.status(401).json({
-                    error: true,
-                    message: "This account is not active.",
-                  });
+                  res
+                    .status(401)
+                    .json({ error: true, message: "Invalid user." });
                 }
-              } else {
-                res.status(401).json({ error: true, message: "Invalid user." });
+              } catch (error) {
+                console.error("Refresh token error:", error);
+                res.status(500).json({ error: true, message: "Server error." });
               }
             } else {
               res

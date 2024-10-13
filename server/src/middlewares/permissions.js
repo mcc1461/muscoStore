@@ -1,40 +1,49 @@
-("use strict");
+"use strict";
 /* -------------------------------------------------------
     NODEJS EXPRESS | MusCo Dev
 ------------------------------------------------------- */
-// Middleware: permissions
+// permissions.js | Middleware
+
+// Use environment variable to control tempBypass
+const tempBypass =
+  process.env.TEMP_BYPASS === "true" && process.env.NODE_ENV !== "production";
 
 module.exports = {
   isLogin: (req, res, next) => {
-    const tempBypass = true; // Set this to true to temporarily bypass the check
     if (tempBypass || (req.user && req.user._id && req.user.isActive)) {
       next();
     } else {
       res
-        .status(403)
-        .send({ error: true, message: "NoPermission: You must login." });
+        .status(401)
+        .json({ error: true, message: "NoPermission: You must login." });
     }
   },
 
   isAdmin: (req, res, next) => {
-    const tempBypass = true; // Set this to true to temporarily bypass the check
-
-    if (tempBypass || (req.user && req.user.isActive)) {
+    if (
+      tempBypass ||
+      (req.user && req.user.role === "admin" && req.user.isActive)
+    ) {
       next();
     } else {
-      res.errorStatusCode = 403;
-      throw new Error("NoPermission: You must login.");
+      res
+        .status(403)
+        .json({ error: true, message: "NoPermission: Admin access required." });
     }
   },
 
   isStaff: (req, res, next) => {
-    const tempBypass = true; // Set this to true to temporarily bypass the check
-
-    if (tempBypass || (req.user && req.user.isActive)) {
+    if (
+      tempBypass ||
+      (req.user &&
+        (req.user.role === "staff" || req.user.role === "admin") &&
+        req.user.isActive)
+    ) {
       next();
     } else {
-      res.errorStatusCode = 403;
-      throw new Error("NoPermission: You must login.");
+      res
+        .status(403)
+        .json({ error: true, message: "NoPermission: Staff access required." });
     }
   },
 };
