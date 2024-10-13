@@ -63,20 +63,20 @@ const UserSchema = new mongoose.Schema(
     firstName: {
       type: String,
       trim: true,
-      required: true,
+      // required: true,
     },
 
     lastName: {
       type: String,
       trim: true,
-      required: true,
+      // required: true,
     },
 
     photo: {
       type: String,
       required: [false, "No photo."],
       default:
-        "https://firebasestorage.googleapis.com/v0/b/musco-store.appspot.com/o/avatar%20any.jpg?alt=media&token=a532f755-f98d-4f0a-9eca-fe9d6af3acba",
+        "https://firebasestorage.googleapis.com/v0/b/musco-store.appspot.com/o/unknowAvatar.png?alt=media&token=e9b3b001-f1f5-4cfa-93d0-402148949c5a",
     },
 
     isActive: {
