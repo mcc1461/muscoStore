@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useCreateUserOrLoginMutation } from "../slices/apiSlice"; // Single mutation for signup/login
+import { useRegisterUserMutation } from "../slices/apiSlice"; // Import the correct mutation
 import { setCredentials } from "../slices/authSlice";
 import log from "../assets/log.png";
 import Logo from "../components/Logo1";
@@ -21,7 +21,7 @@ function Register() {
 
   const { userInfo } = useSelector((state) => state.auth);
 
-  const [createUserOrLogin, { isLoading }] = useCreateUserOrLoginMutation(); // Single mutation for signup/login
+  const [registerUser, { isLoading }] = useRegisterUserMutation(); // Use the correct mutation
 
   useEffect(() => {
     if (userInfo) {
@@ -35,14 +35,24 @@ function Register() {
       toast.error("Passwords do not match");
     } else {
       try {
-        const res = await createUserOrLogin({
+        const res = await registerUser({
           firstName,
           lastName,
           username,
           email,
           password,
         }).unwrap();
-        dispatch(setCredentials({ ...res }));
+
+        // Store the accessToken and refreshToken in localStorage
+        localStorage.setItem("token", res.bearer.accessToken);
+        localStorage.setItem("refreshToken", res.bearer.refreshToken);
+
+        // Store user info
+        localStorage.setItem("userInfo", JSON.stringify(res.user));
+
+        // Update Redux store with user info
+        dispatch(setCredentials(res.user));
+
         navigate("/dashboard/board");
       } catch (err) {
         toast.error(err?.data?.message || err.error);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { useCreateUserOrLoginMutation } from "../slices/apiSlice"; // Single mutation for signup/login
+import { useLoginUserMutation } from "../slices/apiSlice"; // Import the correct mutation
 import { setCredentials } from "../slices/authSlice";
 import log from "../assets/log.png";
 import Logo1 from "../components/Logo1";
@@ -15,7 +15,7 @@ function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [createUserOrLogin, { isLoading }] = useCreateUserOrLoginMutation(); // Single mutation for signup/login
+  const [loginUser, { isLoading }] = useLoginUserMutation(); // Use the correct mutation
 
   const { userInfo } = useSelector((state) => state.auth);
 
@@ -28,20 +28,20 @@ function Login() {
   const submitHandler = async (e) => {
     e.preventDefault();
     try {
-      const res = await createUserOrLogin({
-        email: userNameOrEmail,
+      const res = await loginUser({
+        username: userNameOrEmail, // Adjust based on your backend
         password,
       }).unwrap();
 
       // Store the accessToken and refreshToken in localStorage
-      localStorage.setItem("accessToken", res.bearer.accessToken);
+      localStorage.setItem("token", res.bearer.accessToken);
       localStorage.setItem("refreshToken", res.bearer.refreshToken);
 
-      // Optionally, store user info
+      // Store user info
       localStorage.setItem("userInfo", JSON.stringify(res.user));
 
       // Update Redux store with user info
-      dispatch(setCredentials({ userInfo: res.user }));
+      dispatch(setCredentials(res.user));
 
       navigate("/dashboard/board");
     } catch (err) {

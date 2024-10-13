@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { useLogoutMutation } from "../slices/usersApiSlice"; // Ensure you're using the correct API slice
+// import { useLogoutMutation } from "../slices/usersApiSlice"; // Ensure you're using the correct API slice
 import { logout } from "../slices/authSlice"; // Redux action for logging out
 
 export default function Dasheader() {
@@ -10,24 +10,18 @@ export default function Dasheader() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [logoutApiCall] = useLogoutMutation(); // Logout mutation hook from the API slice
+  // const [logoutApiCall] = useLogoutMutation(); // Logout mutation hook from the API slice
 
   const logoutHandler = async () => {
-    try {
-      const token = localStorage.getItem("token"); // Get the token from localStorage
-      await logoutApiCall({ token }).unwrap(); // Call the logout API with token
-      dispatch(logout()); // Clear user info from Redux store
-      localStorage.removeItem("token"); // Ensure token is removed from local storage
+    dispatch(logout()); // Clear user info from Redux store
 
-      // Redirect to either login or homepage
-      if (userInfo?.isAdmin) {
-        navigate("/login"); // Redirect admin users to login
-      } else {
-        navigate("/"); // Redirect normal users to homepage
-      }
-    } catch (err) {
-      console.log(err); // Handle errors
-    }
+    // Remove tokens and user info from local storage
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("userInfo");
+
+    // Redirect to the login page
+    navigate("/login");
   };
 
   return (

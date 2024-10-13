@@ -65,18 +65,29 @@ export const apiSlice = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ["User"],
   endpoints: (builder) => ({
-    createUserOrLogin: builder.mutation({
+    // Registration mutation
+    registerUser: builder.mutation({
       query: (userData) => ({
-        url: "/users",
+        url: "/users", // Endpoint for registration
         method: "POST",
         body: userData,
       }),
       invalidatesTags: ["User"],
     }),
+    // Login mutation
+    loginUser: builder.mutation({
+      query: (credentials) => ({
+        url: "/auth/login", // Endpoint for login
+        method: "POST",
+        body: credentials,
+      }),
+    }),
+    // Get user by ID
     getUser: builder.query({
       query: (id) => `/users/${id}`,
       providesTags: ["User"],
     }),
+    // Update user
     updateUser: builder.mutation({
       query: ({ id, ...rest }) => ({
         url: `/users/${id}`,
@@ -85,6 +96,7 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+    // Delete user
     deleteUser: builder.mutation({
       query: (id) => ({
         url: `/users/${id}`,
@@ -92,6 +104,7 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+    // Logout mutation
     logout: builder.mutation({
       query: () => ({
         url: "/auth/logout",
@@ -102,7 +115,8 @@ export const apiSlice = createApi({
 });
 
 export const {
-  useCreateUserOrLoginMutation,
+  useRegisterUserMutation,
+  useLoginUserMutation,
   useGetUserQuery,
   useUpdateUserMutation,
   useDeleteUserMutation,
