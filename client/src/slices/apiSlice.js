@@ -2,7 +2,18 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const BASE_URL = import.meta.env.VITE_APP_API_URL;
 
-const baseQuery = fetchBaseQuery({ baseUrl: `${BASE_URL}/api` });
+const baseQuery = fetchBaseQuery({
+  baseUrl: `${BASE_URL}/api`,
+  prepareHeaders: (headers) => {
+    // Get the token from localStorage
+    const token = localStorage.getItem("token");
+    if (token) {
+      // Include the token in the Authorization header
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+    return headers;
+  },
+});
 
 export const apiSlice = createApi({
   baseQuery,
@@ -35,6 +46,12 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+    logout: builder.mutation({
+      query: () => ({
+        url: "/auth/logout",
+        method: "POST",
+      }),
+    }),
   }),
 });
 
@@ -43,4 +60,5 @@ export const {
   useGetUserQuery,
   useUpdateUserMutation,
   useDeleteUserMutation,
+  useLogoutMutation,
 } = apiSlice;

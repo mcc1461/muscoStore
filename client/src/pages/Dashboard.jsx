@@ -17,8 +17,8 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { useSelector, useDispatch } from "react-redux";
-import { useLogoutMutation } from "../slices/usersApiSlice";
-import { logout } from "../slices/authSlice";
+import { useLogoutMutation } from "../slices/usersApiSlice"; // API Slice for logout
+import { logout } from "../slices/authSlice"; // Redux action for clearing user data
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: HomeIcon, current: true },
@@ -32,37 +32,33 @@ const navigation = [
   { name: "Reports", href: "#", icon: ChartPieIcon, current: false },
 ];
 
-const teams = [
-  { id: 1, name: "Heroicons", href: "#", initial: "H", current: false },
-  { id: 2, name: "Tailwind Labs", href: "#", initial: "T", current: false },
-  { id: 3, name: "Workcation", href: "#", initial: "W", current: false },
-];
-
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-export default function Example() {
+export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { userInfo } = useSelector((state) => state.auth); // Access userInfo from Redux
+  const { userInfo } = useSelector((state) => state.auth); // Get userInfo from Redux store
 
-  const [logoutApiCall] = useLogoutMutation();
+  const [logoutApiCall] = useLogoutMutation(); // Hook for API logout call
 
   const logoutHandler = async () => {
     try {
-      await logoutApiCall().unwrap();
-      dispatch(logout());
-      navigate("/register");
+      await logoutApiCall().unwrap(); // Perform API logout
+      dispatch(logout()); // Clear user info from Redux store
+      localStorage.removeItem("token"); // Clear the token from local storage
+      navigate("/register"); // Redirect to the register page
     } catch (err) {
-      console.error(err);
+      console.error("Logout failed:", err); // Handle any errors
     }
   };
 
   return (
     <>
       <div>
+        {/* Sidebar overlay for mobile */}
         <Transition show={sidebarOpen} as={Dialog} onClose={setSidebarOpen}>
           <Dialog.Overlay className="fixed inset-0 bg-gray-900/80" />
 
@@ -92,14 +88,6 @@ export default function Example() {
 
                 {/* Sidebar content */}
                 <div className="flex flex-col px-6 pb-4 overflow-y-auto bg-gray-900 grow gap-y-5 ring-1 ring-white/10">
-                  <div className="flex items-center h-16 shrink-0">
-                    <img
-                      alt="Your Company"
-                      $1$2$3
-                      crossOrigin="anonymous"
-                      className="w-auto h-8"
-                    />
-                  </div>
                   <nav className="flex flex-col flex-1">
                     <ul role="list" className="flex flex-col flex-1 gap-y-7">
                       {navigation.map((item) => (
@@ -165,6 +153,7 @@ export default function Example() {
           </div>
         </div>
 
+        {/* Main content area */}
         <div className="lg:pl-72">
           <div className="sticky top-0 z-40 flex items-center h-16 px-4 bg-white border-b border-gray-200 shadow-sm shrink-0 gap-x-4 sm:gap-x-6 sm:px-6 lg:px-8">
             <button

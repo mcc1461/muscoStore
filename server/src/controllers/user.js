@@ -1,55 +1,23 @@
-"use strict";
-/* -------------------------------------------------------
-    NODEJS EXPRESS | MusCo Dev
-------------------------------------------------------- */
-// User Controller:
-
+("use strict");
 const User = require("../models/user");
 const Token = require("../models/token");
 const passwordEncrypt = require("../helpers/passwordEncrypt");
 
 module.exports = {
-  // list: async (req, res) => {
-  //   /*
-  //           #swagger.tags = ["Users"]
-  //           #swagger.summary = "List Users"
-  //           #swagger.description = `
-  //               You can use <u>filter[] & search[] & sort[] & page & limit</u> queries with endpoint.
-  //               <ul> Examples:
-  //                   <li>URL/?<b>filter[field1]=value1&filter[field2]=value2</b></li>
-  //                   <li>URL/?<b>search[field1]=value1&search[field2]=value2</b></li>
-  //                   <li>URL/?<b>sort[field1]=asc&sort[field2]=desc</b></li>
-  //                   <li>URL/?<b>limit=10&page=1</b></li>
-  //               </ul>
-  //           `
-  //       */
-
-  //   const filters = req.user?.isAdmin ? {} : { _id: req.user?._id };
-
-  //   try {
-  //     const data = await User.find(filters); // Use find() to retrieve all matching users
-
-  //     if (!data || data.length === 0) {
-  //       return res.status(404).send({
-  //         error: true,
-  //         message: "No users found.",
-  //         data: [],
-  //       });
-  //     }
-
-  //     res.status(200).send({
-  //       error: false,
-  //       details: await res.getModelListDetails(User),
-  //       data,
-  //     });
-  //   } catch (error) {
-  //     res.status(500).send({ error: true, message: error.message });
-  //   }
-  // },
-
+  // List users (Admin sees all, non-admin sees only their own profile)
   list: async (req, res) => {
+    /*
+      #swagger.tags = ["Users"]
+      #swagger.summary = "List Users"
+      #swagger.description = `
+        This endpoint allows users to list all registered users.
+        <br><br><b>Admin</b>: Lists all users.
+        <br><b>Non-admin</b>: Only sees their own profile.
+      `
+    */
     try {
-      const data = await User.find({}); // Fetch all users without any filters
+      const filters = req.user?.isAdmin ? {} : { _id: req.user?._id };
+      const data = await User.find(filters);
 
       if (!data || data.length === 0) {
         return res.status(404).send({
@@ -69,69 +37,74 @@ module.exports = {
     }
   },
 
+  // Create a new user
   create: async (req, res) => {
     /*
-            #swagger.tags = ["Users"]
-            #swagger.summary = "Create User"
-            #swagger.parameters['body'] = {
-                in: 'body',
-                required: true,
-                schema: {
-                    "username": "test",
-                    "password": "1234",
-                    "email": "test@site.com",
-                    "firstName": "test",
-                    "lastName": "test",
-                }
-            }
-        */
-
-    // Disallow setting admin/staff:
+      #swagger.tags = ["Users"]
+      #swagger.summary = "Create User"
+      #swagger.parameters['body'] = {
+          in: 'body',
+          required: true,
+          schema: {
+              "username": "test",
+              "password": "1234",
+              "email": "test@site.com",
+              "firstName": "test",
+              "lastName": "test"
+          }
+      }
+    */
     req.body.isStaff = false;
     req.body.isAdmin = false;
 
     try {
       const data = await User.create(req.body);
 
-      // Create token for auto-login:
       if (data && data._id) {
         const tokenData = await Token.create({
           userId: data._id,
           token: passwordEncrypt(data._id + Date.now()),
         });
 
-        res.status(201).send({
+        return res.status(201).send({
           error: false,
           token: tokenData.token,
           data,
         });
       } else {
-        res.status(400).send({ error: true, message: "User creation failed." });
+        return res.status(400).send({
+          error: true,
+          message: "User creation failed.",
+        });
       }
     } catch (error) {
       res.status(500).send({ error: true, message: error.message });
     }
   },
 
+  // Read a single user (Admin can access any user, non-admin can only access their own profile)
   read: async (req, res) => {
     /*
-            #swagger.tags = ["Users"]
-            #swagger.summary = "Get Single User"
-        */
-
+      #swagger.tags = ["Users"]
+      #swagger.summary = "Get Single User"
+      #swagger.description = `
+        This endpoint allows an admin to get any user by ID, or non-admin users to retrieve their own profile.
+      `
+    */
     const filters = req.user?.isAdmin
       ? { _id: req.params?.id }
       : { _id: req.user?._id };
 
     try {
       const data = await User.findOne(filters);
+
       if (!data) {
         return res
           .status(404)
           .send({ error: true, message: "User not found." });
       }
 
-      res.status(200).send({
+      return res.status(200).send({
         error: false,
         data,
       });
@@ -140,26 +113,30 @@ module.exports = {
     }
   },
 
+  // Update a user's profile (Admin can update any user, non-admin can update only their own profile)
   update: async (req, res) => {
     /*
-            #swagger.tags = ["Users"]
-            #swagger.summary = "Update User"
-            #swagger.parameters['body'] = {
-                in: 'body',
-                required: true,
-                schema: {
-                    "username": "test",
-                    "password": "1234",
-                    "email": "test@site.com",
-                    "firstName": "test",
-                    "lastName": "test",
-                }
-            }
-        */
-
+      #swagger.tags = ["Users"]
+      #swagger.summary = "Update User"
+      #swagger.parameters['body'] = {
+          in: 'body',
+          required: true,
+          schema: {
+              "username": "test",
+              "password": "1234",
+              "email": "test@site.com",
+              "firstName": "test",
+              "lastName": "test"
+          }
+      }
+      #swagger.description = `
+        This endpoint allows an admin to update any user's details by ID, or non-admin users to update their own profile.
+      `
+    */
     const filters = req.user?.isAdmin
       ? { _id: req.params?.id }
       : { _id: req.user?._id };
+
     req.body.isAdmin = req.user?.isAdmin ? req.body.isAdmin : false;
 
     try {
@@ -167,11 +144,18 @@ module.exports = {
         runValidators: true,
       });
 
+      if (data.nModified === 0) {
+        return res.status(404).send({
+          error: true,
+          message: "No changes made to the user.",
+        });
+      }
+
       const updatedData = await User.findOne(filters);
 
-      res.status(202).send({
+      return res.status(202).send({
         error: false,
-        data,
+        message: "User updated successfully.",
         new: updatedData,
       });
     } catch (error) {
@@ -179,21 +163,32 @@ module.exports = {
     }
   },
 
-  delete: async (req, res) => {
+  // Remove (delete) a user (Admin can delete any user, non-admin can delete only their own profile)
+  remove: async (req, res) => {
     /*
-            #swagger.tags = ["Users"]
-            #swagger.summary = "Delete User"
-        */
-
+      #swagger.tags = ["Users"]
+      #swagger.summary = "Delete User"
+      #swagger.description = `
+        This endpoint allows an admin to delete any user by ID, or non-admin users to delete their own profile.
+      `
+    */
     const filters = req.user?.isAdmin
       ? { _id: req.params?.id }
       : { _id: req.user?._id };
 
     try {
       const data = await User.deleteOne(filters);
-      res.status(data.deletedCount ? 204 : 404).send({
-        error: !data.deletedCount,
-        data,
+
+      if (data.deletedCount === 0) {
+        return res.status(404).send({
+          error: true,
+          message: "User not found or could not be deleted.",
+        });
+      }
+
+      return res.status(204).send({
+        error: false,
+        message: "User deleted successfully.",
       });
     } catch (error) {
       res.status(500).send({ error: true, message: error.message });

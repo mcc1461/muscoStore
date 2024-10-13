@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useCreateUserOrLoginMutation } from "../slices/apiSlice";
+import { Link, useNavigate } from "react-router-dom";
+import { useCreateUserOrLoginMutation } from "../slices/apiSlice"; // Single mutation for signup/login
 import { setCredentials } from "../slices/authSlice";
 import log from "../assets/log.png";
 import Logo1 from "../components/Logo1";
@@ -15,7 +15,7 @@ function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [createUserOrLogin, { isLoading }] = useCreateUserOrLoginMutation();
+  const [createUserOrLogin, { isLoading }] = useCreateUserOrLoginMutation(); // Single mutation for signup/login
 
   const { userInfo } = useSelector((state) => state.auth);
 
@@ -32,7 +32,17 @@ function Login() {
         email: userNameOrEmail,
         password,
       }).unwrap();
-      dispatch(setCredentials({ ...res }));
+
+      // Store the accessToken and refreshToken in localStorage
+      localStorage.setItem("accessToken", res.bearer.accessToken);
+      localStorage.setItem("refreshToken", res.bearer.refreshToken);
+
+      // Optionally, store user info
+      localStorage.setItem("userInfo", JSON.stringify(res.user));
+
+      // Update Redux store with user info
+      dispatch(setCredentials({ userInfo: res.user }));
+
       navigate("/dashboard/board");
     } catch (err) {
       toast.error(err?.data?.message || err.error);
@@ -43,7 +53,7 @@ function Login() {
     <div className="flex items-center justify-center h-screen w-creen">
       <img src={log} alt="" className="h-[auto] w-[30%]" />
       <div className="h-[70%] w-[70%] flex flex-col items-center justify-between">
-        <div className=" w-[60%]">
+        <div className="w-[60%]">
           <div className="flex items-center justify-between w-[100%]">
             <Logo1 className="" />
             <p className="text-3xl font-bold">Login</p>
@@ -57,25 +67,26 @@ function Login() {
             className="w-full outline-none border-2 border-slate-400 text-center rounded-xl h-[20%]"
             value={userNameOrEmail}
             onChange={(e) => setUsernameOrEmail(e.target.value)}
+            autoComplete="username"
           />
           <input
             type="password"
             name="Password"
-            placeholder="Password "
+            placeholder="Password"
             className="w-full outline-none border-2 border-slate-400 text-center rounded-xl h-[20%]"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
           />
 
           {isLoading && <Loader />}
 
-          <Link
+          <button
             onClick={submitHandler}
-            to="/dashboard/board"
-            className="w-full bg-red-500 h-[20%] text-white font-bold rounded-xl text-center flex items-center justify-center no-underline "
+            className="w-full bg-red-500 h-[20%] text-white font-bold rounded-xl text-center flex items-center justify-center no-underline"
           >
             Login
-          </Link>
+          </button>
           <div className="w-full">
             <Link
               to="/login/forgottenPassword"
@@ -86,7 +97,7 @@ function Login() {
           </div>
 
           <p className="text-xl font-bold">
-            Don't you have an account?{" "}
+            Don't have an account?{" "}
             <Link to="/register" className="text-red-500 no-underline">
               SignUp
             </Link>

@@ -12,7 +12,7 @@ dotenv.config({ path: __dirname + "/.env" });
 const dbConnection = function () {
   // Connect:
   mongoose
-    .connect(process.env.MONGODB)
+    .connect(process.env.MONGODB_URI)
     .then(() => {
       console.log("* DB Connected * ");
       //: Syncronization must be done manually. Because it clears the database.

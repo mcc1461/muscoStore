@@ -1,5 +1,3 @@
-//user.Routes.js
-import App from "../../../client/src/pages/App";
 ("use strict");
 /* -------------------------------------------------------
     NODEJS EXPRESS | MusCo Dev
@@ -8,23 +6,24 @@ const router = require("express").Router();
 /* ------------------------------------------------------- */
 // routes/user:
 
-const permissions = require("../middlewares/permissions");
-const user = require("../controllers/user");
+const { isAdmin, isStaff, isLogin } = require("../middlewares/permissions");
+const { list, create, read, update, remove } = require("../controllers/user");
+const { login, logout } = require("../controllers/auth");
 
 // URL: /users
 
-router.route("/").get(permissions.isAdmin, user.list).post(user.create);
+router.route("/").get(isStaff, list).post(create);
 
 router
   .route("/:id")
-  .get(permissions.isLogin, user.read)
-  .put(permissions.isLogin, user.update)
-  .patch(permissions.isLogin, user.update)
-  .delete(permissions.isAdmin, user.delete);
+  .get(isLogin, read)
+  .put(isStaff, update)
+  .patch(isStaff, update)
+  .delete(isAdmin, remove);
 
-router.route("/login", permissions.isLogin).post(user.login);
+router.route("/login", isLogin).post(login);
 
-router.route("/logout", permissions.isLogin).post(user.logout);
+router.route("/logout", isLogin).post(logout);
 
 /* ------------------------------------------------------- */
 module.exports = router;

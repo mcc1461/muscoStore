@@ -15,13 +15,13 @@ function Header() {
             </div>
             <div className="flex items-center justify-between w-[25vh] text-xl font-semibold">
               <Link
-                to="/login"
-                className="w-16 text-center text-white no-underline transition ease-in-out delay-150  rounded-xl hover:-translate-1 hover:scale-110"
+                to="/register"
+                className="w-16 text-center text-white no-underline transition ease-in-out delay-150 rounded-xl hover:-translate-1 hover:scale-110"
               >
                 <p className="hover:text-slate-200"> Register</p>
               </Link>
               <Link
-                to="/register"
+                to="/login"
                 className="w-16 text-center text-white no-underline transition ease-in-out delay-150 rounded-xl hover:-translate-1 hover:scale-110"
               >
                 <p className="hover:text-slate-200">Login</p>

@@ -36,7 +36,6 @@ const { mongoose } = require("../configs/dbConnection");
 }
 /* ------------------------------------------------------- */
 // User Model:
-
 const UserSchema = new mongoose.Schema(
   {
     username: {
@@ -72,6 +71,7 @@ const UserSchema = new mongoose.Schema(
       trim: true,
       required: true,
     },
+
     photo: {
       type: String,
       required: [false, "No photo."],
