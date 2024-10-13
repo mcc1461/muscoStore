@@ -45,14 +45,15 @@ export default function Dashboard() {
   const [logoutApiCall] = useLogoutMutation(); // Hook for API logout call
 
   const logoutHandler = async () => {
-    try {
-      await logoutApiCall().unwrap(); // Perform API logout
-      dispatch(logout()); // Clear user info from Redux store
-      localStorage.removeItem("token"); // Clear the token from local storage
-      navigate("/register"); // Redirect to the register page
-    } catch (err) {
-      console.error("Logout failed:", err); // Handle any errors
-    }
+    dispatch(logout()); // Clear user info from Redux store
+
+    // Remove tokens and user infor from local storage
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("userInfo");
+
+    // Redirect to the login page
+    navigate("/login");
   };
 
   return (
@@ -207,7 +208,7 @@ export default function Dashboard() {
                     />
                     <span className="hidden lg:flex lg:items-center">
                       <span className="ml-4 text-sm font-semibold leading-6 text-gray-900">
-                        {userInfo ? userInfo.userName : "Guest"}
+                        {userInfo ? userInfo.username : "Guest"}
                       </span>
                       <ChevronDownIcon
                         aria-hidden="true"

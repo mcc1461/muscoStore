@@ -27,7 +27,7 @@ function Updateprofile() {
   useEffect(() => {
     setFirstName(userInfo.firstName);
     setLastName(userInfo.lastName);
-    setUserName(userInfo.userName);
+    setUserName(userInfo.username);
     setEmail(userInfo.email);
     setPhoneNumber(userInfo.phoneNumber);
     setBio(userInfo.bio);
@@ -35,7 +35,7 @@ function Updateprofile() {
   }, [
     userInfo.firstName,
     userInfo.lastName,
-    userInfo.userName,
+    userInfo.username,
     userInfo.email,
     userInfo.phoneNumber,
     userInfo.bio,
@@ -113,7 +113,7 @@ function Updateprofile() {
             <h2 className="text-2xl font-bold">Update Profile Details</h2>
             {isLoading && <Loader/>}
             <div>
-              <label htmlFor="firstName" className="font-bold pl-2">
+              <label htmlFor="firstName" className="pl-2 font-bold">
                 Firstname:
               </label>
               <input
@@ -121,11 +121,11 @@ function Updateprofile() {
                 id="firstName"
                 name="firstName"
                 placeholder="First Name"
-                className="w-full border border-gray-400 p-2 ml-2 rounded-lg"
+                className="w-full p-2 ml-2 border border-gray-400 rounded-lg"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
               />
-              <label htmlFor="lastName" className="font-bold pl-2">
+              <label htmlFor="lastName" className="pl-2 font-bold">
                 Lastname:
               </label>
               <input
@@ -133,11 +133,11 @@ function Updateprofile() {
                 id="lastName"
                 name="lastName"
                 placeholder="Last Name"
-                className="w-full border border-gray-400 p-2 ml-2 rounded-lg"
+                className="w-full p-2 ml-2 border border-gray-400 rounded-lg"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
               />
-              <label htmlFor="userName" className="font-bold pl-2">
+              <label htmlFor="userName" className="pl-2 font-bold">
                 Username:
               </label>
               <input
@@ -145,11 +145,11 @@ function Updateprofile() {
                 id="userName"
                 name="userName"
                 placeholder="UserName"
-                className="w-full border border-gray-400 p-2 ml-2 rounded-lg"
+                className="w-full p-2 ml-2 border border-gray-400 rounded-lg"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
               />
-              <label htmlFor="email" className="font-bold pl-2">
+              <label htmlFor="email" className="pl-2 font-bold">
                 Email:
               </label>
               <input
@@ -157,11 +157,11 @@ function Updateprofile() {
                 id="email"
                 name="email"
                 placeholder="email"
-                className="w-full border border-gray-400 p-2 ml-2 rounded-lg"
+                className="w-full p-2 ml-2 border border-gray-400 rounded-lg"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <label htmlFor="phoneNumber" className="font-bold pl-2">
+              <label htmlFor="phoneNumber" className="pl-2 font-bold">
                 Phone number:
               </label>
               <input
@@ -169,27 +169,27 @@ function Updateprofile() {
                 id="phoneNumber"
                 name="phoneNumber"
                 placeholder="PhoneNumber"
-                className="w-full border border-gray-400 p-2 ml-2 rounded-lg"
+                className="w-full p-2 ml-2 border border-gray-400 rounded-lg"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
               />
             </div>
             <div className="">
-              <label htmlFor="message" className="font-bold pl-2">
+              <label htmlFor="message" className="pl-2 font-bold">
                 Message
               </label>
               <textarea
                 name="bio"
                 rows={3}
                 placeholder="message"
-                className="border border-gray-400 p-2 ml-2 rounded-lg w-full"
+                className="w-full p-2 ml-2 border border-gray-400 rounded-lg"
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
               />
             </div>
             <button
               type="submit"
-              className="bg-red-500 hover:bg-red-600 text-white font-semibold text-center p-1 rounded"
+              className="p-1 font-semibold text-center text-white bg-red-500 rounded hover:bg-red-600"
             >
               Save Changes
             </button>

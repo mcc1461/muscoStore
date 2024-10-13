@@ -36,7 +36,7 @@ export default function Dasheader() {
         Hello,{" "}
         {userInfo ? (
           <Link to="/dashboard/profile" className="text-red-500 no-underline">
-            {userInfo.userName} {/* Show user's name */}
+            {userInfo.username} {/* Show user's name */}
           </Link>
         ) : (
           "Guest"
