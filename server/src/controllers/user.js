@@ -50,35 +50,82 @@ module.exports = {
               "password": "1234",
               "email": "test@site.com",
               "firstName": "test",
-              "lastName": "test"
+              "lastName": "test",
+              "role": "admin", // Role could be "admin", "staff", or "user"
+              "roleCode": "specialCode123" // This field is for admin or staff code
           }
       }
     */
-    req.body.isStaff = false;
-    req.body.isAdmin = false;
+
+    const { username, password, email, firstName, lastName, role, roleCode } =
+      req.body;
+
+    // Set default role as "user"
+    let assignedRole = "user";
 
     try {
-      const data = await User.create(req.body);
-
-      if (data && data._id) {
-        const tokenData = await Token.create({
-          userId: data._id,
-          token: passwordEncrypt(data._id + Date.now()),
-        });
-
-        return res.status(201).send({
-          error: false,
-          token: tokenData.token,
-          data,
-        });
-      } else {
-        return res.status(400).send({
-          error: true,
-          message: "User creation failed.",
-        });
+      // Check if the user already exists
+      const existingUser = await User.findOne({
+        $or: [{ email }, { username }],
+      });
+      if (existingUser) {
+        return res
+          .status(400)
+          .json({ error: true, message: "User already exists." });
       }
+
+      // Check the role and roleCode
+      if (role === "admin" && roleCode === process.env.ADMIN_CODE) {
+        assignedRole = "admin";
+      } else if (role === "staff" && roleCode === process.env.STAFF_CODE) {
+        assignedRole = "staff";
+      } else if (role === "user") {
+        assignedRole = "user";
+      } else {
+        return res
+          .status(400)
+          .json({ error: true, message: "Invalid role or role code." });
+      }
+
+      // Hash the password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      // Create the new user
+      const newUser = new User({
+        username,
+        password: hashedPassword,
+        email,
+        firstName,
+        lastName,
+        role: assignedRole,
+      });
+
+      // Save the user
+      await newUser.save();
+
+      // Generate token for the user
+      const tokenData = await Token.create({
+        userId: newUser._id,
+        token: passwordEncrypt(newUser._id + Date.now()),
+      });
+
+      // Send response
+      return res.status(201).send({
+        error: false,
+        token: tokenData.token,
+        user: {
+          _id: newUser._id,
+          username: newUser.username,
+          email: newUser.email,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          role: newUser.role,
+        },
+      });
     } catch (error) {
-      res.status(500).send({ error: true, message: error.message });
+      console.error("Error creating user:", error);
+      return res.status(500).json({ error: true, message: "Server error." });
     }
   },
 
