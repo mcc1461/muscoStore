@@ -204,7 +204,7 @@ const requestPasswordReset = async (req, res) => {
 
     // Construct the reset link
     const baseUrl = process.env.FRONTEND_BASE_URL || "http://localhost:3061";
-    const resetLink = `${baseUrl}/reset-password/${resetToken}`;
+    const resetLink = `${baseUrl}/reset-password?token=${resetToken}`;
 
     // Debugging log for the reset link
     console.log("Reset Link:", resetLink); // Log the complete reset link
