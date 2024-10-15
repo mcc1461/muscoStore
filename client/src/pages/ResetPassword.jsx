@@ -13,8 +13,12 @@ export default function ResetPassword() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const { resetToken } = useParams(); // For reset password, get the token from URL
   const navigate = useNavigate();
+
+  const { search } = useLocation();
+  const query = new URLSearchParams(search);
+  const resetToken = query.get("token");
+
   const [forgotPassword, { isLoading: isLoadingForgot }] =
     useForgotPasswordMutation();
   const [passwordReset, { isLoading: isLoadingReset }] =
@@ -49,10 +53,6 @@ export default function ResetPassword() {
   // Handle actual password reset with new password
   const handleResetPassword = async (e) => {
     e.preventDefault();
-
-    const { search } = useLocation();
-    const query = new URLSearchParams(search);
-    const resetToken = query.get("token");
 
     if (!password || !confirmPassword) {
       toast.error("Please fill in all fields");
