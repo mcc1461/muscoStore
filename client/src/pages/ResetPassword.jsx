@@ -65,12 +65,13 @@ export default function ResetPassword() {
     }
 
     try {
-      await passwordReset({ resetToken, password });
-
+      const response = await passwordReset({
+        resetToken,
+        newPassword: password,
+      });
       toast.success("Password reset successfully");
       navigate("/login");
     } catch (error) {
-      console.error("Password reset error:", error);
       toast.error("Failed to reset password. Please try again.");
     }
   };

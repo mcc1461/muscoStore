@@ -87,56 +87,34 @@ UserSchema.pre("save", async function (next) {
     return next(new Error("Email not validated."));
   }
 
-  // Only hash the password if it is being modified or set for the first time
-  if (!user.isModified("password")) {
-    return next();
-  }
-
-  // Validate password with your custom regex
-  const isPasswordValidated = passwordRegex.test(user.password);
-  if (!isPasswordValidated) {
-    return next(new Error("Password not validated."));
-  }
-
-  // Hash the password before saving it
-  try {
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(user.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
-
-/* Pre-update hook to handle password update validation */
-
-  UserSchema.pre("updateOne", async function (next) {
-    const update = this.getUpdate();
-
-    // Only hash the password if it’s not already hashed
-    if (update.password && !update.isPasswordUpdating) {
-      const salt = await bcrypt.genSalt(10);
-      update.password = await bcrypt.hash(update.password, salt);
+  // Only hash the password if it is being modified
+  if (user.isModified("password")) {
+    // Validate password with your custom regex
+    if (!passwordRegex.test(user.password)) {
+      return next(new Error("Password not validated."));
     }
 
-    next();
-  });
-
-
-  // Validate password with your custom regex
-  const isPasswordValidated = passwordRegex.test(update.password);
-  if (!isPasswordValidated) {
-    return next(new Error("Password not validated."));
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(user.password, salt);
   }
 
-  // Hash the password before updating it
-  try {
+  next();
+});
+
+UserSchema.pre("updateOne", async function (next) {
+  const update = this.getUpdate();
+
+  if (update.password) {
+    // Validate password with your custom regex
+    if (!passwordRegex.test(update.password)) {
+      return next(new Error("Password not validated."));
+    }
+
     const salt = await bcrypt.genSalt(10);
     update.password = await bcrypt.hash(update.password, salt);
-    next();
-  } catch (error) {
-    next(error);
   }
+
+  next();
 });
 
 /* ------------------------------------------------------- */

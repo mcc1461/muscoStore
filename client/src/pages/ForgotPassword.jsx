@@ -13,8 +13,6 @@ export default function ForgotPassword() {
   const [forgotPassword, { isLoading }] = useForgotPasswordMutation(); // RTK mutation
 
   const handleForgotPassword = async () => {
-    // Check if the email is empty
-    console.log("email", email);
     if (!email) {
       toast.error("Please enter a valid email address");
       return;
@@ -22,23 +20,13 @@ export default function ForgotPassword() {
 
     try {
       const response = await forgotPassword({ email });
-
-      console.log("response", response);
-
-      // Check if the response contains a success message
-      if (
-        response?.data &&
-        response.data.message === "Password reset link sent to email."
-      ) {
+      if (response?.data?.message === "Password reset link sent to email.") {
         toast.success("Password reset link sent to email.");
-        navigate("/login"); // Redirect to login after link is sent
+        navigate("/login");
       } else {
         toast.error("Unexpected response format. Please try again.");
       }
     } catch (error) {
-      console.error("Error:", error);
-
-      // Handle errors from the backend
       if (error?.response?.status === 404) {
         toast.error("No account found with this email address.");
       } else {

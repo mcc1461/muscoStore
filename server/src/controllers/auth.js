@@ -6,68 +6,42 @@ const sendResetEmail = require("../helpers/sendResetEmail");
 
 module.exports = {
   // Login function
-  login: async (req, res) => {
-    const { username, email, password } = req.body;
+login: async (req, res) => {
+  const { username, email, password } = req.body;
 
-    if ((username || email) && password) {
-      try {
-        const user = await User.findOne({ $or: [{ username }, { email }] });
+  if (!password || (!username && !email)) {
+    return res.status(400).json({
+      error: true,
+      message: "Please enter username/email and password.",
+    });
+  }
 
-        if (user) {
-          const isMatch = await bcrypt.compare(password, user.password);
+  try {
+    const user = await User.findOne({ $or: [{ username }, { email }] });
 
-          if (isMatch) {
-            if (user.isActive) {
-              const accessToken = jwt.sign(
-                {
-                  _id: user._id,
-                  username: user.username,
-                  role: user.role,
-                  isActive: user.isActive,
-                },
-                process.env.ACCESS_KEY,
-                { expiresIn: "10d" }
-              );
-
-              const refreshToken = jwt.sign(
-                { _id: user._id },
-                process.env.REFRESH_KEY,
-                { expiresIn: "30d" }
-              );
-
-              res.send({
-                error: false,
-                bearer: { accessToken, refreshToken },
-                user,
-              });
-            } else {
-              res
-                .status(401)
-                .json({ error: true, message: "This account is not active." });
-            }
-          } else {
-            res.status(401).json({
-              error: true,
-              message: "Wrong username/email or password.",
-            });
-          }
-        } else {
-          res.status(401).json({
-            error: true,
-            message: "Wrong username/email or password.",
-          });
-        }
-      } catch (error) {
-        console.error("Login error:", error);
-        res.status(500).json({ error: true, message: "Server error." });
-      }
-    } else {
-      res.status(400).json({
-        error: true,
-        message: "Please enter username/email and password.",
-      });
+    if (!user) {
+      return res.status(401).json({ error: true, message: "Wrong username/email or password." });
     }
-  },
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: true, message: "Wrong username/email or password." });
+    }
+
+    if (!user.isActive) {
+      return res.status(401).json({ error: true, message: "This account is not active." });
+    }
+
+    // Generate tokens and respond
+    const accessToken = jwt.sign({ _id: user._id, username: user.username, role: user.role }, process.env.ACCESS_KEY, { expiresIn: "10d" });
+    const refreshToken = jwt.sign({ _id: user._id }, process.env.REFRESH_KEY, { expiresIn: "30d" });
+
+    res.send({ error: false, bearer: { accessToken, refreshToken }, user });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ error: true, message: "Server error." });
+  }
+}
 
   // Refresh token function
   refresh: async (req, res) => {
@@ -147,36 +121,32 @@ module.exports = {
     }
 
     try {
-      jwt.verify(resetToken, process.env.RESET_KEY, async (err, decoded) => {
-        if (err) {
-          return res.status(400).json({
-            error: true,
-            message: "Invalid or expired reset token.",
-          });
-        }
+      const decoded = jwt.verify(resetToken, process.env.RESET_KEY);
+      const user = await User.findById(decoded._id);
 
-        const { _id } = decoded;
-        const user = await User.findById(_id);
+      if (!user) {
+        return res
+          .status(404)
+          .json({ error: true, message: "User not found." });
+      }
 
-        if (!user) {
-          return res.status(404).json({
-            error: true,
-            message: "User not found.",
-          });
-        }
+      // Validate the new password
+      if (!passwordRegex.test(newPassword)) {
+        return res
+          .status(400)
+          .json({ error: true, message: "Password not valid." });
+      }
 
-        // Hash the new password
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(newPassword, salt);
+      // Hash the new password
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(newPassword, salt);
 
-        // Clear reset token and expiration
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpires = undefined;
-        user.isPasswordUpdating = true; // Add this line to prevent the user from logging in until they update their password
-        await user.save();
+      // Clear reset token and expiration
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
 
-        res.send({ error: false, message: "Password reset successful." });
-      });
+      await user.save();
+      res.send({ error: false, message: "Password reset successful." });
     } catch (error) {
       console.error("Password reset error:", error);
       res.status(500).json({ error: true, message: "Server error." });
