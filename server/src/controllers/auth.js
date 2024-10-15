@@ -2,7 +2,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const bcrypt = require("bcryptjs"); // Ensure bcrypt is required for password comparison
-const { sendResetEmail } = require("../helpers/sendResetEmail");
+const sendResetEmail = require("../helpers/sendResetEmail");
 
 module.exports = {
   // Login function
