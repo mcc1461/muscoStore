@@ -201,10 +201,20 @@ const requestPasswordReset = async (req, res) => {
     // Update the user with the reset token and expiry time
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-    await user.save(); // Error may occur here due to password validation
+    await user.save();
+
+    // Get the base URL
+    const baseUrl = process.env.FRONTEND_BASE_URL || "http://localhost:3061";
+
+    // Update email link with new port
+    const resetLink = `${baseUrl}/reset-password?token=${resetToken}`;
 
     // Send the email with the reset link
-    await sendResetEmail(user.email, resetToken);
+    await sendResetEmail(
+      user.email,
+      "Password Reset",
+      `You requested a password reset. Click the link to reset your password: ${resetLink}`
+    );
 
     res.json({ message: "Password reset link sent to email." });
   } catch (error) {
