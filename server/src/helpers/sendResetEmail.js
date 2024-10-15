@@ -15,8 +15,8 @@ module.exports = function (to, subject, message) {
   // Google -> AccountHome -> Security -> Two-Step-Verify -> App-Passwords
   const mailSettings = {
     service: "Gmail",
-    user: "username@gmail.com",
-    pass: "password",
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASS,
   };
 
   // Connect to mailServer:
