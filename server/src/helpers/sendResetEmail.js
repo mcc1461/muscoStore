@@ -2,7 +2,7 @@
 "use strict";
 const nodemailer = require("nodemailer");
 
-const sendResetEmail = async (to, resetToken) => {
+const sendResetEmail = async (to, subject, message) => {
   const mailSettings = {
     service: "Gmail",
     user: process.env.MAIL_USER,
@@ -20,9 +20,9 @@ const sendResetEmail = async (to, resetToken) => {
   const mailOptions = {
     from: mailSettings.user,
     to: to,
-    subject: "Password Reset Link",
-    text: `You requested a password reset. Click the link to reset your password: 
-    http://localhost:3061/reset-password?token=${resetToken}`,
+    subject: subject,
+    text: message,
+    html: message,
   };
 
   await transporter.sendMail(mailOptions);
