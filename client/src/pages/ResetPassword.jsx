@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams, Link, useLocation } from "react-router-dom";
 import log from "../assets/log.png";
 import Logo1 from "../components/Logo1";
 import { toast } from "react-toastify";
@@ -49,6 +49,10 @@ export default function ResetPassword() {
   // Handle actual password reset with new password
   const handleResetPassword = async (e) => {
     e.preventDefault();
+
+    const { search } = useLocation();
+    const query = new URLSearchParams(search);
+    const resetToken = query.get("token");
 
     if (!password || !confirmPassword) {
       toast.error("Please fill in all fields");
