@@ -183,7 +183,6 @@ module.exports = {
     }
   },
 };
-
 const requestPasswordReset = async (req, res) => {
   const { email } = req.body;
 
@@ -203,11 +202,11 @@ const requestPasswordReset = async (req, res) => {
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
     await user.save();
 
-    // Get the base URL
+    // Construct the reset link
     const baseUrl = process.env.FRONTEND_BASE_URL || "http://localhost:3061";
-
-    // Update email link with new port
     const resetLink = `${baseUrl}/reset-password?token=${resetToken}`;
+
+    console.log("Reset Token:", resetToken); // Debugging line to log the token
 
     // Send the email with the reset link
     await sendResetEmail(
