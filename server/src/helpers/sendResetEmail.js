@@ -21,7 +21,11 @@ const sendResetEmail = async (to, resetToken) => {
     from: mailSettings.user,
     to: to,
     subject: "Password Reset Link",
-    text: `You requested a password reset. Click the link to reset your password: http://localhost:3061/reset-password?token=${resetToken}`,
+    text: `
+      You requested a password reset. 
+      Click the link to reset your password:      
+      http://localhost:3061/reset-password?token=${resetToken}
+      `,
   };
 
   await transporter.sendMail(mailOptions);
