@@ -6,62 +6,34 @@ const bcrypt = require("bcryptjs"); // Ensure bcrypt is required for password co
 module.exports = {
   // Login function
   login: async (req, res) => {
-    /*
-      #swagger.tags = ["Authentication"]
-      #swagger.summary = "Login"
-      #swagger.description = 'Login with username (or email) and password to get JWT tokens.'
-      #swagger.parameters["body"] = {
-          in: "body",
-          required: true,
-          schema: {
-              "username": "test",
-              "password": "1234",
-          }
-      }
-    */
-
     const { username, email, password } = req.body;
 
     if ((username || email) && password) {
       try {
-        // Find user by username or email
         const user = await User.findOne({ $or: [{ username }, { email }] });
 
         if (user) {
-          // Compare the provided password with the stored hashed password
           const isMatch = await bcrypt.compare(password, user.password);
 
           if (isMatch) {
             if (user.isActive) {
-              // Generate JWT access token
               const accessToken = jwt.sign(
                 {
                   _id: user._id,
                   username: user.username,
-                  role: user.role, // Use 'role' instead of 'isAdmin' and 'isStaff'
+                  role: user.role,
                   isActive: user.isActive,
                 },
                 process.env.ACCESS_KEY,
-                {
-                  expiresIn: "10d", // Access token expires in 10 days
-                }
+                { expiresIn: "10d" }
               );
-              console.log("Access Token: ", accessToken);
 
-              // Generate JWT refresh token
               const refreshToken = jwt.sign(
-                {
-                  _id: user._id,
-                  // Do not include password in the token payload
-                },
+                { _id: user._id },
                 process.env.REFRESH_KEY,
-                {
-                  expiresIn: "30d", // Refresh token expires in 30 days
-                }
+                { expiresIn: "30d" }
               );
-              console.log("Refresh Token: ", refreshToken);
 
-              // Send response with tokens and user data
               res.send({
                 error: false,
                 bearer: { accessToken, refreshToken },
@@ -114,38 +86,29 @@ module.exports = {
 
             if (_id) {
               try {
-                // Find user by ID
                 const user = await User.findById(_id);
 
-                if (user) {
-                  if (user.isActive) {
-                    // Generate new access token
-                    const accessToken = jwt.sign(
-                      {
-                        _id: user._id,
-                        username: user.username,
-                        role: user.role,
-                        isActive: user.isActive,
-                      },
-                      process.env.ACCESS_KEY,
-                      { expiresIn: "10d" } // Access token expires in 10 days
-                    );
+                if (user && user.isActive) {
+                  const accessToken = jwt.sign(
+                    {
+                      _id: user._id,
+                      username: user.username,
+                      role: user.role,
+                      isActive: user.isActive,
+                    },
+                    process.env.ACCESS_KEY,
+                    { expiresIn: "10d" }
+                  );
 
-                    // Send new access token
-                    res.send({
-                      error: false,
-                      bearer: { accessToken },
-                    });
-                  } else {
-                    res.status(401).json({
-                      error: true,
-                      message: "This account is not active.",
-                    });
-                  }
+                  res.send({
+                    error: false,
+                    bearer: { accessToken },
+                  });
                 } else {
-                  res
-                    .status(401)
-                    .json({ error: true, message: "Invalid user." });
+                  res.status(401).json({
+                    error: true,
+                    message: "This account is not active.",
+                  });
                 }
               } catch (error) {
                 console.error("Refresh token error:", error);
@@ -168,11 +131,85 @@ module.exports = {
 
   // Logout function
   logout: async (req, res) => {
-    /*
-      Since JWT tokens are stateless, you cannot invalidate them on the server side
-      without implementing a token blacklist. For simplicity, we can just respond
-      with a success message. The client should delete the token on their side.
-    */
     res.send({ error: false, message: "Logged out successfully." });
   },
+
+  // Password reset function
+  resetPassword: async (req, res) => {
+    const { resetToken, newPassword } = req.body;
+
+    if (!resetToken || !newPassword) {
+      return res.status(400).json({
+        error: true,
+        message: "Reset token and new password are required.",
+      });
+    }
+
+    try {
+      jwt.verify(resetToken, process.env.RESET_KEY, async (err, decoded) => {
+        if (err) {
+          return res.status(400).json({
+            error: true,
+            message: "Invalid or expired reset token.",
+          });
+        }
+
+        const { _id } = decoded;
+        const user = await User.findById(_id);
+
+        if (!user) {
+          return res.status(404).json({
+            error: true,
+            message: "User not found.",
+          });
+        }
+
+        // Hash the new password
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+
+        // Clear reset token and expiration
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+
+        await user.save();
+
+        res.send({ error: false, message: "Password reset successful." });
+      });
+    } catch (error) {
+      console.error("Password reset error:", error);
+      res.status(500).json({ error: true, message: "Server error." });
+    }
+  },
 };
+
+const requestPasswordReset = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Generate reset token
+    const resetToken = jwt.sign({ _id: user._id }, process.env.RESET_KEY, {
+      expiresIn: "1h",
+    });
+
+    // Update the user with the reset token and expiry time
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save(); // Error may occur here due to password validation
+
+    // Send the email with the reset link
+    await sendResetEmail(user.email, resetToken);
+
+    res.json({ message: "Password reset link sent to email." });
+  } catch (error) {
+    console.error("Error requesting password reset:", error);
+    res.status(500).json({ message: "Server error." });
+  }
+};
+
+module.exports.requestPasswordReset = requestPasswordReset;

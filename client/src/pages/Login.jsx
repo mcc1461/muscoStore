@@ -89,10 +89,7 @@ function Login() {
             Login
           </button>
           <div className="w-full">
-            <Link
-              to="/login/forgottenPassword"
-              className="text-right underline"
-            >
+            <Link to="/forgotPassword" className="text-right underline">
               Forgot Password
             </Link>
           </div>

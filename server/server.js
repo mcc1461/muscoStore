@@ -8,6 +8,12 @@ const path = require("path");
 const cors = require("cors");
 const app = express();
 
+// Import Reset Password
+const {
+  resetPassword,
+  requestPasswordReset,
+} = require("./src/controllers/auth");
+
 /* ------------------------------------------------------- */
 // Required Modules:
 
@@ -92,6 +98,10 @@ app.get("/", (req, res) => {
   res.setHeader("Content-Type", "application/json");
   res.json({ message: "Hello MusCo" });
 });
+
+// Forgetten Password
+app.post("/api/users/forgotPassword", requestPasswordReset);
+app.post("/api/users/resetPassword", resetPassword);
 
 /* ------------------------------------------------------- */
 // 404 Handler

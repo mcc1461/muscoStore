@@ -2,7 +2,7 @@
 
 import { apiSlice } from "./apiSlice";
 
-const USERS_URL = "/users";
+const USERS_URL = "http://127.0.0.1:8061";
 
 export const usersApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -54,7 +54,7 @@ export const usersApiSlice = apiSlice.injectEndpoints({
     // Forgot Password
     forgotPassword: builder.mutation({
       query: (data) => ({
-        url: `${USERS_URL}/forgotPassword`,
+        url: `${USERS_URL}/api/users/forgotPassword`,
         method: "POST",
         body: data,
       }),

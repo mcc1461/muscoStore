@@ -11,8 +11,8 @@ import Settings from "./Settings";
 import Profile from "./Profile";
 import Updateprofile from "./Updateprofile";
 import Addproducts from "./Addproducts";
-import Forgetten from "./Forgetten";
-import Reset from "./Reset";
+import ForgotPassword from "./ForgotPassword";
+import ResetPassword from "./ResetPassword";
 import Editproduct from "./Editproduct";
 import PrivateRoute from "../components/privateRoute";
 import Deleteproducts from "./Deleteproducts";
@@ -24,15 +24,10 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
-
       <Route path="/register" element={<Register />} />
-
-      <Route path="/resetpassword" element={<Reset />} />
-      <Route path="/login/forgottenPassword" element={<Forgetten />} />
-
-      <Route path="/resetPassword/:resetToken" element={<Reset />} />
-      <Route path="/login/forgottenPassword" element={<Forgetten />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/forgotPassword" element={<ForgotPassword />} />
+      <Route path="/resetPassword/:resetToken" element={<ResetPassword />} />
       <Route path="/firms" element={<FirmList />} />
       <Route path="/brands" element={<BrandList />} />
       <Route path="/products" element={<ProductList />} />
