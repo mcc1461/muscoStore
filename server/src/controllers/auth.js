@@ -172,7 +172,7 @@ module.exports = {
         // Clear reset token and expiration
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
-
+        user.isPasswordUpdating = true; // Add this line to prevent the user from logging in until they update their password
         await user.save();
 
         res.send({ error: false, message: "Password reset successful." });

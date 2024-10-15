@@ -109,13 +109,19 @@ UserSchema.pre("save", async function (next) {
 });
 
 /* Pre-update hook to handle password update validation */
-UserSchema.pre("updateOne", async function (next) {
-  const update = this.getUpdate();
 
-  // If password is not being updated, skip password hashing
-  if (!update.password) {
-    return next();
-  }
+  UserSchema.pre("updateOne", async function (next) {
+    const update = this.getUpdate();
+
+    // Only hash the password if it’s not already hashed
+    if (update.password && !update.isPasswordUpdating) {
+      const salt = await bcrypt.genSalt(10);
+      update.password = await bcrypt.hash(update.password, salt);
+    }
+
+    next();
+  });
+
 
   // Validate password with your custom regex
   const isPasswordValidated = passwordRegex.test(update.password);
