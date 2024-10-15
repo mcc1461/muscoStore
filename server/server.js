@@ -101,7 +101,7 @@ app.get("/", (req, res) => {
 
 // Forgetten Password
 app.post("/api/users/forgotPassword", requestPasswordReset);
-app.post("/api/users/resetPassword", resetPassword);
+app.post("/api/users/reset-password", resetPassword);
 
 /* ------------------------------------------------------- */
 // 404 Handler

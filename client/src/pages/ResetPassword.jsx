@@ -8,7 +8,6 @@ import {
   useForgotPasswordMutation,
   useResetPasswordMutation,
 } from "../slices/usersApiSlice";
-import axios from "axios";
 
 export default function ResetPassword() {
   const [email, setEmail] = useState("");
