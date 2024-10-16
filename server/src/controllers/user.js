@@ -1,24 +1,9 @@
-("use strict");
+"use strict";
 const User = require("../models/user");
-const Token = require("../models/token");
-const passwordEncrypt = require("../helpers/passwordEncrypt");
-const bcrypt = require("bcryptjs");
-
-// Set this to `false` to skip password hashing for testing purposes
-const isHashed = true;
 
 module.exports = {
   // List users (Admin sees all, non-admin sees only their own profile)
   list: async (req, res) => {
-    /*
-      #swagger.tags = ["Users"]
-      #swagger.summary = "List Users"
-      #swagger.description = `
-        This endpoint allows users to list all registered users.
-        <br><br><b>Admin</b>: Lists all users.
-        <br><b>Non-admin</b>: Only sees their own profile.
-      `
-    */
     try {
       const filters = req.user?.isAdmin ? {} : { _id: req.user?._id };
       const data = await User.find(filters);
@@ -42,12 +27,10 @@ module.exports = {
   },
 
   // Create a new user
-  // Create a new user function
   create: async (req, res) => {
     const { username, password, email, firstName, lastName, role, roleCode } =
       req.body;
 
-    // Set default role as "user"
     let assignedRole = "user";
 
     try {
@@ -72,25 +55,16 @@ module.exports = {
           .json({ error: true, message: "Invalid role or role code." });
       }
 
-      // Create the new user (no manual password hashing here)
+      // Create the new user (No password hashing)
       const newUser = new User({
         username,
-        password, // Store the raw password, Mongoose will hash it
+        password, // Store the plain password
         email,
         firstName,
         lastName,
         role: assignedRole,
       });
 
-      // Password Hashing Logic
-      if (isHashed) {
-        const salt = await bcrypt.genSalt(10);
-        newUser.password = await bcrypt.hash(password, salt);
-      } else {
-        newUser.password = password;
-      }
-
-      // Save the user
       await newUser.save();
 
       return res.status(201).send({
@@ -110,15 +84,9 @@ module.exports = {
       return res.status(500).json({ error: true, message: "Server error." });
     }
   },
-  // Read a single user (Admin can access any user, non-admin can only access their own profile)
+
+  // Read a single user
   read: async (req, res) => {
-    /*
-      #swagger.tags = ["Users"]
-      #swagger.summary = "Get Single User"
-      #swagger.description = `
-        This endpoint allows an admin to get any user by ID, or non-admin users to retrieve their own profile.
-      `
-    */
     const filters = req.user?.isAdmin
       ? { _id: req.params?.id }
       : { _id: req.user?._id };
@@ -141,26 +109,8 @@ module.exports = {
     }
   },
 
-  // Update a user's profile (Admin can update any user, non-admin can update only their own profile)
+  // Update a user's profile
   update: async (req, res) => {
-    /*
-      #swagger.tags = ["Users"]
-      #swagger.summary = "Update User"
-      #swagger.parameters['body'] = {
-          in: 'body',
-          required: true,
-          schema: {
-              "username": "test",
-              "password": "1234",
-              "email": "test@site.com",
-              "firstName": "test",
-              "lastName": "test"
-          }
-      }
-      #swagger.description = `
-        This endpoint allows an admin to update any user's details by ID, or non-admin users to update their own profile.
-      `
-    */
     const filters = req.user?.isAdmin
       ? { _id: req.params?.id }
       : { _id: req.user?._id };
@@ -191,15 +141,8 @@ module.exports = {
     }
   },
 
-  // Remove (delete) a user (Admin can delete any user, non-admin can delete only their own profile)
+  // Remove (delete) a user
   remove: async (req, res) => {
-    /*
-      #swagger.tags = ["Users"]
-      #swagger.summary = "Delete User"
-      #swagger.description = `
-        This endpoint allows an admin to delete any user by ID, or non-admin users to delete their own profile.
-      `
-    */
     const filters = req.user?.isAdmin
       ? { _id: req.params?.id }
       : { _id: req.user?._id };
