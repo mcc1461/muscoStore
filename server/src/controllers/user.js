@@ -2,6 +2,10 @@
 const User = require("../models/user");
 const Token = require("../models/token");
 const passwordEncrypt = require("../helpers/passwordEncrypt");
+const bcrypt = require("bcryptjs");
+
+// Set this to `false` to skip password hashing for testing purposes
+const isHashed = true;
 
 module.exports = {
   // List users (Admin sees all, non-admin sees only their own profile)
@@ -38,25 +42,8 @@ module.exports = {
   },
 
   // Create a new user
+  // Create a new user function
   create: async (req, res) => {
-    /*
-      #swagger.tags = ["Users"]
-      #swagger.summary = "Create User"
-      #swagger.parameters['body'] = {
-          in: 'body',
-          required: true,
-          schema: {
-              "username": "test",
-              "password": "1234",
-              "email": "test@site.com",
-              "firstName": "test",
-              "lastName": "test",
-              "role": "admin", // Role could be "admin", "staff", or "user"
-              "roleCode": "specialCode123" // This field is for admin or staff code
-          }
-      }
-    */
-
     const { username, password, email, firstName, lastName, role, roleCode } =
       req.body;
 
@@ -65,9 +52,7 @@ module.exports = {
 
     try {
       // Check if the user already exists
-      const existingUser = await User.findOne({
-        $or: [{ email }, { username }],
-      });
+      const existingUser = await User.findOne({ username });
       if (existingUser) {
         return res
           .status(400)
@@ -87,33 +72,30 @@ module.exports = {
           .json({ error: true, message: "Invalid role or role code." });
       }
 
-      // Hash the password
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-
-      // Create the new user
+      // Create the new user (no manual password hashing here)
       const newUser = new User({
         username,
-        password: hashedPassword,
+        password, // Store the raw password, Mongoose will hash it
         email,
         firstName,
         lastName,
         role: assignedRole,
       });
 
+      // Password Hashing Logic
+      if (isHashed) {
+        const salt = await bcrypt.genSalt(10);
+        newUser.password = await bcrypt.hash(password, salt);
+      } else {
+        newUser.password = password;
+      }
+
       // Save the user
       await newUser.save();
 
-      // Generate token for the user
-      const tokenData = await Token.create({
-        userId: newUser._id,
-        token: passwordEncrypt(newUser._id + Date.now()),
-      });
-
-      // Send response
       return res.status(201).send({
         error: false,
-        token: tokenData.token,
+        message: "User registered successfully.",
         user: {
           _id: newUser._id,
           username: newUser.username,
@@ -128,7 +110,6 @@ module.exports = {
       return res.status(500).json({ error: true, message: "Server error." });
     }
   },
-
   // Read a single user (Admin can access any user, non-admin can only access their own profile)
   read: async (req, res) => {
     /*

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { useLoginUserMutation } from "../slices/apiSlice"; // Import the correct mutation
+import { useLoginUserMutation } from "../slices/apiSlice";
 import { setCredentials } from "../slices/authSlice";
 import log from "../assets/log.png";
 import Logo1 from "../components/Logo1";
@@ -9,13 +9,13 @@ import { toast } from "react-toastify";
 import Loader from "../components/Loader";
 
 function Login() {
-  const [userNameOrEmail, setUsernameOrEmail] = useState("");
+  const [username, setUsername] = useState(""); // Only using username
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [loginUser, { isLoading }] = useLoginUserMutation(); // Use the correct mutation
+  const [loginUser, { isLoading }] = useLoginUserMutation();
 
   const { userInfo } = useSelector((state) => state.auth);
 
@@ -27,17 +27,24 @@ function Login() {
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    try {
-      const res = await loginUser({
-        username: userNameOrEmail, // Adjust based on your backend
-        password,
-      }).unwrap();
 
-      // Store the accessToken and refreshToken in localStorage
+    // Prepare login data
+    const loginData = {
+      username,
+      password,
+    };
+
+    console.log("Submitting login data:", loginData); // Log the payload for debugging
+
+    try {
+      const res = await loginUser(loginData).unwrap();
+      console.log("Login response:", res); // Log the response for debugging
+
+      // Store tokens in localStorage
       localStorage.setItem("token", res.bearer.accessToken);
       localStorage.setItem("refreshToken", res.bearer.refreshToken);
 
-      // Store user info
+      // Store user info in localStorage
       localStorage.setItem("userInfo", JSON.stringify(res.user));
 
       // Update Redux store with user info
@@ -45,13 +52,13 @@ function Login() {
 
       navigate("/dashboard/board");
     } catch (err) {
-      console.error("login error:", err);
-      toast.error(err?.data?.message || err.error);
+      console.error("The problem is here-1", err);
+      toast.error(err?.data?.message || "Invalid login credentials");
     }
   };
 
   return (
-    <div className="flex items-center justify-center h-screen w-creen">
+    <div className="flex items-center justify-center w-screen h-screen">
       <img src={log} alt="" className="h-[auto] w-[30%]" />
       <div className="h-[70%] w-[70%] flex flex-col items-center justify-between">
         <div className="w-[60%]">
@@ -63,16 +70,16 @@ function Login() {
         <div className="w-[60%] flex flex-col h-[70%] items-center justify-start gap-7">
           <input
             type="text"
-            name="emailOrUsername"
-            placeholder="Username / Email"
+            name="username"
+            placeholder="Username"
             className="w-full outline-none border-2 border-slate-400 text-center rounded-xl h-[20%]"
-            value={userNameOrEmail}
-            onChange={(e) => setUsernameOrEmail(e.target.value)}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             autoComplete="username"
           />
           <input
             type="password"
-            name="Password"
+            name="password"
             placeholder="Password"
             className="w-full outline-none border-2 border-slate-400 text-center rounded-xl h-[20%]"
             value={password}

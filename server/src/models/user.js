@@ -1,12 +1,7 @@
-"use strict";
-/* -------------------------------------------------------
-    NODEJS EXPRESS | MusCo Dev
-------------------------------------------------------- */
-const { mongoose } = require("../configs/dbConnection");
+const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-/* ------------------------------------------------------- */
-// User Model:
+// User Schema
 const UserSchema = new mongoose.Schema(
   {
     username: {
@@ -16,13 +11,11 @@ const UserSchema = new mongoose.Schema(
       unique: true,
       index: true,
     },
-
     password: {
       type: String,
       trim: true,
       required: true,
     },
-
     email: {
       type: String,
       trim: true,
@@ -30,38 +23,26 @@ const UserSchema = new mongoose.Schema(
       unique: true,
       index: true,
     },
-
     firstName: {
       type: String,
       trim: true,
     },
-
     lastName: {
       type: String,
       trim: true,
     },
-
-    photo: {
-      type: String,
-      default:
-        "https://firebasestorage.googleapis.com/v0/b/musco-store.appspot.com/o/unknowAvatar.png?alt=media&token=e9b3b001-f1f5-4cfa-93d0-402148949c5a",
-    },
-
     isActive: {
       type: Boolean,
       default: true,
     },
-
     role: {
       type: String,
       enum: ["admin", "staff", "user"],
       default: "user",
     },
-
     resetPasswordToken: {
       type: String,
     },
-
     resetPasswordExpires: {
       type: Date,
     },
@@ -69,53 +50,52 @@ const UserSchema = new mongoose.Schema(
   { collection: "users", timestamps: true }
 );
 
-/* ------------------------------------------------------- */
-// Schema Configs:
-
 // Password validation regex
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
-
 // Email validation regex
 const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
-/* Pre-save hook to hash the password */
+// Pre-save hook to hash the password
 UserSchema.pre("save", async function (next) {
-  const user = this;
-
-  // Email validation
-  if (!emailRegex.test(user.email)) {
-    return next(new Error("Email not validated."));
-  }
-
-  // Only hash the password if it is being modified
-  if (user.isModified("password")) {
-    // Validate password with your custom regex
-    if (!passwordRegex.test(user.password)) {
-      return next(new Error("Password not validated."));
+  if (this.isModified("password")) {
+    if (!passwordRegex.test(this.password)) {
+      return next(new Error("Password does not meet the required criteria."));
     }
-
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(user.password, salt);
+    try {
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+    } catch (err) {
+      return next(err);
+    }
   }
-
+  if (this.email && !emailRegex.test(this.email)) {
+    return next(new Error("Email is not valid."));
+  }
   next();
 });
 
-UserSchema.pre("updateOne", async function (next) {
-  const update = this.getUpdate();
-
-  if (update.password) {
-    // Validate password with your custom regex
-    if (!passwordRegex.test(update.password)) {
-      return next(new Error("Password not validated."));
+// Pre-update hook to hash the password when updating
+UserSchema.pre("findOneAndUpdate", async function (next) {
+  if (this._update.password) {
+    if (!passwordRegex.test(this._update.password)) {
+      return next(new Error("Password does not meet the required criteria."));
     }
-
-    const salt = await bcrypt.genSalt(10);
-    update.password = await bcrypt.hash(update.password, salt);
+    try {
+      const salt = await bcrypt.genSalt(10);
+      this._update.password = await bcrypt.hash(this._update.password, salt);
+    } catch (err) {
+      return next(err);
+    }
   }
-
+  if (this._update.email && !emailRegex.test(this._update.email)) {
+    return next(new Error("Email is not valid."));
+  }
   next();
 });
 
-/* ------------------------------------------------------- */
+// Method to compare passwords
+UserSchema.methods.comparePassword = async function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
+
 module.exports = mongoose.model("User", UserSchema);

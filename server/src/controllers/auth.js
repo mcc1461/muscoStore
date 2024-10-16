@@ -1,158 +1,159 @@
 "use strict";
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
-const bcrypt = require("bcryptjs"); // Ensure bcrypt is required for password comparison
 const sendResetEmail = require("../helpers/sendResetEmail");
 
-module.exports = {
-  // Login function
-login: async (req, res) => {
-  const { username, email, password } = req.body;
+// Define a password regex for validation
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
 
-  if (!password || (!username && !email)) {
+// Login function
+const login = async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
     return res.status(400).json({
       error: true,
-      message: "Please enter username/email and password.",
+      message: "Please enter username and password.",
     });
   }
 
   try {
-    const user = await User.findOne({ $or: [{ username }, { email }] });
+    // Find user by username
+    const user = await User.findOne({ username });
 
     if (!user) {
-      return res.status(401).json({ error: true, message: "Wrong username/email or password." });
+      return res.status(401).json({
+        error: true,
+        message: "Wrong username or password.",
+      });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    // Password Check Logic
+    const isMatch = password === user.password; // No hashing, simple comparison
+
     if (!isMatch) {
-      return res.status(401).json({ error: true, message: "Wrong username/email or password." });
+      return res.status(401).json({
+        error: true,
+        message: "Wrong username or password.",
+      });
     }
 
     if (!user.isActive) {
-      return res.status(401).json({ error: true, message: "This account is not active." });
+      return res.status(401).json({
+        error: true,
+        message: "This account is not active.",
+      });
     }
 
-    // Generate tokens and respond
-    const accessToken = jwt.sign({ _id: user._id, username: user.username, role: user.role }, process.env.ACCESS_KEY, { expiresIn: "10d" });
-    const refreshToken = jwt.sign({ _id: user._id }, process.env.REFRESH_KEY, { expiresIn: "30d" });
+    // Generate tokens
+    const accessToken = jwt.sign(
+      { _id: user._id, username: user.username, role: user.role },
+      process.env.ACCESS_KEY,
+      { expiresIn: "10d" }
+    );
+    const refreshToken = jwt.sign({ _id: user._id }, process.env.REFRESH_KEY, {
+      expiresIn: "30d",
+    });
 
-    res.send({ error: false, bearer: { accessToken, refreshToken }, user });
+    // Send response with tokens and user info
+    res.send({
+      error: false,
+      bearer: { accessToken, refreshToken },
+      user,
+    });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ error: true, message: "Server error." });
   }
-}
-
-  // Refresh token function
-  refresh: async (req, res) => {
-    const refreshToken = req.body?.bearer?.refreshToken;
-
-    if (refreshToken) {
-      jwt.verify(
-        refreshToken,
-        process.env.REFRESH_KEY,
-        async (err, decoded) => {
-          if (err) {
-            res
-              .status(401)
-              .json({ error: true, message: "Invalid refresh token." });
-          } else {
-            const { _id } = decoded;
-
-            if (_id) {
-              try {
-                const user = await User.findById(_id);
-
-                if (user && user.isActive) {
-                  const accessToken = jwt.sign(
-                    {
-                      _id: user._id,
-                      username: user.username,
-                      role: user.role,
-                      isActive: user.isActive,
-                    },
-                    process.env.ACCESS_KEY,
-                    { expiresIn: "10d" }
-                  );
-
-                  res.send({
-                    error: false,
-                    bearer: { accessToken },
-                  });
-                } else {
-                  res.status(401).json({
-                    error: true,
-                    message: "This account is not active.",
-                  });
-                }
-              } catch (error) {
-                console.error("Refresh token error:", error);
-                res.status(500).json({ error: true, message: "Server error." });
-              }
-            } else {
-              res
-                .status(400)
-                .json({ error: true, message: "Invalid token payload." });
-            }
-          }
-        }
-      );
-    } else {
-      res
-        .status(400)
-        .json({ error: true, message: "Refresh token not provided." });
-    }
-  },
-
-  // Logout function
-  logout: async (req, res) => {
-    res.send({ error: false, message: "Logged out successfully." });
-  },
-
-  // Password reset function
-  resetPassword: async (req, res) => {
-    const { resetToken, newPassword } = req.body;
-
-    if (!resetToken || !newPassword) {
-      return res.status(400).json({
-        error: true,
-        message: "Reset token and new password are required.",
-      });
-    }
-
-    try {
-      const decoded = jwt.verify(resetToken, process.env.RESET_KEY);
-      const user = await User.findById(decoded._id);
-
-      if (!user) {
-        return res
-          .status(404)
-          .json({ error: true, message: "User not found." });
-      }
-
-      // Validate the new password
-      if (!passwordRegex.test(newPassword)) {
-        return res
-          .status(400)
-          .json({ error: true, message: "Password not valid." });
-      }
-
-      // Hash the new password
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(newPassword, salt);
-
-      // Clear reset token and expiration
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpires = undefined;
-
-      await user.save();
-      res.send({ error: false, message: "Password reset successful." });
-    } catch (error) {
-      console.error("Password reset error:", error);
-      res.status(500).json({ error: true, message: "Server error." });
-    }
-  },
 };
+
+// Refresh token function
+const refresh = async (req, res) => {
+  const refreshToken = req.body?.bearer?.refreshToken;
+
+  if (!refreshToken) {
+    return res
+      .status(400)
+      .json({ error: true, message: "Refresh token not provided." });
+  }
+
+  jwt.verify(refreshToken, process.env.REFRESH_KEY, async (err, decoded) => {
+    if (err) {
+      return res
+        .status(401)
+        .json({ error: true, message: "Invalid refresh token." });
+    }
+
+    const { _id } = decoded;
+    try {
+      const user = await User.findById(_id);
+      if (!user || !user.isActive) {
+        return res
+          .status(401)
+          .json({ error: true, message: "This account is not active." });
+      }
+
+      const accessToken = jwt.sign(
+        { _id: user._id, username: user.username, role: user.role },
+        process.env.ACCESS_KEY,
+        { expiresIn: "10d" }
+      );
+
+      return res.send({ error: false, bearer: { accessToken } });
+    } catch (error) {
+      console.error("Refresh token error:", error);
+      return res.status(500).json({ error: true, message: "Server error." });
+    }
+  });
+};
+
+// Logout function
+const logout = async (req, res) => {
+  res.send({ error: false, message: "Logged out successfully." });
+};
+
+// Password reset function
+const resetPassword = async (req, res) => {
+  const { resetToken, newPassword } = req.body;
+
+  if (!resetToken || !newPassword) {
+    return res.status(400).json({
+      error: true,
+      message: "Reset token and new password are required.",
+    });
+  }
+
+  if (!passwordRegex.test(newPassword)) {
+    return res.status(400).json({
+      error: true,
+      message: "Password does not meet the required criteria.",
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(resetToken, process.env.RESET_KEY);
+    const user = await User.findById(decoded._id);
+
+    if (!user) {
+      return res.status(404).json({ error: true, message: "User not found." });
+    }
+
+    // Set new password directly, no hashing
+    user.password = newPassword;
+
+    // Clear reset token and expiration
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.send({ error: false, message: "Password reset successful." });
+  } catch (error) {
+    console.error("Password reset error:", error);
+    res.status(500).json({ error: true, message: "Server error." });
+  }
+};
+
+// Request password reset function
 const requestPasswordReset = async (req, res) => {
   const { email } = req.body;
 
@@ -176,9 +177,6 @@ const requestPasswordReset = async (req, res) => {
     const baseUrl = process.env.FRONTEND_BASE_URL || "http://localhost:3061";
     const resetLink = `${baseUrl}/reset-password?token=${resetToken}`;
 
-    // Debugging log for the reset link
-    console.log("Reset Link:", resetLink); // Log the complete reset link
-
     // Send the email with the reset link
     await sendResetEmail(
       user.email,
@@ -193,4 +191,10 @@ const requestPasswordReset = async (req, res) => {
   }
 };
 
-module.exports.requestPasswordReset = requestPasswordReset;
+module.exports = {
+  login,
+  refresh,
+  logout,
+  resetPassword,
+  requestPasswordReset,
+};
