@@ -35,6 +35,8 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
         extraOptions
       );
 
+      console.log("REFRESH RESULT", refreshResult);
+
       if (refreshResult.data) {
         // Store the new access token
         localStorage.setItem("token", refreshResult.data.bearer.accessToken);
@@ -68,12 +70,27 @@ export const apiSlice = createApi({
     // Registration mutation
     registerUser: builder.mutation({
       query: (userData) => ({
-        url: "/users", // Endpoint for registration
+        url: "/users",
         method: "POST",
         body: userData,
       }),
-      invalidatesTags: ["User"],
+      onQueryStarted: async (userData, { queryFulfilled }) => {
+        try {
+          const { data } = await queryFulfilled;
+          console.log("Registration response:", data); // Log response to ensure the token is present
+
+          if (data.token) {
+            localStorage.setItem("token", data.token); // Store the token in localStorage
+            console.log("Token stored:", data.token);
+          } else {
+            console.error("No token found in response.");
+          }
+        } catch (error) {
+          console.error("Registration error:", error);
+        }
+      },
     }),
+
     // Login mutation
     loginUser: builder.mutation({
       query: (credentials) => ({

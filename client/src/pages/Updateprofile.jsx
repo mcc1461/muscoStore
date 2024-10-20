@@ -11,7 +11,7 @@ import { useUpdateUserMutation } from "../slices/usersApiSlice";
 function Updateprofile() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [userName, setUserName] = useState("");
+  const [username, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [bio, setBio] = useState("");
@@ -42,8 +42,6 @@ function Updateprofile() {
     userInfo.photo,
   ]);
 
-  
-
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -52,66 +50,64 @@ function Updateprofile() {
     }
   };
 
-  
-
   const submitHandler = async (e) => {
-  e.preventDefault();
-  try {
-    // Handle Image upload
-    let imageURL;
+    e.preventDefault();
+    try {
+      // Handle Image upload
+      let imageURL;
 
-    if (
-      fileName &&
-      (fileName.type === "image/jpeg" ||
-        fileName.type === "image/jpg" ||
-        fileName.type === "image/png")
-    ) {
-      const image = new FormData();
-      image.append("file", fileName);
-      image.append("cloud_name", "ddc5ebbcn");
-      image.append("upload_preset", "el7id0ah");
+      if (
+        fileName &&
+        (fileName.type === "image/jpeg" ||
+          fileName.type === "image/jpg" ||
+          fileName.type === "image/png")
+      ) {
+        const image = new FormData();
+        image.append("file", fileName);
+        image.append("cloud_name", "ddc5ebbcn");
+        image.append("upload_preset", "el7id0ah");
 
-      // First save image to cloudinary
-      const response = await fetch(
-        "https://api.cloudinary.com/v1_1/ddc5ebbcn/image/uploads",
-        {
-          method: "post",
-          body: image
-        }
-      );
-      const imgData = await response.json();
-      imageURL = imgData.url.toString();
+        // First save image to cloudinary
+        const response = await fetch(
+          "https://api.cloudinary.com/v1_1/ddc5ebbcn/image/uploads",
+          {
+            method: "post",
+            body: image,
+          }
+        );
+        const imgData = await response.json();
+        imageURL = imgData.url.toString();
+      }
+
+      const res = await updateProfile({
+        _id: userInfo._id,
+        firstName,
+        lastName,
+        username,
+        email,
+        phoneNumber,
+        bio,
+        photo: profileImage, // Add profileImage data here
+      }).unwrap();
+      console.log(res);
+      dispatch(setCredentials(res));
+      navigate("/dashboard/profile");
+      toast.success("Profile Updated Successfully");
+    } catch (err) {
+      toast.error(err?.data?.message || err.error);
     }
-    
-    
-    
-    const res = await updateProfile({
-      _id: userInfo._id,
-      firstName,
-      lastName,
-      userName,
-      email,
-      phoneNumber,
-      bio,
-      photo: profileImage // Add profileImage data here
-    }).unwrap();
-    console.log(res);
-    dispatch(setCredentials(res));
-    navigate("/dashboard/profile");
-    toast.success("Profile Updated Successfully");
-  } catch (err) {
-    toast.error(err?.data?.message || err.error);
-  }
-};
+  };
 
   return (
     <div className="flex flex-col items-center justify-center w-[80vw] h-[85vh] mt-3">
-      <form onSubmit={submitHandler} className="flex items-start justify-center w-[100%] h-full gap-10 " >
-        
+      <form
+        onSubmit={submitHandler}
+        className="flex items-start justify-center w-[100%] h-full gap-10 "
+      >
         <div className="bg-white rounded-lg shadow-lg w-[40%] h-[92%]">
           <div className="w-[98%] flex flex-col items-start justify-between gap-1">
             <h2 className="text-2xl font-bold">Update Profile Details</h2>
-            {isLoading && <Loader/>}
+            {isLoading && <Loader />}
             <div>
               <label htmlFor="firstName" className="pl-2 font-bold">
                 Firstname:
@@ -137,16 +133,16 @@ function Updateprofile() {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
               />
-              <label htmlFor="userName" className="pl-2 font-bold">
+              <label htmlFor="username" className="pl-2 font-bold">
                 Username:
               </label>
               <input
                 type="text"
-                id="userName"
-                name="userName"
+                id="username"
+                name="username"
                 placeholder="UserName"
                 className="w-full p-2 ml-2 border border-gray-400 rounded-lg"
-                value={userName}
+                value={username}
                 onChange={(e) => setUserName(e.target.value)}
               />
               <label htmlFor="email" className="pl-2 font-bold">
@@ -201,15 +197,12 @@ function Updateprofile() {
             Profile Image:{" "}
             <span className="text-neutral-500">Jpg, Png, Jpeg</span>
           </b>
-          <div
-            className="flex flex-col items-center justify-center h-[300px] w-[500px] cursor-pointer rounded-xl bg-white shadow-lg"
-          >
+          <div className="flex flex-col items-center justify-center h-[300px] w-[500px] cursor-pointer rounded-xl bg-white shadow-lg">
             <input
               type="file"
               accept="image/*"
               className="input-field"
               onChange={handleImageUpload}
-              
             />
             {profileImage ? (
               <img src={profileImage} width={150} height={180} alt={fileName} />

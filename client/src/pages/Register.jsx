@@ -51,10 +51,9 @@ function Register() {
           username,
           email,
           password,
-          role, // Include the selected role
+          role,
         };
 
-        // Include roleCode if role is 'admin' or 'staff'
         if (role === "admin" || role === "staff") {
           if (!roleCode) {
             toast.error(`Please enter the ${role} code.`);
@@ -65,9 +64,8 @@ function Register() {
 
         const res = await registerUser(registrationData).unwrap();
 
-        // Store the accessToken and refreshToken in localStorage
-        localStorage.setItem("token", res.bearer.accessToken);
-        localStorage.setItem("refreshToken", res.bearer.refreshToken);
+        // Store the token in localStorage
+        localStorage.setItem("token", res.token);
 
         // Store user info
         localStorage.setItem("userInfo", JSON.stringify(res.user));

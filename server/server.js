@@ -77,6 +77,8 @@ app.use(require("./src/middlewares/findSearchSortPage"));
 
 /* ------------------------------------------------------- */
 // Routes:
+const authRoutes = require("./src/routes/auth");
+app.use("/api/auth", require("./src/routes/auth"));
 
 // HomePath
 app.all("/api/documents", (req, res) => {
@@ -111,6 +113,10 @@ app.use((req, res) => {
 
 // Error Handler Middleware
 app.use(require("./src/middlewares/errorHandler"));
+
+/* ------------------------------------------------------- */
+app.use("/auth", authRoutes);
+console.log("Auth Routes Loaded");
 
 // RUN SERVER:
 app.listen(PORT, () => console.log(`http://${HOST}:${PORT}`));

@@ -56,7 +56,7 @@ export default function Profile() {
 
             <p className="mt-1 font-bold">Username:</p>
             <p className="mb-1 font-semibold text-gray-500">
-              {profile.userName}
+              {profile.username}
             </p>
 
             <p className="mt-1 font-bold">Email:</p>

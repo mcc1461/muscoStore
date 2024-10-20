@@ -1,5 +1,10 @@
 "use strict";
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const User = require("../models/user");
+
+// Ensure you have JWT_SECRET in your environment variables
+const JWT_SECRET = process.env.JWT_SECRET || "your_default_jwt_secret";
 
 module.exports = {
   // List users (Admin sees all, non-admin sees only their own profile)
@@ -55,10 +60,14 @@ module.exports = {
           .json({ error: true, message: "Invalid role or role code." });
       }
 
-      // Create the new user (No password hashing)
+      // Hash the password before saving (for security)
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      // Create the new user with the hashed password
       const newUser = new User({
         username,
-        password, // Store the plain password
+        password: hashedPassword,
         email,
         firstName,
         lastName,
@@ -67,9 +76,21 @@ module.exports = {
 
       await newUser.save();
 
+      // Generate JWT token
+      const token = jwt.sign(
+        {
+          _id: newUser._id,
+          username: newUser.username,
+          role: newUser.role,
+        },
+        JWT_SECRET,
+        { expiresIn: "10d" }
+      );
+
       return res.status(201).send({
         error: false,
         message: "User registered successfully.",
+        token, // Include the token in the response
         user: {
           _id: newUser._id,
           username: newUser.username,

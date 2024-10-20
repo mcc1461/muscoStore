@@ -1,12 +1,39 @@
 "use strict";
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const User = require("../models/user");
 const sendResetEmail = require("../helpers/sendResetEmail");
 
 // Define a password regex for validation
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
 
-// Login function
+// Register function
+
+const register = async (req, res) => {
+  try {
+    // Register the user (existing logic)
+    const user = await User.create(req.body);
+
+    // Generate the token
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    console.log("Generated token:", token);
+
+    // Return token and user info
+    return res.status(201).json({
+      message: "User registered successfully",
+      token, // Send token back in the response
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Registration failed",
+      error: error.message,
+    });
+  }
+};
+
 const login = async (req, res) => {
   const { username, password } = req.body;
 
@@ -28,8 +55,8 @@ const login = async (req, res) => {
       });
     }
 
-    // Password Check Logic
-    const isMatch = password === user.password; // No hashing, simple comparison
+    // Compare the password using bcrypt
+    const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return res.status(401).json({
@@ -193,6 +220,7 @@ const requestPasswordReset = async (req, res) => {
 
 module.exports = {
   login,
+  register,
   refresh,
   logout,
   resetPassword,
