@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { FaEdit, FaTrashAlt, FaPlusCircle, FaSearch } from "react-icons/fa";
+import {
+  FaEdit,
+  FaTrashAlt,
+  FaPlusCircle,
+  FaSearch,
+  FaHome,
+} from "react-icons/fa";
 import { Dialog, Transition } from "@headlessui/react";
 import apiClient from "../services/apiClient"; // Ensure the path is correct
+import { useNavigate } from "react-router-dom";
 
 export default function FirmsList() {
+  const navigate = useNavigate();
   const [firms, setFirms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -188,6 +196,12 @@ export default function FirmsList() {
       <div className="sticky top-0 z-10 bg-blue-500 shadow-md">
         <div className="flex items-center justify-between px-4 py-4 text-white">
           <h1 className="text-3xl font-bold">Firms ({filteredFirms.length})</h1>
+          <button
+            className="text-white hover:text-gray-200"
+            onClick={() => navigate("/dashboard")}
+          >
+            <FaHome size={28} />
+          </button>
         </div>
 
         <div className="flex items-center justify-between px-4 py-2 bg-blue-500">

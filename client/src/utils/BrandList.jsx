@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { FaEdit, FaTrashAlt, FaPlusCircle, FaSearch } from "react-icons/fa";
+import {
+  FaEdit,
+  FaTrashAlt,
+  FaPlusCircle,
+  FaSearch,
+  FaHome,
+} from "react-icons/fa";
 import { Dialog, Transition } from "@headlessui/react";
 import apiClient from "../services/apiClient";
+import { useNavigate } from "react-router-dom";
 
 export default function BrandsList() {
+  const navigate = useNavigate();
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -159,6 +167,12 @@ export default function BrandsList() {
           <h1 className="text-3xl font-bold">
             Brand Inventory ({brands.length})
           </h1>
+          <button
+            onClick={() => navigate("/dashboard")} // Navigate to the dashboard
+            className="text-white hover:text-blue-200"
+          >
+            <FaHome size={28} />
+          </button>
         </div>
 
         {/* Search and Add Button Section */}

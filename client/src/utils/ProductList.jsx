@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { FaEdit, FaTrashAlt, FaPlusCircle, FaSearch } from "react-icons/fa";
+import {
+  FaEdit,
+  FaTrashAlt,
+  FaPlusCircle,
+  FaSearch,
+  FaHome,
+} from "react-icons/fa";
 import apiClient from "../services/apiClient";
 import ConfirmDialog from "./ProductListConfirm";
+import { useNavigate } from "react-router-dom";
 
 export default function ProductsList() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -222,6 +230,12 @@ export default function ProductsList() {
       <div className="fixed top-0 z-10 w-full bg-blue-500 shadow-md">
         <div className="flex items-center justify-between px-4 py-4 text-white">
           <h1 className="text-3xl font-bold">Products ({totalProducts})</h1>
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="text-white hover:text-blue-200"
+          >
+            <FaHome size={28} />
+          </button>
         </div>
       </div>
 

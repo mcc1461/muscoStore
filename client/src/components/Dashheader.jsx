@@ -25,11 +25,11 @@ export default function Dasheader() {
   };
 
   return (
-    <div className="flex items-center justify-between w-[80vw] h-[10vh] bg-white rounded-md shadow-lg px-5 text-black">
+    <div className="flex items-center justify-between lg:w-[80vw] w-[99%] h-[10vh] bg-blue-100 rounded-lg shadow-lg px-5 mx-2 text-black">
       <p className="text-xl font-bold">
         Hello,{" "}
         {userInfo ? (
-          <Link to="/dashboard/profile" className="text-red-500 no-underline">
+          <Link to="/dashboard/profile" className="text-red-700 no-underline">
             {userInfo.username} {/* Show user's name */}
           </Link>
         ) : (

@@ -15,19 +15,38 @@ import {
   HomeIcon,
   UsersIcon,
   XMarkIcon,
+  BuildingOfficeIcon,
+  CubeIcon,
+  CurrencyDollarIcon,
+  ShoppingCartIcon,
+  // BuildingOffice2Icon,
+  TagIcon,
 } from "@heroicons/react/24/outline";
 import { useSelector, useDispatch } from "react-redux";
 import { useLogoutMutation } from "../slices/usersApiSlice"; // API Slice for logout
 import { logout } from "../slices/authSlice"; // Redux action for clearing user data
+import logo from "../assets/logo.png"; // Import the logo image
+
+import Dashheader from "../components/Dashheader"; // Import the Dasheader component
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: HomeIcon, current: true },
   { name: "Team", href: "/team", icon: UsersIcon, current: false },
-  { name: "Firms", href: "/firms", icon: FolderIcon, current: false },
-  { name: "Brands", href: "/brands", icon: FolderIcon, current: false },
-  { name: "Products", href: "#", icon: FolderIcon, current: false },
-  { name: "Purchases", href: "#", icon: DocumentDuplicateIcon, current: false },
-  { name: "Sales", href: "#", icon: DocumentDuplicateIcon, current: false },
+  { name: "Firms", href: "/firms", icon: BuildingOfficeIcon, current: false },
+  {
+    name: "Brands",
+    href: "/brands",
+    icon: TagIcon,
+    current: false,
+  },
+  { name: "Products", href: "/products", icon: CubeIcon, current: false },
+  {
+    name: "Purchases",
+    href: "/purchases",
+    icon: ShoppingCartIcon,
+    current: false,
+  },
+  { name: "Sales", href: "#", icon: CurrencyDollarIcon, current: false },
   { name: "Calendar", href: "#", icon: CalendarIcon, current: false },
   { name: "Reports", href: "#", icon: ChartPieIcon, current: false },
 ];
@@ -124,8 +143,8 @@ export default function Dashboard() {
             <div className="flex items-center h-16 shrink-0">
               <img
                 alt="Your Company"
-                src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
-                className="w-auto h-8"
+                src={logo}
+                className="w-auto h-8 rounded-full"
               />
             </div>
             <nav className="flex flex-col flex-1">
@@ -203,7 +222,8 @@ export default function Dashboard() {
                     <span className="sr-only">Open user menu</span>
                     <img
                       alt="User"
-                      src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e"
+                      // src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e"
+                      src="https://firebasestorage.googleapis.com/v0/b/musco-store.appspot.com/o/avatar%20any.jpg?alt=media&token=a532f755-f98d-4f0a-9eca-fe9d6af3acba"
                       className="w-8 h-8 rounded-full bg-gray-50"
                     />
                     <span className="hidden lg:flex lg:items-center">
@@ -260,6 +280,8 @@ export default function Dashboard() {
           </div>
 
           <main className="py-10">
+            {/* Dashheader component */}
+            <Dashheader />
             <div className="px-4 sm:px-6 lg:px-8">{/* Your content */}</div>
           </main>
         </div>
