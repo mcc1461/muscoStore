@@ -282,7 +282,6 @@ export default function Dashboard() {
           <main className="py-10 mx-1 large:w-[80vw] w-[90vw]">
             {/* Dashheader component */}
             <Dashheader />
-            <Dashheader />
             <div className="px-4 sm:px-6 lg:px-8">{/* Your content */}</div>
           </main>
         </div>
