@@ -82,7 +82,7 @@ export default function Dashboard() {
         <Transition show={sidebarOpen} as={Dialog} onClose={setSidebarOpen}>
           <Dialog.Overlay className="fixed inset-0 bg-gray-900/80" />
 
-          <div className="fixed inset-0 flex">
+          <div className="fixed inset-0 flex w-[94vw]">
             <Transition.Child
               enter="transition ease-out duration-300"
               enterFrom="-translate-x-full opacity-0"
@@ -279,8 +279,9 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <main className="py-10">
+          <main className="py-10 mx-1 large:w-[80vw] w-[90vw]">
             {/* Dashheader component */}
+            <Dashheader />
             <Dashheader />
             <div className="px-4 sm:px-6 lg:px-8">{/* Your content */}</div>
           </main>
