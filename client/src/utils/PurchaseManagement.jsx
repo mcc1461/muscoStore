@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import apiClient from "../services/apiClient"; // API client for requests
+import apiClient from "../services/apiClient";
 import { FaEdit, FaTrashAlt, FaPlusCircle } from "react-icons/fa";
-import ConfirmDialog from "./ConfirmDialog"; // Confirm Dialog for delete actions
+import ConfirmDialog from "./ConfirmDialog";
 
 export default function PurchaseManagement() {
   const [purchases, setPurchases] = useState([]);
@@ -110,49 +110,77 @@ export default function PurchaseManagement() {
         </button>
       </div>
 
-      <table className="min-w-full bg-white border rounded-lg shadow">
-        <thead>
-          <tr>
-            <th className="p-4 border">Date</th>
-            <th className="p-4 border">Firm</th>
-            <th className="p-4 border">Brand</th>
-            <th className="p-4 border">Product</th>
-            <th className="p-4 border">Quantity</th>
-            <th className="p-4 border">Purchase Price</th>
-            <th className="p-4 border">Total</th>
-            <th className="p-4 border">Notes</th>
-            <th className="p-4 border">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {purchases.map((purchase) => (
-            <tr key={purchase._id} className="text-center">
-              <td className="p-4 border">{purchase.date}</td>
-              <td className="p-4 border">{purchase.firm}</td>
-              <td className="p-4 border">{purchase.brand}</td>
-              <td className="p-4 border">{purchase.product}</td>
-              <td className="p-4 border">{purchase.quantity}</td>
-              <td className="p-4 border">${purchase.purchasePrice}</td>
-              <td className="p-4 border">${purchase.total}</td>
-              <td className="p-4 border">{purchase.notes}</td>
-              <td className="flex justify-center p-4 space-x-2 border">
-                <button
-                  onClick={() => openEditModal(purchase)}
-                  className="text-blue-500"
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              {[
+                "Date",
+                "Firm",
+                "Brand",
+                "Product",
+                "Quantity",
+                "Purchase Price",
+                "Total",
+                "Notes",
+                "Actions",
+              ].map((header) => (
+                <th
+                  key={header}
+                  scope="col"
+                  className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
                 >
-                  <FaEdit />
-                </button>
-                <button
-                  onClick={() => confirmDeletePurchase(purchase)}
-                  className="text-red-500"
-                >
-                  <FaTrashAlt />
-                </button>
-              </td>
+                  {header}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {purchases.map((purchase) => (
+              <tr key={purchase._id}>
+                <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                  {purchase.date}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                  {purchase.firm}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                  {purchase.brand}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                  {purchase.product}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                  {purchase.quantity}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                  ${purchase.purchasePrice}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                  ${purchase.total}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                  {purchase.notes}
+                </td>
+                <td className="flex px-6 py-4 space-x-2 text-sm font-medium whitespace-nowrap">
+                  <button
+                    onClick={() => openEditModal(purchase)}
+                    className="text-indigo-600 hover:text-indigo-900"
+                  >
+                    <FaEdit />
+                  </button>
+                  <button
+                    onClick={() => confirmDeletePurchase(purchase)}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    <FaTrashAlt />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -202,7 +230,6 @@ export default function PurchaseManagement() {
         </div>
       )}
 
-      {/* Confirm Dialog for Deleting a Purchase */}
       <ConfirmDialog
         confirmOpen={confirmOpen}
         setConfirmOpen={setConfirmOpen}
