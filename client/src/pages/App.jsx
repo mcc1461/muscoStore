@@ -19,6 +19,7 @@ import Deleteproducts from "./Deleteproducts";
 import FirmList from "../utils/FirmList";
 import BrandList from "../utils/BrandList";
 import ProductList from "../utils/ProductList";
+import PurchaseManagement from "../utils/PurchaseManagement";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
       <Route path="/firms" element={<FirmList />} />
       <Route path="/brands" element={<BrandList />} />
       <Route path="/products" element={<ProductList />} />
+      <Route path="/purchases" element={<PurchaseManagement />} />
 
       <Route path="/dashboard" element={<Dashboard />}>
         <Route path="board" element={<Board />} />
