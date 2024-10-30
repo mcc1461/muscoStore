@@ -2,26 +2,30 @@
 /* -------------------------------------------------------
     NODEJS EXPRESS | MusCo Dev
 ------------------------------------------------------- */
-const router = require("express").Router();
+const express = require("express");
+const router = express.Router();
 /* ------------------------------------------------------- */
 // routes/purchase:
 
+const authentication = require("../middlewares/authentication");
 const permissions = require("../middlewares/permissions");
-const purchase = require("../controllers/purchase");
+const purchaseController = require("../controllers/purchase");
 
 // URL: /purchases
 
+router.use(authentication); // Apply authentication middleware to all routes
+
 router
   .route("/")
-  .get(permissions.isStaff, purchase.list)
-  .post(permissions.isStaff, purchase.create);
+  .get(permissions.isStaffOrAdmin, purchaseController.list)
+  .post(permissions.isStaffOrAdmin, purchaseController.create);
 
 router
   .route("/:id")
-  .get(permissions.isStaff, purchase.read)
-  .put(permissions.isStaff, purchase.update)
-  .patch(permissions.isStaff, purchase.update)
-  .delete(permissions.isStaff, purchase.delete);
+  .get(permissions.isStaffOrAdmin, purchaseController.read)
+  .put(permissions.isStaffOrAdmin, purchaseController.update)
+  .patch(permissions.isStaffOrAdmin, purchaseController.update)
+  .delete(permissions.isStaffOrAdmin, purchaseController.delete);
 
 /* ------------------------------------------------------- */
 module.exports = router;

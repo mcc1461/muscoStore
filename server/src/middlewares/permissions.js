@@ -4,46 +4,44 @@
 ------------------------------------------------------- */
 // permissions.js | Middleware
 
-// Use environment variable to control tempBypass
-const tempBypass =
-  process.env.TEMP_BYPASS === "true" && process.env.NODE_ENV !== "production";
-
 module.exports = {
-  isLogin: (req, res, next) => {
-    if (tempBypass || (req.user && req.user._id && req.user.isActive)) {
-      next();
-    } else {
-      res
-        .status(401)
-        .json({ error: true, message: "NoPermission: You must login." });
-    }
-  },
-
   isAdmin: (req, res, next) => {
-    if (
-      tempBypass ||
-      (req.user && req.user.role === "admin" && req.user.isActive)
-    ) {
+    if (req.user && req.user.role === "admin") {
       next();
     } else {
-      res
+      return res
         .status(403)
-        .json({ error: true, message: "NoPermission: Admin access required." });
+        .json({ error: true, message: "Access denied. Admins only." });
     }
   },
 
   isStaff: (req, res, next) => {
-    if (
-      tempBypass ||
-      (req.user &&
-        (req.user.role === "staff" || req.user.role === "admin") &&
-        req.user.isActive)
-    ) {
+    if (req.user && req.user.role === "staff") {
       next();
     } else {
-      res
+      return res
         .status(403)
-        .json({ error: true, message: "NoPermission: Staff access required." });
+        .json({ error: true, message: "Access denied. Staff only." });
+    }
+  },
+
+  isStaffOrAdmin: (req, res, next) => {
+    if (req.user && (req.user.role === "staff" || req.user.role === "admin")) {
+      next();
+    } else {
+      return res
+        .status(403)
+        .json({ error: true, message: "Access denied. Staff or Admins only." });
+    }
+  },
+
+  isUser: (req, res, next) => {
+    if (req.user && req.user.role === "user") {
+      next();
+    } else {
+      return res
+        .status(403)
+        .json({ error: true, message: "Access denied. Users only." });
     }
   },
 };

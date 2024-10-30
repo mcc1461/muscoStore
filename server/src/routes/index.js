@@ -1,35 +1,20 @@
 "use strict";
-/* -------------------------------------------------------
-    NODEJS EXPRESS | MusCo Dev
-------------------------------------------------------- */
 const router = require("express").Router();
-/* ------------------------------------------------------- */
-// routes/:
 
-// URL: /
+// router.get("/users", (req, res) => {
+//   res.send("Hello from users");
+// });
 
-// auth:
+// Sub-routes
 router.use("/auth", require("./auth"));
-// user:
-router.use("/users", require("./user"));
-// token:
+router.use("/users", require("./user")); // This should ensure /api/users works
 router.use("/tokens", require("./token"));
-
-// category:
 router.use("/categories", require("./category"));
-// brand:
 router.use("/brands", require("./brand"));
-// firm:
 router.use("/firms", require("./firm"));
-// product:
 router.use("/products", require("./product"));
-// purchase:
 router.use("/purchases", require("./purchase"));
-// sale:
 router.use("/sales", require("./sale"));
-
-// document:
 router.use("/documents", require("./document"));
 
-/* ------------------------------------------------------- */
 module.exports = router;

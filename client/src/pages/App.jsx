@@ -19,7 +19,7 @@ import Deleteproducts from "./Deleteproducts";
 import FirmList from "../utils/FirmList";
 import BrandList from "../utils/BrandList";
 import ProductList from "../utils/ProductList";
-import PurchaseManagement from "../utils/PurchaseManagement";
+import PurchaseManagement from "../components/PurchaseManagement/PurchaseManagement";
 
 function App() {
   return (

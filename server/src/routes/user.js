@@ -1,23 +1,26 @@
-("use strict");
+"use strict";
 /* -------------------------------------------------------
     NODEJS EXPRESS | MusCo Dev
 ------------------------------------------------------- */
-const router = require("express").Router();
+const express = require("express");
+const router = express.Router();
+
 /* ------------------------------------------------------- */
 // routes/user:
 
-const { isAdmin, isStaff, isLogin } = require("../middlewares/permissions");
-const { list, create, read, update, remove } = require("../controllers/user");
+const { isAdmin, isLogin } = require("../middlewares/permissions");
+const { list, create, read, update, remove } = require("../controllers/user"); // Import the controller functions
 
 // URL: /users
 
-router.route("/").get(isStaff, list).post(create);
+// Protect routes with authentication middleware as needed
+router.route("/").get(isLogin, list).post(create);
 
 router
   .route("/:id")
   .get(isLogin, read)
-  .put(isStaff, update)
-  .patch(isStaff, update)
+  .put(isLogin, update)
+  .patch(isLogin, update)
   .delete(isAdmin, remove);
 
 /* ------------------------------------------------------- */
