@@ -1,64 +1,91 @@
 // DropdownWithAddNew.jsx
 import React from "react";
+import PropTypes from "prop-types";
 
 export default function DropdownWithAddNew({
   label,
-  options = [], // Default to empty array to prevent undefined errors
+  options,
   value,
   onChange,
   isAddingNew,
   setIsAddingNew,
   newEntryName,
   setNewEntryName,
-  disabled = false,
+  onAddNew,
+  noOptionsMessage,
 }) {
   return (
     <div className="mb-4">
       <label className="block mb-2 font-semibold">{label}</label>
-
-      {/* Dropdown Select */}
-      <select
-        value={value || ""}
-        onChange={(e) => {
-          onChange(e.target.value);
-          setIsAddingNew(false); // Uncheck "Add New" if selection changes
-        }}
-        className={`w-full p-2 mb-2 border rounded ${
-          disabled ? "bg-gray-200 cursor-not-allowed" : ""
-        }`}
-        disabled={disabled}
-      >
-        <option value="">Select {label}</option>
-        {options.map((option) => (
-          <option key={option._id} value={option._id}>
-            {option.name}
-          </option>
-        ))}
-      </select>
-
-      {/* Add New Checkbox */}
-      {!disabled && (
-        <label className="inline-flex items-center">
+      {isAddingNew ? (
+        <div className="flex items-center space-x-2">
           <input
-            type="checkbox"
-            checked={isAddingNew}
-            onChange={(e) => setIsAddingNew(e.target.checked)}
-            className="form-checkbox"
+            type="text"
+            value={newEntryName}
+            onChange={(e) => setNewEntryName(e.target.value)}
+            placeholder={`Enter new ${label} name`}
+            className="w-full p-2 border rounded"
           />
-          <span className="ml-2">Add New {label}</span>
-        </label>
-      )}
-
-      {/* Input for New Entry */}
-      {isAddingNew && (
-        <input
-          type="text"
-          value={newEntryName || ""}
-          onChange={(e) => setNewEntryName(e.target.value)}
-          placeholder={`Enter new ${label.toLowerCase()} name`}
-          className="w-full p-2 mt-2 border rounded"
-        />
+          <button
+            type="button"
+            onClick={onAddNew}
+            className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+          >
+            Add
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsAddingNew(false);
+              setNewEntryName("");
+            }}
+            className="px-4 py-2 text-white bg-gray-500 rounded hover:bg-gray-600"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <div>
+          <select
+            value={value ?? ""}
+            onChange={(e) => onChange(e.target.value || null)}
+            className="w-full p-2 border rounded"
+          >
+            <option value="">{`Select ${label}`}</option>
+            {options.length > 0 ? (
+              options.map((option) => (
+                <option key={option._id} value={option._id}>
+                  {option.name}
+                </option>
+              ))
+            ) : (
+              <option value="" disabled>
+                {noOptionsMessage || `No ${label}s Available`}
+              </option>
+            )}
+          </select>
+          <button
+            type="button"
+            onClick={() => setIsAddingNew(true)}
+            className="mt-2 text-blue-500 hover:underline"
+          >
+            + Add New {label}
+          </button>
+        </div>
       )}
     </div>
   );
 }
+
+DropdownWithAddNew.propTypes = {
+  label: PropTypes.string.isRequired,
+  options: PropTypes.array.isRequired,
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  isAddingNew: PropTypes.bool.isRequired,
+  setIsAddingNew: PropTypes.func.isRequired,
+  newEntryName: PropTypes.string.isRequired,
+  setNewEntryName: PropTypes.func.isRequired,
+  onAddNew: PropTypes.func.isRequired,
+  noOptionsMessage: PropTypes.string,
+};

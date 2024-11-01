@@ -10,8 +10,8 @@ export default function PurchaseTable({ purchases, onEdit, onDelete }) {
           <tr>
             {[
               "Date",
-              "Category",
               "Firm",
+              "Category",
               "Brand",
               "Product",
               "Image",
@@ -36,13 +36,15 @@ export default function PurchaseTable({ purchases, onEdit, onDelete }) {
           {purchases.map((purchase) => (
             <tr key={purchase._id}>
               <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                {new Date(purchase.date).toLocaleDateString()}
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                {purchase.categoryId?.name || "N/A"}
+                {purchase.date
+                  ? new Date(purchase.date).toLocaleDateString()
+                  : "N/A"}
               </td>
               <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                 {purchase.firmId?.name || "N/A"}
+              </td>
+              <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                {purchase.categoryId?.name || "N/A"}
               </td>
               <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                 {purchase.brandId?.name || "N/A"}
@@ -55,7 +57,7 @@ export default function PurchaseTable({ purchases, onEdit, onDelete }) {
                   <img
                     src={purchase.productId.imageUrl}
                     alt={purchase.productId.name}
-                    className="w-10 h-10"
+                    className="object-cover w-10 h-10"
                   />
                 )}
               </td>

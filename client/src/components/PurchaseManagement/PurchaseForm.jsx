@@ -1,71 +1,181 @@
 // PurchaseForm.jsx
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import DropdownWithAddNew from "./DropdownWithAddNew";
-import apiClient from "../../services/apiClient";
+import apiClient from "../../services/apiClient"; // Ensure this is correctly set up
+import PropTypes from "prop-types"; // Optional: For prop type validation
 
 export default function PurchaseForm({
-  categories,
-  filteredFirms,
-  filteredBrands,
-  filteredProducts,
-  editingPurchase,
-  setEditingPurchase,
-  closeModal,
-  handleSavePurchase,
-  currentUserRole,
-  currentUserId,
-  users,
-  selectedCategory,
-  setSelectedCategory,
-  selectedFirm,
-  setSelectedFirm,
-  selectedBrand,
-  setSelectedBrand,
-  selectedProduct,
-  setSelectedProduct,
-  allCategories,
-  allFirms,
-  allBrands,
-  allProducts,
+  categories, // Array of category objects
+  firms, // Array of firm objects
+  brands, // Array of brand objects
+  products, // Array of product objects
+  editingPurchase, // Object containing purchase details if editing
+  setEditingPurchase, // Function to update purchase details
+  closeModal, // Function to close the modal
+  handleSavePurchase, // Function to handle saving the purchase
+  currentUserRole, // String indicating the current user's role
+  currentUserId, // String indicating the current user's ID
+  users, // Array of user objects
 }) {
-  // State variables for adding new entries
-  const [isAddingNewCategory, setIsAddingNewCategory] = React.useState(false);
-  const [newCategoryName, setNewCategoryName] = React.useState("");
+  // Ensure data is loaded before rendering
+  if (!firms || !categories || !brands || !products) {
+    return <div>Loading...</div>;
+  }
 
-  const [isAddingNewFirm, setIsAddingNewFirm] = React.useState(false);
-  const [newFirmName, setNewFirmName] = React.useState("");
+  // Selection states
+  const [selectedFirm, setSelectedFirm] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedBrand, setSelectedBrand] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const [isAddingNewBrand, setIsAddingNewBrand] = React.useState(false);
-  const [newBrandName, setNewBrandName] = React.useState("");
+  // States for adding new entries
+  const [isAddingNewFirm, setIsAddingNewFirm] = useState(false);
+  const [newFirmName, setNewFirmName] = useState("");
 
-  const [isAddingNewProduct, setIsAddingNewProduct] = React.useState(false);
-  const [newProductName, setNewProductName] = React.useState("");
-  const [newProductImage, setNewProductImage] = React.useState(null);
+  const [isAddingNewCategory, setIsAddingNewCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+
+  const [isAddingNewBrand, setIsAddingNewBrand] = useState(false);
+  const [newBrandName, setNewBrandName] = useState("");
+
+  const [isAddingNewProduct, setIsAddingNewProduct] = useState(false);
+  const [newProductName, setNewProductName] = useState("");
+  const [newProductImage, setNewProductImage] = useState(null);
+
+  // State for calculation totals
+  const [totalProductsPurchased, setTotalProductsPurchased] = useState(0);
+  const [totalAmountPaid, setTotalAmountPaid] = useState(0);
+
+  // Initialize selections if editing
+  useEffect(() => {
+    if (editingPurchase) {
+      setSelectedFirm(editingPurchase.firmId || null);
+      setSelectedCategory(editingPurchase.categoryId || null);
+      setSelectedBrand(editingPurchase.brandId || null);
+      setSelectedProduct(editingPurchase.productId || null);
+      // Initialize totals
+      setTotalProductsPurchased(editingPurchase.quantity || 0);
+      setTotalAmountPaid(editingPurchase.amount || 0);
+    } else {
+      setSelectedFirm(null);
+      setSelectedCategory(null);
+      setSelectedBrand(null);
+      setSelectedProduct(null);
+      setTotalProductsPurchased(0);
+      setTotalAmountPaid(0);
+    }
+  }, [editingPurchase]);
+
+  // Memoized filtered lists based on hierarchical relationships
+  const filteredCategories = useMemo(() => {
+    if (selectedFirm) {
+      const filtered = categories.filter(
+        (category) => String(category.firmId) === String(selectedFirm)
+      );
+      console.log("Filtered Categories based on Firm:", filtered);
+      return filtered;
+    }
+    console.log("All Categories:", categories);
+    return categories;
+  }, [selectedFirm, categories]);
+
+  const filteredBrands = useMemo(() => {
+    let brandsToFilter = brands;
+
+    if (selectedFirm) {
+      const firmCategoryIds = categories
+        .filter((category) => String(category.firmId) === String(selectedFirm))
+        .map((category) => category._id);
+      brandsToFilter = brands.filter((brand) =>
+        firmCategoryIds.includes(brand.categoryId)
+      );
+    }
+
+    if (selectedCategory) {
+      brandsToFilter = brandsToFilter.filter(
+        (brand) => String(brand.categoryId) === String(selectedCategory)
+      );
+    }
+
+    console.log("Filtered Brands:", brandsToFilter);
+    return brandsToFilter;
+  }, [selectedFirm, selectedCategory, categories, brands]);
+
+  const filteredProducts = useMemo(() => {
+    let productsToFilter = products;
+
+    if (selectedFirm) {
+      const firmCategoryIds = categories
+        .filter((category) => String(category.firmId) === String(selectedFirm))
+        .map((category) => category._id);
+
+      const firmBrandIds = brands
+        .filter((brand) => firmCategoryIds.includes(brand.categoryId))
+        .map((brand) => brand._id);
+
+      productsToFilter = products.filter((product) =>
+        firmBrandIds.includes(product.brandId)
+      );
+    }
+
+    if (selectedCategory) {
+      const categoryBrandIds = brands
+        .filter(
+          (brand) => String(brand.categoryId) === String(selectedCategory)
+        )
+        .map((brand) => brand._id);
+
+      productsToFilter = productsToFilter.filter((product) =>
+        categoryBrandIds.includes(product.brandId)
+      );
+    }
+
+    if (selectedBrand) {
+      productsToFilter = productsToFilter.filter(
+        (product) => String(product.brandId) === String(selectedBrand)
+      );
+    }
+
+    console.log("Filtered Products:", productsToFilter);
+    return productsToFilter;
+  }, [
+    selectedFirm,
+    selectedCategory,
+    selectedBrand,
+    categories,
+    brands,
+    products,
+  ]);
+
+  // Calculations based on selected Firm
+  useEffect(() => {
+    if (!selectedFirm) {
+      setTotalProductsPurchased(0);
+      setTotalAmountPaid(0);
+      return;
+    }
+
+    // Example calculation with 'editingPurchase' only
+    if (
+      editingPurchase &&
+      filteredProducts.some(
+        (product) => product._id === editingPurchase.productId
+      )
+    ) {
+      setTotalProductsPurchased(Number(editingPurchase.quantity) || 0);
+      setTotalAmountPaid(Number(editingPurchase.amount) || 0);
+    } else {
+      setTotalProductsPurchased(0);
+      setTotalAmountPaid(0);
+    }
+  }, [selectedFirm, filteredProducts, editingPurchase]);
 
   // Handlers for adding new entries
-  const handleAddNewCategory = async () => {
-    if (newCategoryName.trim() === "") return;
-
-    try {
-      const response = await apiClient.post("/api/categories", {
-        name: newCategoryName,
-      });
-      const newCategory = response.data?.data;
-      if (newCategory) {
-        setSelectedCategory(newCategory._id);
-        setIsAddingNewCategory(false);
-        setNewCategoryName("");
-        // Optionally update categories list
-        // allCategories.push(newCategory);
-      }
-    } catch (error) {
-      console.error("Error adding new category:", error);
-      alert("Failed to add new category.");
-    }
-  };
-
   const handleAddNewFirm = async () => {
-    if (newFirmName.trim() === "") return;
+    if (newFirmName.trim() === "") {
+      alert("Firm name cannot be empty.");
+      return;
+    }
 
     try {
       const response = await apiClient.post("/api/firms", {
@@ -76,38 +186,90 @@ export default function PurchaseForm({
         setSelectedFirm(newFirm._id);
         setIsAddingNewFirm(false);
         setNewFirmName("");
+        console.log("Added new Firm:", newFirm);
+        // Optionally, refresh firms list or append the new firm
       }
     } catch (error) {
-      console.error("Error adding new firm:", error);
-      alert("Failed to add new firm.");
+      console.error("Error adding new Firm:", error);
+      alert("Failed to add new Firm.");
+    }
+  };
+
+  const handleAddNewCategory = async () => {
+    if (newCategoryName.trim() === "") {
+      alert("Category name cannot be empty.");
+      return;
+    }
+
+    if (!selectedFirm) {
+      alert("Please select a Firm before adding a Category.");
+      return;
+    }
+
+    try {
+      const response = await apiClient.post("/api/categories", {
+        name: newCategoryName,
+        firmId: selectedFirm,
+      });
+      const newCategory = response.data?.data;
+      if (newCategory) {
+        setSelectedCategory(newCategory._id);
+        setIsAddingNewCategory(false);
+        setNewCategoryName("");
+        console.log("Added new Category:", newCategory);
+        // Optionally, refresh categories list or append the new category
+      }
+    } catch (error) {
+      console.error("Error adding new Category:", error);
+      alert("Failed to add new Category.");
     }
   };
 
   const handleAddNewBrand = async () => {
-    if (newBrandName.trim() === "") return;
+    if (newBrandName.trim() === "") {
+      alert("Brand name cannot be empty.");
+      return;
+    }
+
+    if (!selectedCategory) {
+      alert("Please select a Category before adding a Brand.");
+      return;
+    }
 
     try {
       const response = await apiClient.post("/api/brands", {
         name: newBrandName,
+        categoryId: selectedCategory,
       });
       const newBrand = response.data?.data;
       if (newBrand) {
         setSelectedBrand(newBrand._id);
         setIsAddingNewBrand(false);
         setNewBrandName("");
+        console.log("Added new Brand:", newBrand);
+        // Optionally, refresh brands list or append the new brand
       }
     } catch (error) {
-      console.error("Error adding new brand:", error);
-      alert("Failed to add new brand.");
+      console.error("Error adding new Brand:", error);
+      alert("Failed to add new Brand.");
     }
   };
 
   const handleAddNewProduct = async () => {
-    if (newProductName.trim() === "") return;
+    if (newProductName.trim() === "") {
+      alert("Product name cannot be empty.");
+      return;
+    }
+
+    if (!selectedBrand) {
+      alert("Please select a Brand before adding a Product.");
+      return;
+    }
 
     try {
       const formData = new FormData();
       formData.append("name", newProductName);
+      formData.append("brandId", selectedBrand);
       if (newProductImage) {
         formData.append("image", newProductImage);
       }
@@ -121,23 +283,26 @@ export default function PurchaseForm({
         setIsAddingNewProduct(false);
         setNewProductName("");
         setNewProductImage(null);
+        console.log("Added new Product:", newProduct);
+        // Optionally, refresh products list or append the new product
       }
     } catch (error) {
-      console.error("Error adding new product:", error);
-      alert("Failed to add new product.");
+      console.error("Error adding new Product:", error);
+      alert("Failed to add new Product.");
     }
   };
 
+  // Handler for form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Handle adding new entries first
-    if (isAddingNewCategory) {
-      await handleAddNewCategory();
-    }
-
     if (isAddingNewFirm) {
       await handleAddNewFirm();
+    }
+
+    if (isAddingNewCategory) {
+      await handleAddNewCategory();
     }
 
     if (isAddingNewBrand) {
@@ -150,33 +315,27 @@ export default function PurchaseForm({
 
     // Now, handle saving the purchase
     const purchaseData = {
-      categoryId: selectedCategory,
       firmId: selectedFirm,
+      categoryId: selectedCategory,
       brandId: selectedBrand,
       productId: selectedProduct,
-      quantity: editingPurchase?.quantity || 0,
-      price: editingPurchase?.price || 0,
-      amount: (editingPurchase?.quantity || 0) * (editingPurchase?.price || 0),
+      quantity: Number(editingPurchase?.quantity) || 0,
+      price: Number(editingPurchase?.price) || 0,
+      amount:
+        (Number(editingPurchase?.quantity) || 0) *
+        (Number(editingPurchase?.price) || 0),
       notes: editingPurchase?.notes || "",
       purchasedById:
         currentUserRole === "user"
           ? currentUserId
           : editingPurchase?.purchasedById,
+      date: editingPurchase?.date || new Date().toISOString(),
     };
+
+    console.log("Submitting Purchase Data:", purchaseData);
 
     handleSavePurchase(purchaseData);
   };
-
-  // Initialize selections if editing
-  useEffect(() => {
-    if (editingPurchase) {
-      setSelectedCategory(editingPurchase.categoryId || "");
-      setSelectedFirm(editingPurchase.firmId || "");
-      setSelectedBrand(editingPurchase.brandId || "");
-      setSelectedProduct(editingPurchase.productId || "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editingPurchase]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -186,100 +345,75 @@ export default function PurchaseForm({
         </h2>
 
         <form onSubmit={handleSubmit}>
-          {/* Category Dropdown */}
-          <DropdownWithAddNew
-            label="Category"
-            options={categories}
-            value={selectedCategory}
-            onChange={setSelectedCategory}
-            isAddingNew={isAddingNewCategory}
-            setIsAddingNew={setIsAddingNewCategory}
-            newEntryName={newCategoryName}
-            setNewEntryName={setNewCategoryName}
-          />
-
-          {/* Add New Category Button */}
-          {isAddingNewCategory && (
-            <button
-              type="button"
-              onClick={handleAddNewCategory}
-              className="px-4 py-2 mt-2 text-white bg-blue-500 rounded hover:bg-blue-600"
-            >
-              Add Category
-            </button>
-          )}
-
           {/* Firm Dropdown */}
           <DropdownWithAddNew
             label="Firm"
-            options={filteredFirms}
-            value={selectedFirm}
-            onChange={setSelectedFirm}
+            options={firms}
+            value={selectedFirm ?? ""}
+            onChange={(value) => {
+              setSelectedFirm(value || null);
+              setSelectedCategory(null);
+              setSelectedBrand(null);
+              setSelectedProduct(null);
+              console.log("Selected Firm:", value);
+            }}
             isAddingNew={isAddingNewFirm}
             setIsAddingNew={setIsAddingNewFirm}
             newEntryName={newFirmName}
             setNewEntryName={setNewFirmName}
-            disabled={!selectedCategory}
+            onAddNew={handleAddNewFirm}
           />
 
-          {/* Add New Firm Button */}
-          {isAddingNewFirm && (
-            <button
-              type="button"
-              onClick={handleAddNewFirm}
-              className="px-4 py-2 mt-2 text-white bg-blue-500 rounded hover:bg-blue-600"
-            >
-              Add Firm
-            </button>
-          )}
+          {/* Category Dropdown */}
+          <DropdownWithAddNew
+            label="Category"
+            options={filteredCategories}
+            value={selectedCategory ?? ""}
+            onChange={(value) => {
+              setSelectedCategory(value || null);
+              setSelectedBrand(null);
+              setSelectedProduct(null);
+              console.log("Selected Category:", value);
+            }}
+            isAddingNew={isAddingNewCategory}
+            setIsAddingNew={setIsAddingNewCategory}
+            newEntryName={newCategoryName}
+            setNewEntryName={setNewCategoryName}
+            onAddNew={handleAddNewCategory}
+          />
 
           {/* Brand Dropdown */}
           <DropdownWithAddNew
             label="Brand"
             options={filteredBrands}
-            value={selectedBrand}
-            onChange={setSelectedBrand}
+            value={selectedBrand ?? ""}
+            onChange={(value) => {
+              setSelectedBrand(value || null);
+              setSelectedProduct(null);
+              console.log("Selected Brand:", value);
+            }}
             isAddingNew={isAddingNewBrand}
             setIsAddingNew={setIsAddingNewBrand}
             newEntryName={newBrandName}
             setNewEntryName={setNewBrandName}
-            disabled={!selectedFirm}
+            onAddNew={handleAddNewBrand}
           />
-
-          {/* Add New Brand Button */}
-          {isAddingNewBrand && (
-            <button
-              type="button"
-              onClick={handleAddNewBrand}
-              className="px-4 py-2 mt-2 text-white bg-blue-500 rounded hover:bg-blue-600"
-            >
-              Add Brand
-            </button>
-          )}
 
           {/* Product Dropdown */}
           <DropdownWithAddNew
             label="Product"
             options={filteredProducts}
-            value={selectedProduct}
-            onChange={setSelectedProduct}
+            value={selectedProduct ?? ""}
+            onChange={(value) => {
+              setSelectedProduct(value || null);
+              console.log("Selected Product:", value);
+            }}
             isAddingNew={isAddingNewProduct}
             setIsAddingNew={setIsAddingNewProduct}
             newEntryName={newProductName}
             setNewEntryName={setNewProductName}
-            disabled={!selectedBrand}
+            onAddNew={handleAddNewProduct}
           />
-
-          {/* Add New Product Button */}
-          {isAddingNewProduct && (
-            <button
-              type="button"
-              onClick={handleAddNewProduct}
-              className="px-4 py-2 mt-2 text-white bg-blue-500 rounded hover:bg-blue-600"
-            >
-              Add Product
-            </button>
-          )}
 
           {/* Purchased By Dropdown */}
           <div className="mb-4">
@@ -296,12 +430,14 @@ export default function PurchaseForm({
                   ...editingPurchase,
                   purchasedById: value,
                 });
+                console.log("Selected Purchased By:", value);
               }}
               className="w-full p-2 border rounded"
               disabled={currentUserRole === "user"}
+              required
             >
               {currentUserRole !== "user" && (
-                <option value="">All Users</option>
+                <option value="">Select User</option>
               )}
               {users.map((user) => (
                 <option key={user._id} value={user._id}>
@@ -326,6 +462,7 @@ export default function PurchaseForm({
               }
               className="w-full p-2 border rounded"
               min="0"
+              required
             />
           </div>
 
@@ -345,6 +482,7 @@ export default function PurchaseForm({
               className="w-full p-2 border rounded"
               min="0"
               step="0.01"
+              required
             />
           </div>
 
@@ -354,7 +492,10 @@ export default function PurchaseForm({
             <input
               type="number"
               name="amount"
-              value={editingPurchase?.amount || 0}
+              value={
+                (Number(editingPurchase?.quantity) || 0) *
+                (Number(editingPurchase?.price) || 0)
+              }
               readOnly
               className="w-full p-2 bg-gray-100 border rounded"
             />
@@ -375,6 +516,13 @@ export default function PurchaseForm({
               className="w-full p-2 border rounded"
               rows="3"
             ></textarea>
+          </div>
+
+          {/* Purchase Summary */}
+          <div className="mb-4">
+            <h3 className="mb-2 text-lg font-bold">Purchase Summary</h3>
+            <p>Total Products Purchased from Firm: {totalProductsPurchased}</p>
+            <p>Total Amount Paid to Firm: ${totalAmountPaid.toFixed(2)}</p>
           </div>
 
           {/* Modal Buttons */}
@@ -398,3 +546,18 @@ export default function PurchaseForm({
     </div>
   );
 }
+
+// PropTypes for type checking
+PurchaseForm.propTypes = {
+  categories: PropTypes.array.isRequired,
+  firms: PropTypes.array.isRequired,
+  brands: PropTypes.array.isRequired,
+  products: PropTypes.array.isRequired,
+  editingPurchase: PropTypes.object,
+  setEditingPurchase: PropTypes.func.isRequired,
+  closeModal: PropTypes.func.isRequired,
+  handleSavePurchase: PropTypes.func.isRequired,
+  currentUserRole: PropTypes.string.isRequired,
+  currentUserId: PropTypes.string.isRequired,
+  users: PropTypes.array.isRequired,
+};

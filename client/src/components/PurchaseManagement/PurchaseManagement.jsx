@@ -29,17 +29,6 @@ export default function PurchaseManagement() {
   const [selectedPurchaseForDelete, setSelectedPurchaseForDelete] =
     useState(null);
 
-  // State variables for dropdown selections
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedFirm, setSelectedFirm] = useState("");
-  const [selectedBrand, setSelectedBrand] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState("");
-
-  // State variables for filtered lists
-  const [filteredFirms, setFilteredFirms] = useState([]);
-  const [filteredBrands, setFilteredBrands] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
-
   useEffect(() => {
     const role = localStorage.getItem("userRole") || "";
     const userId = localStorage.getItem("currentUserId") || "";
@@ -72,12 +61,20 @@ export default function PurchaseManagement() {
           }),
         ]);
 
+        console.log("Categories:", categoriesResponse.data?.data);
+        console.log("Firms:", firmsResponse.data?.data);
+        console.log("Brands:", brandsResponse.data?.data);
+        console.log("Products:", productsResponse.data?.data);
+        console.log("Users:", usersResponse.data?.data);
+
         setPurchases(purchasesResponse.data?.data || []);
         setFirms(firmsResponse.data?.data || []);
         setBrands(brandsResponse.data?.data || []);
         setCategories(categoriesResponse.data?.data || []);
         setProducts(productsResponse.data?.data || []);
         setUsers(usersResponse.data?.data || []);
+
+        console.log("Data fetched successfully.");
       } catch (error) {
         console.error("Error fetching data:", error);
         setError("Error fetching data");
@@ -89,73 +86,20 @@ export default function PurchaseManagement() {
     fetchData();
   }, []);
 
-  // Filter firms based on selected category
-  useEffect(() => {
-    if (selectedCategory) {
-      const filtered = firms.filter((firm) =>
-        products.some(
-          (product) =>
-            product.categoryId === selectedCategory &&
-            product.firmId === firm._id
-        )
-      );
-      setFilteredFirms(filtered);
-    } else {
-      setFilteredFirms(firms);
-    }
-    // Reset dependent selections
-    setSelectedFirm("");
-    setSelectedBrand("");
-    setSelectedProduct("");
-  }, [selectedCategory, firms, products]);
-
-  // Filter brands based on selected category and firm
-  useEffect(() => {
-    if (selectedCategory && selectedFirm) {
-      const filtered = brands.filter((brand) =>
-        products.some(
-          (product) =>
-            product.categoryId === selectedCategory &&
-            product.firmId === selectedFirm &&
-            product.brandId === brand._id
-        )
-      );
-      setFilteredBrands(filtered);
-    } else {
-      setFilteredBrands(brands);
-    }
-    // Reset dependent selections
-    setSelectedBrand("");
-    setSelectedProduct("");
-  }, [selectedCategory, selectedFirm, brands, products]);
-
-  // Filter products based on selected category, firm, and brand
-  useEffect(() => {
-    if (selectedCategory) {
-      const filtered = products.filter((product) => {
-        const matchesCategory = product.categoryId === selectedCategory;
-        const matchesFirm = !selectedFirm || product.firmId === selectedFirm;
-        const matchesBrand =
-          !selectedBrand || product.brandId === selectedBrand;
-        return matchesCategory && matchesFirm && matchesBrand;
-      });
-      setFilteredProducts(filtered);
-    } else {
-      setFilteredProducts(products);
-    }
-    // Reset dependent selection
-    setSelectedProduct("");
-  }, [selectedCategory, selectedFirm, selectedBrand, products]);
-
   const handleSavePurchase = (purchaseData) => {
     if (editingPurchase) {
       setPurchases((prevPurchases) =>
         prevPurchases.map((purchase) =>
-          purchase._id === editingPurchase._id ? purchaseData : purchase
+          purchase._id === editingPurchase._id
+            ? { ...purchase, ...purchaseData }
+            : purchase
         )
       );
     } else {
-      setPurchases([...purchases, purchaseData]);
+      setPurchases([
+        ...purchases,
+        { ...purchaseData, _id: Date.now().toString() },
+      ]); // Assuming _id is generated
     }
     closeModal();
   };
@@ -173,11 +117,6 @@ export default function PurchaseManagement() {
   const closeModal = () => {
     setModalOpen(false);
     setEditingPurchase(null);
-    // Reset all selections
-    setSelectedCategory("");
-    setSelectedFirm("");
-    setSelectedBrand("");
-    setSelectedProduct("");
   };
 
   const confirmDeletePurchase = (purchase) => {
@@ -229,9 +168,9 @@ export default function PurchaseManagement() {
       {modalOpen && (
         <PurchaseForm
           categories={categories}
-          filteredFirms={filteredFirms}
-          filteredBrands={filteredBrands}
-          filteredProducts={filteredProducts}
+          firms={firms}
+          brands={brands}
+          products={products}
           editingPurchase={editingPurchase}
           setEditingPurchase={setEditingPurchase}
           closeModal={closeModal}
@@ -239,20 +178,6 @@ export default function PurchaseManagement() {
           currentUserRole={currentUserRole}
           currentUserId={currentUserId}
           users={users}
-          // Pass the selected states and their setters
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          selectedFirm={selectedFirm}
-          setSelectedFirm={setSelectedFirm}
-          selectedBrand={selectedBrand}
-          setSelectedBrand={setSelectedBrand}
-          selectedProduct={selectedProduct}
-          setSelectedProduct={setSelectedProduct}
-          // Pass the full lists for adding new entries
-          allCategories={categories}
-          allFirms={firms}
-          allBrands={brands}
-          allProducts={products}
         />
       )}
 
