@@ -65,6 +65,10 @@ app.get("/mark.svg", (req, res) => {
 const authRoutes = require("./src/routes/auth");
 app.use("/api/auth", authRoutes);
 
+// User Routes (including registration)
+const userRoutes = require("./src/routes/user");
+app.use("/api/users", userRoutes);
+
 // Password reset routes
 const {
   resetPassword,
