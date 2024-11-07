@@ -5,7 +5,13 @@ const BASE_URL = import.meta.env.VITE_APP_API_URL;
 
 const baseQuery = fetchBaseQuery({
   baseUrl: `${BASE_URL}/api`,
-  prepareHeaders: (headers) => {
+  prepareHeaders: (headers, { endpoint }) => {
+    // List of endpoints that do not require authentication
+    const noAuthEndpoints = ["registerUser", "loginUser"];
+    if (noAuthEndpoints.includes(endpoint)) {
+      // Do not include the Authorization header
+      return headers;
+    }
     // Get the token from localStorage
     const token = localStorage.getItem("token");
     if (token) {

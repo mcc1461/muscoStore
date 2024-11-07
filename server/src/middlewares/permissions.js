@@ -1,10 +1,17 @@
-"use strict";
-/* -------------------------------------------------------
-    NODEJS EXPRESS | MusCo Dev
-------------------------------------------------------- */
 // permissions.js | Middleware
 
 module.exports = {
+  isLogin: (req, res, next) => {
+    if (req.user) {
+      next();
+    } else {
+      return res.status(401).json({
+        error: true,
+        message: "Unauthorized access. Please log in.",
+      });
+    }
+  },
+
   isAdmin: (req, res, next) => {
     if (req.user && req.user.role === "admin") {
       next();

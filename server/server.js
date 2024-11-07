@@ -9,12 +9,6 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const app = express();
 
-// Import Password Reset Controllers
-const {
-  resetPassword,
-  requestPasswordReset,
-} = require("./src/controllers/auth");
-
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, ".env") });
 const HOST = process.env.HOST || "127.0.0.1";
@@ -64,18 +58,20 @@ app.get("/mark.svg", (req, res) => {
   res.sendFile(path.join(__dirname, "public/mark.svg"));
 });
 
-// Authentication Middleware
-app.use(require("./src/middlewares/authentication"));
-
-// Middleware for findSearchSortPage
-app.use(require("./src/middlewares/findSearchSortPage"));
-
 /* ------------------------------------------------------- */
-// Routes:
+// Unprotected Routes:
 
 // Authentication Routes
 const authRoutes = require("./src/routes/auth");
 app.use("/api/auth", authRoutes);
+
+// Password reset routes
+const {
+  resetPassword,
+  requestPasswordReset,
+} = require("./src/controllers/auth");
+app.post("/api/users/forgotPassword", requestPasswordReset);
+app.post("/api/users/reset-password", resetPassword);
 
 // HomePath for API Documentation
 app.all("/api/documents", (req, res) => {
@@ -84,18 +80,24 @@ app.all("/api/documents", (req, res) => {
   });
 });
 
-// Main API Routes
-const mainRoutes = require("./src/routes");
-app.use("/api", mainRoutes);
-
-// Password reset routes
-app.post("/api/users/forgotPassword", requestPasswordReset);
-app.post("/api/users/reset-password", resetPassword);
-
 // Welcome Route
 app.get("/", (req, res) => {
   res.json({ message: "Hello MusCo" });
 });
+
+/* ------------------------------------------------------- */
+// Apply Authentication Middleware:
+app.use(require("./src/middlewares/authentication"));
+
+// Middleware for findSearchSortPage
+app.use(require("./src/middlewares/findSearchSortPage"));
+
+/* ------------------------------------------------------- */
+// Protected Routes:
+
+// Main API Routes
+const mainRoutes = require("./src/routes");
+app.use("/api", mainRoutes);
 
 /* ------------------------------------------------------- */
 // 404 and Error Handlers
@@ -107,12 +109,6 @@ app.use((req, res) => {
 
 // Error Handler Middleware
 app.use(require("./src/middlewares/errorHandler"));
-
-/* ------------------------------------------------------- */
-// Catch-all route for serving index.html if needed
-app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "client", "index.html"));
-});
 
 /* ------------------------------------------------------- */
 // Run Server
