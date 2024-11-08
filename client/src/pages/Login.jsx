@@ -1,3 +1,7 @@
+// src/components/Login.jsx
+
+"use strict";
+
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
@@ -9,7 +13,7 @@ import { toast } from "react-toastify";
 import Loader from "../components/Loader";
 
 function Login() {
-  const [username, setUsername] = useState(""); // Only using username
+  const [username, setUsername] = useState(""); // Using username
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
@@ -20,7 +24,7 @@ function Login() {
   const { userInfo } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (userInfo) {
+    if (userInfo && userInfo.accessToken) {
       navigate("/dashboard/board");
     }
   }, [navigate, userInfo]);
@@ -34,45 +38,33 @@ function Login() {
       password,
     };
 
-    console.log("Submitting login data:", loginData); // Log the payload for debugging
+    console.log("Submitting login data:", loginData); // Debugging
 
     try {
-      const res = await loginUser(loginData).unwrap();
-      console.log("Login response:", res); // Log the response for debugging
-
-      // Store tokens in localStorage
-      localStorage.setItem("token", res.bearer.accessToken);
-      localStorage.setItem("refreshToken", res.bearer.refreshToken);
-
-      // Store user info in localStorage
-      localStorage.setItem("userInfo", JSON.stringify(res.user));
-
-      // Update Redux store with user info
-      dispatch(setCredentials(res.user));
-
-      navigate("/dashboard/board");
+      await loginUser(loginData).unwrap();
+      // The onQueryStarted in apiSlice.js handles setting credentials and redirect
     } catch (err) {
-      console.error("The problem is here-1", err);
+      console.error("Login error:", err);
       toast.error(err?.data?.message || "Invalid login credentials");
     }
   };
 
   return (
     <div className="flex items-center justify-center w-screen h-screen">
-      <img src={log} alt="" className="h-[auto] w-[30%]" />
-      <div className="h-[70%] w-[70%] flex flex-col items-center justify-between">
-        <div className="w-[60%]">
-          <div className="flex items-center justify-between w-[100%]">
-            <Logo1 className="" />
+      <img src={log} alt="Logo" className="w-1/3 h-auto" />
+      <div className="flex flex-col items-center justify-between h-7/10 w-7/10">
+        <div className="w-3/5">
+          <div className="flex items-center justify-between w-full">
+            <Logo1 />
             <p className="text-3xl font-bold">Login</p>
           </div>
         </div>
-        <div className="w-[60%] flex flex-col h-[70%] items-center justify-start gap-7">
+        <div className="flex flex-col items-center justify-start w-3/5 h-7/10 gap-7">
           <input
             type="text"
             name="username"
             placeholder="Username"
-            className="w-full outline-none border-2 border-slate-400 text-center rounded-xl h-[20%]"
+            className="w-full text-center border-2 outline-none border-slate-400 rounded-xl h-1/5"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             autoComplete="username"
@@ -81,7 +73,7 @@ function Login() {
             type="password"
             name="password"
             placeholder="Password"
-            className="w-full outline-none border-2 border-slate-400 text-center rounded-xl h-[20%]"
+            className="w-full text-center border-2 outline-none border-slate-400 rounded-xl h-1/5"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
@@ -91,9 +83,10 @@ function Login() {
 
           <button
             onClick={submitHandler}
-            className="w-full bg-red-500 h-[20%] text-white font-bold rounded-xl text-center flex items-center justify-center no-underline"
+            className="flex items-center justify-center w-full font-bold text-center text-white no-underline bg-red-500 h-1/5 rounded-xl"
+            disabled={isLoading}
           >
-            Login
+            {isLoading ? "Logging in..." : "Login"}
           </button>
           <div className="w-full">
             <Link to="/forgotPassword" className="text-right underline">
@@ -104,7 +97,7 @@ function Login() {
           <p className="text-xl font-bold">
             Don't have an account?{" "}
             <Link to="/register" className="text-red-500 no-underline">
-              SignUp
+              Sign Up
             </Link>
           </p>
         </div>

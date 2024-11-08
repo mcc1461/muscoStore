@@ -4,10 +4,10 @@
     NODEJS EXPRESS SERVER - server.js | MusCo Dev
 ------------------------------------------------------- */
 const express = require("express");
+const app = express();
 const path = require("path");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const app = express();
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, ".env") });
@@ -68,6 +68,9 @@ app.use("/api/auth", authRoutes);
 // User Routes (including registration)
 const userRoutes = require("./src/routes/user");
 app.use("/api/users", userRoutes);
+
+const tokenRoutes = require("./src/routes/token");
+app.use("/api/tokens", tokenRoutes);
 
 // Password reset routes
 const {

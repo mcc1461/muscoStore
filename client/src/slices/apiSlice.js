@@ -1,68 +1,109 @@
+// src/slices/apiSlice.js
+
+"use strict";
+
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { logout } from "../slices/authSlice"; // Adjust the import path if necessary
+import { logout, setCredentials } from "./authSlice"; // Adjust the import path if necessary
 
 const BASE_URL = import.meta.env.VITE_APP_API_URL;
+
+// Define a list of endpoints that do not require the Authorization header
+const noAuthEndpoints = ["loginUser", "registerUser"];
 
 const baseQuery = fetchBaseQuery({
   baseUrl: `${BASE_URL}/api`,
   prepareHeaders: (headers, { endpoint }) => {
-    // List of endpoints that do not require authentication
-    const noAuthEndpoints = ["registerUser", "loginUser"];
+    // Log the current endpoint for debugging
+    console.log("Preparing headers for endpoint:", endpoint);
+
     if (noAuthEndpoints.includes(endpoint)) {
-      // Do not include the Authorization header
+      // Do not include the Authorization header for auth-related endpoints
       return headers;
     }
-    // Get the token from localStorage
-    const token = localStorage.getItem("token");
-    if (token) {
-      // Include the token in the Authorization header
-      headers.set("Authorization", `Bearer ${token}`);
+
+    // Get the userInfo from localStorage
+    const userInfoStr = localStorage.getItem("userInfo");
+    if (userInfoStr) {
+      try {
+        const userInfo = JSON.parse(userInfoStr);
+        const token = userInfo.accessToken;
+        if (token) {
+          headers.set("Authorization", `Bearer ${token}`);
+        }
+      } catch (error) {
+        console.error("Error parsing userInfo from localStorage:", error);
+      }
     }
+
     return headers;
   },
 });
 
 const baseQueryWithReauth = async (args, api, extraOptions) => {
-  // First, make the base query
+  // Make the initial request
   let result = await baseQuery(args, api, extraOptions);
 
+  // If a 401 error is received, attempt to refresh the token
   if (result.error && result.error.status === 401) {
-    // Try to refresh the token
-    const refreshToken = localStorage.getItem("refreshToken");
+    console.warn("Received 401 Unauthorized. Attempting to refresh token.");
+
+    // Get the refreshToken from userInfo
+    const userInfoStr = localStorage.getItem("userInfo");
+    let refreshToken = null;
+
+    if (userInfoStr) {
+      try {
+        const userInfo = JSON.parse(userInfoStr);
+        refreshToken = userInfo.refreshToken;
+      } catch (error) {
+        console.error("Error parsing userInfo from localStorage:", error);
+      }
+    }
+
     if (refreshToken) {
+      console.log("Attempting to refresh access token using refresh token.");
+
       // Attempt to refresh the access token
       const refreshResult = await baseQuery(
         {
           url: "/auth/refresh",
           method: "POST",
-          body: { bearer: { refreshToken } },
+          body: { refreshToken }, // Adjust based on your backend's expected payload
         },
         api,
         extraOptions
       );
 
-      console.log("REFRESH RESULT", refreshResult);
-
       if (refreshResult.data) {
-        // Store the new access token
-        localStorage.setItem("token", refreshResult.data.bearer.accessToken);
-        // Retry the original query with the new token
-        return baseQuery(args, api, extraOptions);
+        console.log("Token refresh successful. Updating tokens.");
+
+        // Extract new tokens from the refresh response
+        const newAccessToken = refreshResult.data.bearer.accessToken;
+        const newRefreshToken = refreshResult.data.bearer.refreshToken;
+
+        // Update userInfo in localStorage
+        const userInfo = JSON.parse(userInfoStr);
+        const updatedUserInfo = {
+          ...userInfo,
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken,
+        };
+        localStorage.setItem("userInfo", JSON.stringify(updatedUserInfo));
+
+        // Update the Redux store with new tokens
+        api.dispatch(setCredentials(updatedUserInfo));
+
+        // Retry the original request with the new access token
+        result = await baseQuery(args, api, extraOptions);
       } else {
-        // Refresh token failed, logout the user
+        console.error("Token refresh failed. Logging out.");
         api.dispatch(logout());
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
         localStorage.removeItem("userInfo");
-        return result;
       }
     } else {
-      // No refresh token, logout the user
+      console.error("No refresh token available. Logging out.");
       api.dispatch(logout());
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
       localStorage.removeItem("userInfo");
-      return result;
     }
   }
 
@@ -70,8 +111,9 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 };
 
 export const apiSlice = createApi({
-  baseQuery: baseQueryWithReauth,
-  tagTypes: ["User"],
+  reducerPath: "api",
+  baseQuery: baseQueryWithReauth, // Use the enhanced baseQuery with re-authentication
+  tagTypes: ["User", "Firm"], // Add other tag types as needed
   endpoints: (builder) => ({
     // Registration mutation
     registerUser: builder.mutation({
@@ -80,16 +122,30 @@ export const apiSlice = createApi({
         method: "POST",
         body: userData,
       }),
-      onQueryStarted: async (userData, { queryFulfilled }) => {
+      onQueryStarted: async (userData, { queryFulfilled, dispatch }) => {
         try {
           const { data } = await queryFulfilled;
-          console.log("Registration response:", data); // Log response to ensure the token is present
+          console.log("Registration response:", data); // Debugging
 
-          if (data.token) {
-            localStorage.setItem("token", data.token); // Store the token in localStorage
-            console.log("Token stored:", data.token);
+          if (
+            data.bearer &&
+            data.bearer.accessToken &&
+            data.bearer.refreshToken &&
+            data.user
+          ) {
+            // Combine user info with tokens
+            const userInfoWithToken = {
+              ...data.user,
+              accessToken: data.bearer.accessToken,
+              refreshToken: data.bearer.refreshToken,
+            };
+
+            // Dispatch setCredentials to update Redux store and localStorage
+            dispatch(setCredentials(userInfoWithToken));
+
+            console.log("User registered and tokens stored.");
           } else {
-            console.error("No token found in response.");
+            console.error("No tokens found in registration response.");
           }
         } catch (error) {
           console.error("Registration error:", error);
@@ -104,12 +160,43 @@ export const apiSlice = createApi({
         method: "POST",
         body: credentials,
       }),
+      onQueryStarted: async (credentials, { queryFulfilled, dispatch }) => {
+        try {
+          const { data } = await queryFulfilled;
+          console.log("Login response:", data); // Debugging
+
+          if (
+            data.bearer &&
+            data.bearer.accessToken &&
+            data.bearer.refreshToken &&
+            data.user
+          ) {
+            // Combine user info with tokens
+            const userInfoWithToken = {
+              ...data.user,
+              accessToken: data.bearer.accessToken,
+              refreshToken: data.bearer.refreshToken,
+            };
+
+            // Dispatch setCredentials to update Redux store and localStorage
+            dispatch(setCredentials(userInfoWithToken));
+
+            console.log("User logged in and tokens stored.");
+          } else {
+            console.error("No tokens found in login response.");
+          }
+        } catch (error) {
+          console.error("Login error:", error);
+        }
+      },
     }),
+
     // Get user by ID
     getUser: builder.query({
       query: (id) => `/users/${id}`,
       providesTags: ["User"],
     }),
+
     // Update user
     updateUser: builder.mutation({
       query: ({ id, ...rest }) => ({
@@ -119,6 +206,7 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+
     // Delete user
     deleteUser: builder.mutation({
       query: (id) => ({
@@ -127,12 +215,23 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+
     // Logout mutation
-    logout: builder.mutation({
+    logoutUser: builder.mutation({
       query: () => ({
         url: "/auth/logout",
         method: "POST",
       }),
+      onQueryStarted: async (_, { queryFulfilled, dispatch }) => {
+        try {
+          await queryFulfilled;
+          dispatch(logout());
+          localStorage.removeItem("userInfo");
+          console.log("User logged out successfully.");
+        } catch (error) {
+          console.error("Logout error:", error);
+        }
+      },
     }),
   }),
 });
@@ -143,5 +242,5 @@ export const {
   useGetUserQuery,
   useUpdateUserMutation,
   useDeleteUserMutation,
-  useLogoutMutation,
+  useLogoutUserMutation,
 } = apiSlice;

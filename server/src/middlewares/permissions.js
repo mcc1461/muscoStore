@@ -1,4 +1,6 @@
-// permissions.js | Middleware
+// middlewares/permissions.js
+
+"use strict";
 
 module.exports = {
   isLogin: (req, res, next) => {

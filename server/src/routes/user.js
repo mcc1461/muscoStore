@@ -1,27 +1,24 @@
+// routes/user.js
+
 "use strict";
-/* -------------------------------------------------------
-    NODEJS EXPRESS | MusCo Dev
-------------------------------------------------------- */
-const express = require("express");
-const router = express.Router();
 
-/* ------------------------------------------------------- */
-// routes/user:
-
+const router = require("express").Router();
 const { isAdmin, isLogin } = require("../middlewares/permissions");
-const { list, create, read, update, remove } = require("../controllers/user"); // Import the controller functions
+const userController = require("../controllers/user");
 
-// URL: /users
+// Registration Route (unprotected)
+router.post("/", userController.create);
 
-// Protect routes with authentication middleware as needed
-router.route("/").get(isLogin, list).post(create);
+// Apply isLogin middleware to all routes below
+router.use(isLogin);
+
+router.get("/", userController.list);
 
 router
   .route("/:id")
-  .get(isLogin, read)
-  .put(isLogin, update)
-  .patch(isLogin, update)
-  .delete(isAdmin, remove);
+  .get(userController.read)
+  .put(userController.update)
+  .patch(userController.update)
+  .delete(isAdmin, userController.remove); // Only admin can delete users
 
-/* ------------------------------------------------------- */
 module.exports = router;

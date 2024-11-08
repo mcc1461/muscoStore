@@ -1,26 +1,21 @@
+// routes/token.js
+
 "use strict";
-/* -------------------------------------------------------
-    NODEJS EXPRESS | MusCo Dev
-------------------------------------------------------- */
+
 const router = require("express").Router();
-/* ------------------------------------------------------- */
-// routes/token:
-
 const { isAdmin } = require("../middlewares/permissions");
-const token = require("../controllers/token");
+const tokenController = require("../controllers/token");
 
-// URL: /tokens
-
+// Apply isAdmin middleware to all routes in this router
 router.use(isAdmin);
 
-router.route("/").get(token.list).post(token.create);
+router.route("/").get(tokenController.list).post(tokenController.create);
 
 router
   .route("/:id")
-  .get(token.read)
-  .put(token.update)
-  .patch(token.update)
-  .delete(token.delete);
+  .get(tokenController.read)
+  .put(tokenController.update)
+  .patch(tokenController.update)
+  .delete(tokenController.delete);
 
-/* ------------------------------------------------------- */
 module.exports = router;

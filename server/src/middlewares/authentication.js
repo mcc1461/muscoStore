@@ -1,8 +1,6 @@
+// middlewares/authentication.js
+
 "use strict";
-/* -------------------------------------------------------
-    NODEJS EXPRESS | MusCo Dev
-------------------------------------------------------- */
-// authentication.js | Middleware
 
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");

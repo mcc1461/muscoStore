@@ -1,3 +1,5 @@
+// src/utils/FirmsList.jsx
+
 import React, { useEffect, useState } from "react";
 import {
   FaEdit,
@@ -7,7 +9,7 @@ import {
   FaHome,
 } from "react-icons/fa";
 import { Dialog, Transition } from "@headlessui/react";
-import apiClient from "../services/apiClient"; // Ensure the path is correct
+import apiClient from "../services/apiClient";
 import { useNavigate } from "react-router-dom";
 
 export default function FirmsList() {
@@ -23,30 +25,27 @@ export default function FirmsList() {
   const [selectedFirmForDelete, setSelectedFirmForDelete] = useState(null);
   const [expandedFirms, setExpandedFirms] = useState({});
   const [formError, setFormError] = useState(null);
-  const [isSearchOpen, setIsSearchOpen] = useState(false); // Toggle search for mobile view
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(6); // Default items per page
-  const [cardsPerRow, setCardsPerRow] = useState(1); // Cards that fit per row
+  const [itemsPerPage, setItemsPerPage] = useState(6);
+  const [cardsPerRow, setCardsPerRow] = useState(1);
 
   // Card dimension constants
-  const CARD_WIDTH = 300; // Width of a card
-  const CARD_HEIGHT = 400; // Height of a card
+  const CARD_WIDTH = 300;
+  const CARD_HEIGHT = 400;
 
   // Calculate itemsPerPage based on window size
   const calculateItemsPerPage = () => {
-    const containerWidth = window.innerWidth - 64; // Width of the container (subtracting padding/margins)
-    const containerHeight = window.innerHeight - 200; // Height of the container (subtracting header/pagination height)
+    const containerWidth = window.innerWidth - 64;
+    const containerHeight = window.innerHeight - 200;
 
-    // Cards per row
     const cardsPerRow = Math.floor(containerWidth / CARD_WIDTH);
     setCardsPerRow(cardsPerRow);
 
-    // Rows per page based on available height
     const rowsPerPage = Math.floor(containerHeight / CARD_HEIGHT);
 
-    // Total items per page
     const totalItemsPerPage = cardsPerRow * rowsPerPage;
     setItemsPerPage(totalItemsPerPage > 0 ? totalItemsPerPage : 1);
   };
@@ -54,11 +53,12 @@ export default function FirmsList() {
   useEffect(() => {
     const fetchFirms = async () => {
       try {
-        const response = await apiClient.get("/api/firms");
+        const response = await apiClient.get("/firms"); // Ensure this endpoint is correct
         setFirms(response.data.data);
         setLoading(false);
       } catch (error) {
-        setError("Error fetching firms");
+        console.error("Error fetching firms:", error);
+        setError(error.response?.data?.message || "Error fetching firms");
         setLoading(false);
       }
     };
@@ -77,13 +77,15 @@ export default function FirmsList() {
 
   const deleteFirm = async () => {
     try {
-      await apiClient.delete(`/api/firms/${selectedFirmForDelete._id}`);
+      await apiClient.delete(`/firms/${selectedFirmForDelete._id}`);
       setFirms((prevFirms) =>
         prevFirms.filter((firm) => firm._id !== selectedFirmForDelete._id)
       );
       setConfirmOpen(false);
     } catch (error) {
       console.error("Error deleting the firm:", error);
+      // Optionally, set an error message to display to the user
+      setError(error.response?.data?.message || "Error deleting the firm");
     }
   };
 
@@ -115,15 +117,15 @@ export default function FirmsList() {
       }
 
       if (isAddingNewFirm) {
-        const response = await apiClient.post("/api/firms", editingFirm);
+        const response = await apiClient.post("/firms", editingFirm);
         setFirms([...firms, response.data.data]);
       } else {
         const updateResponse = await apiClient.put(
-          `/api/firms/${editingFirm._id}`,
+          `/firms/${editingFirm._id}`,
           editingFirm
         );
 
-        if (updateResponse.status === 202 || updateResponse.status === 200) {
+        if (updateResponse.status === 200 || updateResponse.status === 202) {
           setFirms((prevFirms) =>
             prevFirms.map((firm) =>
               firm._id === editingFirm._id ? { ...editingFirm } : firm
@@ -136,6 +138,7 @@ export default function FirmsList() {
 
       closeModal();
     } catch (error) {
+      console.error("Error saving the firm:", error);
       setFormError(
         error.response?.data?.message ||
           "Error saving the firm. Please try again."
@@ -188,7 +191,7 @@ export default function FirmsList() {
   }
 
   if (error) {
-    return <p>{error}</p>;
+    return <p className="text-red-500">{error}</p>;
   }
 
   return (
@@ -205,27 +208,25 @@ export default function FirmsList() {
         </div>
 
         <div className="flex items-center justify-between px-4 py-2 bg-blue-500">
-          {/* Search Input for large screens */}
           <div className="flex items-center space-x-4">
+            {/* Search Input for Desktop */}
             <input
               type="text"
               placeholder="Search firms..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`hidden md:block w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200 ${
-                isSearchOpen ? "block" : "hidden"
-              }`}
+              className="hidden w-full px-4 py-2 border rounded-lg md:block focus:ring focus:ring-indigo-200"
             />
 
-            {/* Magnifying glass icon for mobile screens */}
+            {/* Search Icon for Mobile */}
             <button
-              onClick={() => setIsSearchOpen(!isSearchOpen)} // Toggle search input for small screens
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
               className="text-white md:hidden"
             >
               <FaSearch size={24} />
             </button>
 
-            {/* Conditionally show the search input on small screens */}
+            {/* Search Input for Mobile */}
             {isSearchOpen && (
               <input
                 type="text"
@@ -237,6 +238,7 @@ export default function FirmsList() {
             )}
           </div>
 
+          {/* Add New Firm Button for Desktop */}
           <button
             onClick={openAddNewModal}
             className="hidden px-4 py-2 text-white bg-green-500 rounded-lg md:flex hover:bg-green-600"
@@ -244,20 +246,19 @@ export default function FirmsList() {
             <FaPlusCircle className="inline-block mr-2" /> Add New Firm
           </button>
 
-          {/* Plus icon for small screens */}
+          {/* Add New Firm Icon for Mobile */}
           <button onClick={openAddNewModal} className="text-white md:hidden">
             <FaPlusCircle size={24} />
           </button>
         </div>
       </div>
 
-      {/* Firm Cards */}
       <div className="px-4 py-6">
         {currentFirms.length > 0 ? (
           <div
             className="grid gap-6"
             style={{
-              gridTemplateColumns: `repeat(${cardsPerRow}, 1fr)`, // Dynamically set grid columns based on the calculated cardsPerRow
+              gridTemplateColumns: `repeat(${cardsPerRow}, 1fr)`,
             }}
           >
             {currentFirms.map((firm) => (
@@ -318,7 +319,6 @@ export default function FirmsList() {
         )}
       </div>
 
-      {/* Pagination */}
       <div className="sticky bottom-0 left-0 w-full py-4 bg-white border-t">
         <nav
           aria-label="Pagination"
@@ -341,14 +341,14 @@ export default function FirmsList() {
             <button
               onClick={handlePreviousPage}
               disabled={currentPage === 1}
-              className="relative inline-flex items-center px-3 py-2 text-sm font-semibold text-gray-900 bg-white rounded-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
+              className="relative inline-flex items-center px-3 py-2 text-sm font-semibold text-gray-900 bg-white rounded-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0 disabled:opacity-50"
             >
               Previous
             </button>
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className="relative inline-flex items-center px-3 py-2 ml-3 text-sm font-semibold text-gray-900 bg-white rounded-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
+              className="relative inline-flex items-center px-3 py-2 ml-3 text-sm font-semibold text-gray-900 bg-white rounded-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0 disabled:opacity-50"
             >
               Next
             </button>
@@ -356,7 +356,7 @@ export default function FirmsList() {
         </nav>
       </div>
 
-      {/* Modal for Editing or Adding Firm */}
+      {/* Edit/Add Firm Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="p-8 bg-white rounded-lg shadow-lg w-96">
@@ -438,6 +438,7 @@ export default function FirmsList() {
         </div>
       )}
 
+      {/* Confirm Delete Dialog */}
       <Transition show={confirmOpen} as={React.Fragment}>
         <Dialog
           as="div"

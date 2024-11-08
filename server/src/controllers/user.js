@@ -4,7 +4,8 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/user");
 
 // Ensure you have JWT_SECRET in your environment variables
-const JWT_SECRET = process.env.JWT_SECRET || "your_default_jwt_secret";
+const JWT_SECRET = process.env.JWT_SECRET || "Mcc_JWT_SECRET";
+const REFRESH_SECRET = process.env.REFRESH_SECRET || "Mcc_REFRESH_SECRET";
 
 module.exports = {
   // List users (Admin sees all, regular users see only their own profile)
@@ -88,21 +89,36 @@ module.exports = {
 
       await newUser.save();
 
-      // Generate JWT token
-      const token = jwt.sign(
+      // Generate JWT tokens
+      const accessToken = jwt.sign(
         {
           _id: newUser._id,
           username: newUser.username,
           role: newUser.role,
         },
         JWT_SECRET,
-        { expiresIn: "10d" }
+        { expiresIn: "15m" } // Access token expires in 15 minutes
       );
+
+      const refreshToken = jwt.sign(
+        {
+          _id: newUser._id,
+        },
+        REFRESH_SECRET,
+        { expiresIn: "7d" } // Refresh token expires in 7 days
+      );
+
+      // Save refreshToken in user model
+      newUser.refreshToken = refreshToken;
+      await newUser.save();
 
       return res.status(201).json({
         error: false,
         message: "User registered successfully.",
-        token, // Include the token in the response
+        bearer: {
+          accessToken,
+          refreshToken,
+        },
         user: {
           _id: newUser._id,
           username: newUser.username,

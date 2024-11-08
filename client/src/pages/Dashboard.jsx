@@ -1,17 +1,15 @@
-"use client";
+// src/pages/Dashboard.jsx
 
-import { useState } from "react";
+import React, { useState } from "react";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { Dialog, Menu, Transition } from "@headlessui/react";
-import { Link, useNavigate } from "react-router-dom";
 import {
   Bars3Icon,
   BellIcon,
   CalendarIcon,
   ChartPieIcon,
-  DocumentDuplicateIcon,
   MagnifyingGlassIcon,
   ChevronDownIcon,
-  FolderIcon,
   HomeIcon,
   UsersIcon,
   XMarkIcon,
@@ -19,36 +17,23 @@ import {
   CubeIcon,
   CurrencyDollarIcon,
   ShoppingCartIcon,
-  // BuildingOffice2Icon,
   TagIcon,
 } from "@heroicons/react/24/outline";
 import { useSelector, useDispatch } from "react-redux";
-import { useLogoutMutation } from "../slices/usersApiSlice"; // API Slice for logout
-import { logout } from "../slices/authSlice"; // Redux action for clearing user data
-import logo from "../assets/logo.png"; // Import the logo image
-
-import Dashheader from "../components/Dashheader"; // Import the Dasheader component
+import { logout } from "../slices/authSlice";
+import logo from "../assets/logo.png";
+import Dashheader from "../components/Dashheader";
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: HomeIcon, current: true },
-  { name: "Team", href: "/team", icon: UsersIcon, current: false },
-  { name: "Firms", href: "/firms", icon: BuildingOfficeIcon, current: false },
-  {
-    name: "Brands",
-    href: "/brands",
-    icon: TagIcon,
-    current: false,
-  },
-  { name: "Products", href: "/products", icon: CubeIcon, current: false },
-  {
-    name: "Purchases",
-    href: "/purchases",
-    icon: ShoppingCartIcon,
-    current: false,
-  },
-  { name: "Sales", href: "#", icon: CurrencyDollarIcon, current: false },
-  { name: "Calendar", href: "#", icon: CalendarIcon, current: false },
-  { name: "Reports", href: "#", icon: ChartPieIcon, current: false },
+  { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
+  { name: "Team", href: "/dashboard/team", icon: UsersIcon },
+  { name: "Firms", href: "/dashboard/firms", icon: BuildingOfficeIcon },
+  { name: "Brands", href: "/dashboard/brands", icon: TagIcon },
+  { name: "Products", href: "/dashboard/products", icon: CubeIcon },
+  { name: "Purchases", href: "/dashboard/purchases", icon: ShoppingCartIcon },
+  { name: "Sales", href: "/dashboard/sales", icon: CurrencyDollarIcon },
+  { name: "Calendar", href: "/dashboard/calendar", icon: CalendarIcon },
+  { name: "Reports", href: "/dashboard/reports", icon: ChartPieIcon },
 ];
 
 function classNames(...classes) {
@@ -59,85 +44,98 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { userInfo } = useSelector((state) => state.auth); // Get userInfo from Redux store
+  const { userInfo } = useSelector((state) => state.auth);
 
-  const [logoutApiCall] = useLogoutMutation(); // Hook for API logout call
-
-  const logoutHandler = async () => {
-    dispatch(logout()); // Clear user info from Redux store
-
-    // Remove tokens and user infor from local storage
-    localStorage.removeItem("accessToken");
+  const logoutHandler = () => {
+    dispatch(logout());
+    localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("userInfo");
-
-    // Redirect to the login page
     navigate("/login");
   };
 
   return (
     <>
       <div>
-        {/* Sidebar overlay for mobile */}
-        <Transition show={sidebarOpen} as={Dialog} onClose={setSidebarOpen}>
-          <Dialog.Overlay className="fixed inset-0 bg-gray-900/80" />
-
-          <div className="fixed inset-0 flex w-[94vw]">
+        {/* Mobile Sidebar */}
+        <Transition.Root show={sidebarOpen} as={React.Fragment}>
+          <Dialog
+            as="div"
+            className="relative z-50 lg:hidden"
+            onClose={setSidebarOpen}
+          >
             <Transition.Child
-              enter="transition ease-out duration-300"
-              enterFrom="-translate-x-full opacity-0"
-              enterTo="translate-x-0 opacity-100"
-              leave="transition ease-in duration-200"
-              leaveFrom="translate-x-0 opacity-100"
-              leaveTo="-translate-x-full opacity-0"
+              as={React.Fragment}
+              enter="transition-opacity ease-linear duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="transition-opacity ease-linear duration-300"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
             >
-              <Dialog.Panel className="relative flex flex-1 w-full max-w-xs mr-16 bg-gray-900">
-                <div className="absolute top-0 flex justify-center w-16 pt-5 left-full">
-                  <button
-                    type="button"
-                    onClick={() => setSidebarOpen(false)}
-                    className="-m-2.5 p-2.5"
-                  >
-                    <span className="sr-only">Close sidebar</span>
-                    <XMarkIcon
-                      aria-hidden="true"
-                      className="w-6 h-6 text-white"
-                    />
-                  </button>
-                </div>
+              <div className="fixed inset-0 bg-gray-900/80" />
+            </Transition.Child>
 
-                {/* Sidebar content */}
-                <div className="flex flex-col px-6 pb-4 overflow-y-auto bg-gray-900 grow gap-y-5 ring-1 ring-white/10">
-                  <nav className="flex flex-col flex-1">
+            <div className="fixed inset-0 flex">
+              <Transition.Child
+                as={React.Fragment}
+                enter="transition ease-in-out duration-300 transform"
+                enterFrom="-translate-x-full"
+                enterTo="translate-x-0"
+                leave="transition ease-in-out duration-300 transform"
+                leaveFrom="translate-x-0"
+                leaveTo="-translate-x-full"
+              >
+                <Dialog.Panel className="relative flex flex-col w-full max-w-xs px-6 pb-4 overflow-y-auto bg-gray-900">
+                  <div className="flex items-center h-16 shrink-0">
+                    <img
+                      alt="Your Company"
+                      src={logo}
+                      className="w-auto h-8 rounded-full"
+                    />
+                  </div>
+                  <nav className="flex flex-col flex-1 mt-5">
                     <ul role="list" className="flex flex-col flex-1 gap-y-7">
                       {navigation.map((item) => (
                         <li key={item.name}>
-                          <a
-                            href={item.href}
-                            className={classNames(
-                              item.current
-                                ? "bg-gray-800 text-white"
-                                : "text-gray-400 hover:bg-gray-800 hover:text-white",
-                              "group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6"
-                            )}
+                          <NavLink
+                            to={item.href}
+                            className={({ isActive }) =>
+                              classNames(
+                                isActive
+                                  ? "bg-gray-800 text-white"
+                                  : "text-gray-400 hover:bg-gray-800 hover:text-white",
+                                "group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6"
+                              )
+                            }
                           >
                             <item.icon
                               aria-hidden="true"
                               className="w-6 h-6 shrink-0"
                             />
                             {item.name}
-                          </a>
+                          </NavLink>
                         </li>
                       ))}
                     </ul>
                   </nav>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </Transition>
+                  <div className="absolute top-0 right-0 pt-5 pr-5">
+                    <button
+                      type="button"
+                      onClick={() => setSidebarOpen(false)}
+                      className="-m-2.5 p-2.5 text-white"
+                    >
+                      <span className="sr-only">Close sidebar</span>
+                      <XMarkIcon aria-hidden="true" className="w-6 h-6" />
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </Dialog>
+        </Transition.Root>
 
-        {/* Static sidebar for desktop */}
+        {/* Desktop Sidebar */}
         <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
           <div className="flex flex-col px-6 pb-4 overflow-y-auto bg-gray-900 grow gap-y-5">
             <div className="flex items-center h-16 shrink-0">
@@ -147,25 +145,27 @@ export default function Dashboard() {
                 className="w-auto h-8 rounded-full"
               />
             </div>
-            <nav className="flex flex-col flex-1">
+            <nav className="flex flex-col flex-1 mt-5">
               <ul role="list" className="flex flex-col flex-1 gap-y-7">
                 {navigation.map((item) => (
                   <li key={item.name}>
-                    <a
-                      href={item.href}
-                      className={classNames(
-                        item.current
-                          ? "bg-gray-800 text-white"
-                          : "text-gray-400 hover:bg-gray-800 hover:text-white",
-                        "group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6"
-                      )}
+                    <NavLink
+                      to={item.href}
+                      className={({ isActive }) =>
+                        classNames(
+                          isActive
+                            ? "bg-gray-800 text-white"
+                            : "text-gray-400 hover:bg-gray-800 hover:text-white",
+                          "group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6"
+                        )
+                      }
                     >
                       <item.icon
                         aria-hidden="true"
                         className="w-6 h-6 shrink-0"
                       />
                       {item.name}
-                    </a>
+                    </NavLink>
                   </li>
                 ))}
               </ul>
@@ -173,7 +173,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Main content area */}
+        {/* Main Content Area */}
         <div className="lg:pl-72">
           <div className="sticky top-0 z-40 flex items-center h-16 px-4 bg-white border-b border-gray-200 shadow-sm shrink-0 gap-x-4 sm:gap-x-6 sm:px-6 lg:px-8">
             <button
@@ -222,7 +222,6 @@ export default function Dashboard() {
                     <span className="sr-only">Open user menu</span>
                     <img
                       alt="User"
-                      // src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e"
                       src="https://firebasestorage.googleapis.com/v0/b/musco-store.appspot.com/o/avatar%20any.jpg?alt=media&token=a532f755-f98d-4f0a-9eca-fe9d6af3acba"
                       className="w-8 h-8 rounded-full bg-gray-50"
                     />
@@ -237,7 +236,7 @@ export default function Dashboard() {
                     </span>
                   </Menu.Button>
                   <Transition
-                    as={Menu.Items}
+                    as={React.Fragment}
                     enter="transition ease-out duration-100"
                     enterFrom="transform opacity-0 scale-95"
                     enterTo="transform opacity-100 scale-100"
@@ -248,7 +247,7 @@ export default function Dashboard() {
                     <Menu.Items className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
                       <Menu.Item>
                         {({ active }) => (
-                          <Link
+                          <NavLink
                             to="/dashboard/profile"
                             className={classNames(
                               active ? "bg-gray-100" : "",
@@ -256,7 +255,7 @@ export default function Dashboard() {
                             )}
                           >
                             Your profile
-                          </Link>
+                          </NavLink>
                         )}
                       </Menu.Item>
                       <Menu.Item>
@@ -265,7 +264,7 @@ export default function Dashboard() {
                             onClick={logoutHandler}
                             className={classNames(
                               active ? "bg-gray-100" : "",
-                              "block px-3 py-1 text-sm leading-6 text-gray-900 underline"
+                              "block px-3 py-1 text-sm leading-6 text-gray-900 w-full text-left"
                             )}
                           >
                             Logout
@@ -279,10 +278,14 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {/* Main Content */}
           <main className="py-10 mx-1 large:w-[80vw] w-[90vw]">
             {/* Dashheader component */}
             <Dashheader />
-            <div className="px-4 sm:px-6 lg:px-8">{/* Your content */}</div>
+            <div className="px-4 sm:px-6 lg:px-8">
+              {/* Render nested routes here */}
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>

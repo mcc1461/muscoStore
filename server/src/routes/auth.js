@@ -1,19 +1,13 @@
-("use strict");
-/* -------------------------------------------------------
-    NODEJS EXPRESS | MusCo Dev
-------------------------------------------------------- */
+// routes/auth.js
+
+"use strict";
+
 const router = require("express").Router();
+const authController = require("../controllers/auth");
 
-/* ------------------------------------------------------- */
-// routes/auth:
+// Public routes
+router.post("/login", authController.login);
+router.post("/refresh", authController.refresh);
+router.post("/logout", authController.logout); // Typically, logout can be a protected route
 
-const auth = require("../controllers/auth");
-
-// URL: /auth
-
-router.post("/login", auth.login); // SimpleToken & JWT
-router.post("/refresh", auth.refresh); // JWT Refresh
-router.get("/logout", auth.logout); // SimpleToken Logout
-
-/* ------------------------------------------------------- */
 module.exports = router;
