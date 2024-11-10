@@ -1,13 +1,19 @@
+// server.js
+
 "use strict";
 
-/* -------------------------------------------------------
-    NODEJS EXPRESS SERVER - server.js | MusCo Dev
-------------------------------------------------------- */
 const express = require("express");
 const app = express();
 const path = require("path");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const { dbConnection } = require("./src/configs/dbConnection");
+const authRoutes = require("./src/routes/authRoutes");
+const userRoutes = require("./src/routes/userRoutes");
+const productRoutes = require("./src/routes/productRoutes");
+const authenticate = require("./src/middlewares/authentication");
+const findSearchSortPage = require("./src/middlewares/findSearchSortPage"); // If applicable
+const errorHandler = require("./src/middlewares/errorHandler");
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, ".env") });
@@ -17,12 +23,7 @@ const PORT = process.env.PORT || 8061;
 // Handle async errors
 require("express-async-errors");
 
-// Set the view engine to EJS
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
-
 // Connect to the database
-const { dbConnection } = require("./src/configs/dbConnection");
 dbConnection();
 
 /* ------------------------------------------------------- */
@@ -32,13 +33,13 @@ dbConnection();
 app.use(
   cors({
     origin: [
-      "http://localhost:3061", // Allow requests from frontend on port 3061
+      "http://localhost:3061", // Frontend origin (adjust port if different)
       "http://127.0.0.1:3061",
       "https://tailwindui.com",
     ],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Methods allowed
-    credentials: true, // Allow cookies or credentials
-    allowedHeaders: ["Content-Type", "Authorization"], // Headers allowed
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -52,70 +53,44 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Serve SVG with correct CORS headers
-app.get("/mark.svg", (req, res) => {
-  res.setHeader("Content-Type", "image/svg+xml");
-  res.sendFile(path.join(__dirname, "public/mark.svg"));
-});
-
 /* ------------------------------------------------------- */
-// Unprotected Routes:
+// Routes:
 
 // Authentication Routes
-const authRoutes = require("./src/routes/auth");
 app.use("/api/auth", authRoutes);
 
-// User Routes (including registration)
-const userRoutes = require("./src/routes/user");
+// User Routes
 app.use("/api/users", userRoutes);
 
-const tokenRoutes = require("./src/routes/token");
-app.use("/api/tokens", tokenRoutes);
+// Product Routes
+app.use("/api/products", productRoutes);
 
-// Password reset routes
-const {
-  resetPassword,
-  requestPasswordReset,
-} = require("./src/controllers/auth");
-app.post("/api/users/forgotPassword", requestPasswordReset);
-app.post("/api/users/reset-password", resetPassword);
-
-// HomePath for API Documentation
-app.all("/api/documents", (req, res) => {
-  res.render("documents", {
-    title: "Stock Management API Service for MusCo",
+// Example Protected Route
+app.get("/api/protected", authenticate, (req, res) => {
+  res.status(200).json({
+    message: "This is a protected route.",
+    user: req.user,
   });
 });
 
-// Welcome Route
+// Home Route
 app.get("/", (req, res) => {
   res.json({ message: "Hello MusCo" });
 });
 
 /* ------------------------------------------------------- */
-// Apply Authentication Middleware:
-app.use(require("./src/middlewares/authentication"));
-
-// Middleware for findSearchSortPage
-app.use(require("./src/middlewares/findSearchSortPage"));
+// Middleware for findSearchSortPage (if applicable)
+app.use(findSearchSortPage); // Ensure this middleware doesn't interfere with auth
 
 /* ------------------------------------------------------- */
-// Protected Routes:
-
-// Main API Routes
-const mainRoutes = require("./src/routes");
-app.use("/api", mainRoutes);
+// Error Handler Middleware
+app.use(errorHandler);
 
 /* ------------------------------------------------------- */
-// 404 and Error Handlers
-
 // 404 Handler
 app.use((req, res) => {
-  res.status(404).json({ msg: "not found" });
+  res.status(404).json({ msg: "Not found" });
 });
-
-// Error Handler Middleware
-app.use(require("./src/middlewares/errorHandler"));
 
 /* ------------------------------------------------------- */
 // Run Server

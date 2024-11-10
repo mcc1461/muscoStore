@@ -1,15 +1,15 @@
 // src/slices/usersApiSlice.js
 
-import { apiSlice } from "./apiSlice";
+import { apiSlice } from "./api/apiSlice";
 
-const USERS_URL = "http://127.0.0.1:8061";
+const USERS_URL = "http://127.0.0.1:8061/api";
 
 export const usersApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // Login
     login: builder.mutation({
       query: (data) => ({
-        url: `${USERS_URL}/login`,
+        url: `${USERS_URL}/auth/login`,
         method: "POST",
         body: data,
       }),
@@ -18,7 +18,7 @@ export const usersApiSlice = apiSlice.injectEndpoints({
     // Register
     register: builder.mutation({
       query: (data) => ({
-        url: `${USERS_URL}/register`, // Adjust if your server expects /register
+        url: `${USERS_URL}/auth/register`, // Adjust if your server expects /register
         method: "POST",
         body: data,
       }),
@@ -27,7 +27,7 @@ export const usersApiSlice = apiSlice.injectEndpoints({
     // Logout
     logout: builder.mutation({
       query: () => ({
-        url: `${USERS_URL}/logout`,
+        url: `${USERS_URL}/auth/logout`,
         method: "POST", // Adjust to 'GET' if your server expects it
       }),
     }),
@@ -54,7 +54,7 @@ export const usersApiSlice = apiSlice.injectEndpoints({
     // Forgot Password
     forgotPassword: builder.mutation({
       query: (data) => ({
-        url: `${USERS_URL}/api/users/forgotPassword`,
+        url: `${USERS_URL}/users/forgotPassword`,
         method: "POST",
         body: data,
       }),
@@ -63,7 +63,7 @@ export const usersApiSlice = apiSlice.injectEndpoints({
     // Reset Password
     resetPassword: builder.mutation({
       query: ({ data, resetToken }) => ({
-        url: `${USERS_URL}/reset-password/${resetToken}`,
+        url: `${USERS_URL}/users/reset-password/${resetToken}`,
         method: "PUT",
         body: data,
       }),

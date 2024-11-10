@@ -1,109 +1,71 @@
 // src/components/Login.jsx
 
-"use strict";
-
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
-import { useLoginUserMutation } from "../slices/apiSlice";
-import { setCredentials } from "../slices/authSlice";
-import log from "../assets/log.png";
-import Logo1 from "../components/Logo1";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useLoginUserMutation } from "../features/api/apiSlice";
+import { setCredentials } from "../features/api/auth/authSlice";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import Loader from "../components/Loader";
 
-function Login() {
-  const [username, setUsername] = useState(""); // Using username
+export default function Login() {
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-
   const [loginUser, { isLoading }] = useLoginUserMutation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const { userInfo } = useSelector((state) => state.auth);
-
-  useEffect(() => {
-    if (userInfo && userInfo.accessToken) {
-      navigate("/dashboard/board");
-    }
-  }, [navigate, userInfo]);
-
-  const submitHandler = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Prepare login data
-    const loginData = {
-      username,
-      password,
-    };
-
-    console.log("Submitting login data:", loginData); // Debugging
-
     try {
-      await loginUser(loginData).unwrap();
-      // The onQueryStarted in apiSlice.js handles setting credentials and redirect
+      const userData = await loginUser({ username, password }).unwrap();
+      dispatch(setCredentials(userData));
+      setUsername("");
+      setPassword("");
+      toast.success("Logged in successfully!");
+      navigate("/dashboard");
     } catch (err) {
-      console.error("Login error:", err);
-      toast.error(err?.data?.message || "Invalid login credentials");
+      console.error("Failed to login:", err);
+      toast.error(err?.data?.msg || "Login failed. Please try again.");
     }
   };
 
   return (
-    <div className="flex items-center justify-center w-screen h-screen">
-      <img src={log} alt="Logo" className="w-1/3 h-auto" />
-      <div className="flex flex-col items-center justify-between h-7/10 w-7/10">
-        <div className="w-3/5">
-          <div className="flex items-center justify-between w-full">
-            <Logo1 />
-            <p className="text-3xl font-bold">Login</p>
-          </div>
-        </div>
-        <div className="flex flex-col items-center justify-start w-3/5 h-7/10 gap-7">
+    <div className="flex items-center justify-center h-screen">
+      <form
+        onSubmit={handleSubmit}
+        className="w-1/3 p-6 bg-white rounded shadow-md"
+      >
+        <h2 className="mb-4 text-2xl">Login</h2>
+        <div className="mb-4">
+          <label className="block mb-1">Username</label>
           <input
             type="text"
-            name="username"
-            placeholder="Username"
-            className="w-full text-center border-2 outline-none border-slate-400 rounded-xl h-1/5"
+            className="w-full px-3 py-2 border"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            autoComplete="username"
+            required
+            placeholder="Enter your username"
           />
+        </div>
+        <div className="mb-6">
+          <label className="block mb-1">Password</label>
           <input
             type="password"
-            name="password"
-            placeholder="Password"
-            className="w-full text-center border-2 outline-none border-slate-400 rounded-xl h-1/5"
+            className="w-full px-3 py-2 border"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
+            required
+            placeholder="Enter your password"
           />
-
-          {isLoading && <Loader />}
-
-          <button
-            onClick={submitHandler}
-            className="flex items-center justify-center w-full font-bold text-center text-white no-underline bg-red-500 h-1/5 rounded-xl"
-            disabled={isLoading}
-          >
-            {isLoading ? "Logging in..." : "Login"}
-          </button>
-          <div className="w-full">
-            <Link to="/forgotPassword" className="text-right underline">
-              Forgot Password
-            </Link>
-          </div>
-
-          <p className="text-xl font-bold">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-red-500 no-underline">
-              Sign Up
-            </Link>
-          </p>
         </div>
-      </div>
+        <button
+          type="submit"
+          className="w-full py-2 text-white bg-blue-500 rounded"
+          disabled={isLoading}
+        >
+          {isLoading ? "Logging in..." : "Login"}
+        </button>
+      </form>
     </div>
   );
 }
-
-export default Login;

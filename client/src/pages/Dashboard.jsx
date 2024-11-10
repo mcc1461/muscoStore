@@ -20,7 +20,7 @@ import {
   TagIcon,
 } from "@heroicons/react/24/outline";
 import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../slices/authSlice";
+import { logout } from "../features/api/auth/authSlice";
 import logo from "../assets/logo.png";
 import Dashheader from "../components/Dashheader";
 

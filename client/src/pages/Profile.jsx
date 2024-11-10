@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useProfileQuery } from "../slices/usersApiSlice";
+import { useProfileQuery } from "../features/usersApiSlice";
 import { Link, useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
 import { toast } from "react-toastify";

@@ -12,7 +12,7 @@ router.use("/tokens", require("./token"));
 router.use("/categories", require("./category"));
 router.use("/brands", require("./brand"));
 router.use("/firms", require("./firm"));
-router.use("/products", require("./product"));
+router.use("/products", require("./productRoutes"));
 router.use("/purchases", require("./purchase"));
 router.use("/sales", require("./sale"));
 router.use("/documents", require("./document"));

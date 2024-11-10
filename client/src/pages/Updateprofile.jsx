@@ -5,8 +5,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
 import { toast } from "react-toastify";
-import { setCredentials } from "../slices/authSlice";
-import { useUpdateUserMutation } from "../slices/usersApiSlice";
+import { setCredentials } from "../features/api/auth/authSlice";
+import { useUpdateUserMutation } from "../features/usersApiSlice";
 
 function Updateprofile() {
   const [firstName, setFirstName] = useState("");

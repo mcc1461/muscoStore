@@ -1,58 +1,32 @@
-"use strict";
-/* -------------------------------------------------------
-    NODEJS EXPRESS | CLARUSWAY FullStack Team
-------------------------------------------------------- */
-const { mongoose } = require("../configs/dbConnection");
-/* ------------------------------------------------------- *
-{
-    "categoryId": "65343222b67e9681f937f203",
-    "brandId": "65343222b67e9681f937f107",
-    "name": "Product 1"
-}
-/* ------------------------------------------------------- */
-// Product Model:
+// src/models/Product.js
 
-const ProductSchema = new mongoose.Schema(
+const mongoose = require("mongoose");
+
+const productSchema = new mongoose.Schema(
   {
-    categoryId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-      required: true,
-    },
-    brandId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Brand",
-      required: true,
-    },
     name: {
       type: String,
-      trim: true,
-      required: true,
+      required: [true, "Please add a product name"],
     },
-    description: {
+    category: {
       type: String,
-      trim: true,
+      required: [true, "Please add a category"],
     },
     price: {
       type: Number,
-      default: 0,
+      required: [true, "Please add a price"],
     },
-
     quantity: {
       type: Number,
-      default: 0,
+      required: [true, "Please add a quantity"],
     },
-    image: {
-      type: String,
-      default: "no-image.jpg",
+    value: {
+      type: Number,
+      required: [true, "Please add a value"],
     },
-    image2: {
-      type: String,
-      default: "no-image.jpg",
-    },
+    // Add other fields as needed
   },
-  { collection: "products", timestamps: true }
+  { timestamps: true }
 );
 
-/* ------------------------------------------------------- */
-module.exports = mongoose.model("Product", ProductSchema);
+module.exports = mongoose.model("Product", productSchema);

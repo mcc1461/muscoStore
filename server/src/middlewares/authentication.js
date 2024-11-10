@@ -1,49 +1,43 @@
-// middlewares/authentication.js
-
-"use strict";
+// src/middlewares/authentication.js
 
 const jwt = require("jsonwebtoken");
-const User = require("../models/user");
+const User = require("../models/User");
+const dotenv = require("dotenv");
+const path = require("path");
 
-module.exports = async (req, res, next) => {
-  const authHeader = req.headers?.authorization || null; // Bearer ...accessToken...
+// Load environment variables
+dotenv.config({ path: path.join(__dirname, "../../.env") });
 
-  if (authHeader) {
-    const [scheme, token] = authHeader.split(" "); // ['Bearer', '...accessToken...']
+const JWT_SECRET = process.env.JWT_SECRET || "Mcc_JWT_SECRET";
 
-    if (scheme === "Bearer" && token) {
-      try {
-        const decoded = jwt.verify(
-          token,
-          process.env.ACCESS_KEY || process.env.JWT_SECRET
-        );
-        // Fetch the user from the database using the decoded token
-        const user = await User.findById(decoded._id);
+const authenticate = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
 
-        if (!user) {
-          // User not found
-          return res
-            .status(401)
-            .json({ error: true, message: "User not found." });
-        }
+  // Check for Authorization header
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: true, message: "No token provided." });
+  }
 
-        req.user = user; // Attach the authenticated user to req.user
-        next();
-      } catch (err) {
-        // Token verification failed
-        console.error("Token verification error:", err);
-        return res.status(401).json({ error: true, message: "Invalid token." });
-      }
-    } else {
-      // Invalid token format
-      return res
-        .status(401)
-        .json({ error: true, message: "Invalid authorization format." });
+  const token = authHeader.split(" ")[1];
+
+  try {
+    // Verify token
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    // Attach user to request
+    const user = await User.findById(decoded._id).select("-password -__v");
+    if (!user) {
+      return res.status(401).json({ error: true, message: "User not found." });
     }
-  } else {
-    // No authorization header
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error("Authentication error:", error);
     return res
       .status(401)
-      .json({ error: true, message: "No authorization header provided." });
+      .json({ error: true, message: "Invalid or expired token." });
   }
 };
+
+module.exports = authenticate;

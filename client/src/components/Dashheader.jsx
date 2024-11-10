@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 // import { useLogoutMutation } from "../slices/usersApiSlice"; // Ensure you're using the correct API slice
-import { logout } from "../slices/authSlice"; // Redux action for logging out
+import { logout } from "../features/api/auth/authSlice"; // Redux action for logging out
 
 export default function Dasheader() {
   const { userInfo } = useSelector((state) => state.auth); // Get userInfo from Redux store

@@ -45,13 +45,20 @@ module.exports = {
 
   // Create a new user
   create: async (req, res) => {
-    const { username, password, email, firstName, lastName, role, roleCode } =
-      req.body;
-
-    let assignedRole = "user";
-
     try {
-      // Check if the user already exists
+      console.log("Request body:", req.body); // Log the incoming data
+
+      // Extract all required fields
+      const { username, password, email, firstName, lastName, role } = req.body;
+
+      // Validate required fields
+      if (!username || !password || !email || !firstName || !lastName) {
+        return res
+          .status(400)
+          .json({ error: true, message: "All fields are required." });
+      }
+
+      // Check if user already exists
       const existingUser = await User.findOne({ username });
       if (existingUser) {
         return res
@@ -59,77 +66,28 @@ module.exports = {
           .json({ error: true, message: "User already exists." });
       }
 
-      // Check the role and roleCode
-      if (role === "admin" && roleCode === process.env.ADMIN_CODE) {
-        assignedRole = "admin";
-      } else if (role === "staff" && roleCode === process.env.STAFF_CODE) {
-        assignedRole = "staff";
-      } else if (role === "user") {
-        assignedRole = "user";
-      } else {
-        return res
-          .status(400)
-          .json({ error: true, message: "Invalid role or role code." });
-      }
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Hash the password before saving (for security)
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-
-      // Create the new user with the hashed password
+      // Create the new user with all required fields
       const newUser = new User({
         username,
         password: hashedPassword,
         email,
         firstName,
         lastName,
-        role: assignedRole,
-        isActive: true,
+        role: role || "user",
       });
 
+      // Save user to the database
       await newUser.save();
+      console.log("User created:", newUser);
 
-      // Generate JWT tokens
-      const accessToken = jwt.sign(
-        {
-          _id: newUser._id,
-          username: newUser.username,
-          role: newUser.role,
-        },
-        JWT_SECRET,
-        { expiresIn: "15m" } // Access token expires in 15 minutes
-      );
-
-      const refreshToken = jwt.sign(
-        {
-          _id: newUser._id,
-        },
-        REFRESH_SECRET,
-        { expiresIn: "7d" } // Refresh token expires in 7 days
-      );
-
-      // Save refreshToken in user model
-      newUser.refreshToken = refreshToken;
-      await newUser.save();
-
-      return res.status(201).json({
-        error: false,
-        message: "User registered successfully.",
-        bearer: {
-          accessToken,
-          refreshToken,
-        },
-        user: {
-          _id: newUser._id,
-          username: newUser.username,
-          email: newUser.email,
-          firstName: newUser.firstName,
-          lastName: newUser.lastName,
-          role: newUser.role,
-        },
-      });
+      return res
+        .status(201)
+        .json({ error: false, message: "User registered successfully." });
     } catch (error) {
-      console.error("Error creating user:", error);
+      console.error("Error creating user:", error); // Log any errors
       return res.status(500).json({ error: true, message: "Server error." });
     }
   },

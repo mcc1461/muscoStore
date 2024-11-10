@@ -1,3 +1,4 @@
+// Table.jsx
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { BsEye } from "react-icons/bs";
@@ -6,7 +7,13 @@ import { ImBin } from "react-icons/im";
 import { Link } from "react-router-dom";
 import axios from "axios"; // Import axios
 import Search from "./search";
-import { deleteProduct, setProducts } from "../slices/products/productSlice";
+import {
+  deleteProduct,
+  setProducts,
+} from "../features/api/products/productSlice";
+
+const BASE_URL =
+  import.meta.env.VITE_APP_API_URL || "http://127.0.0.1:8061/api";
 
 export default function Table() {
   const [showModal, setShowModal] = useState(false);
@@ -18,7 +25,17 @@ export default function Table() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get("/api/products"); // Use axios to make the GET request
+        // Retrieve userInfo from localStorage
+        const userInfoStr = localStorage.getItem("userInfo");
+        const userInfo = userInfoStr ? JSON.parse(userInfoStr) : null;
+        const token = userInfo ? userInfo.accessToken : null;
+
+        // Make the GET request with Authorization header
+        const response = await axios.get(`${BASE_URL}/products`, {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        });
 
         if (response.status === 200) {
           dispatch(setProducts(response.data)); // Access data directly from response
@@ -78,9 +95,9 @@ export default function Table() {
                     </Link>
                   </p>
                   <p>
-                    <Link to={`/dashboard/deleteproduct/${product?._id}`}>
+                    <button onClick={() => setShowModal(true)}>
                       <ImBin className="text-[#850707]" />
-                    </Link>
+                    </button>
                   </p>
                 </td>
 
@@ -119,7 +136,7 @@ export default function Table() {
           </tbody>
         </table>
         <p className="w-full text-center text-slate-400">
-          by MusCo ©️ <span>{new Date().getFullYear}</span>2024
+          by MusCo ©️ <span>{new Date().getFullYear()}</span>2024
         </p>
       </div>
     </div>

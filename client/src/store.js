@@ -1,19 +1,18 @@
+// src/app/store.js
+
 import { configureStore } from "@reduxjs/toolkit";
-import authReducer from './slices/authSlice'
-import { apiSlice } from "./slices/apiSlice";
-import productReducer from "./slices/products/productSlice"
-import boardReducer from "./slices/products/boardSlice"
+import authReducer from "./features/api/auth/authSlice";
+import productReducer from "./features/api/products/productSlice";
+import { apiSlice } from "./features/api/apiSlice";
 
 const store = configureStore({
-    reducer: {
-        auth: authReducer,
-        product: productReducer,
-        board: boardReducer,
-        [apiSlice.reducerPath]:apiSlice.reducer,
-    },
-    middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(apiSlice.middleware),
-    devTools: true
+  reducer: {
+    auth: authReducer,
+    product: productReducer,
+    [apiSlice.reducerPath]: apiSlice.reducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(apiSlice.middleware),
 });
 
-export default store
+export default store; // Default export

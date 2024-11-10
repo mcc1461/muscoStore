@@ -1,16 +1,16 @@
-import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   updateTotalProducts,
   updateTotalStockValue,
   updateOutOfStockCount,
-  updateCategories
-} from '../slices/products/boardSlice'; // Import your dashboardSlice actions instead of products/boardSlice
+  updateCategories,
+} from "../features/api/products/boardSlice"; // Import your dashboardSlice actions instead of products/boardSlice
 
-import { BsListCheck } from 'react-icons/bs';
-import { GiShoppingCart } from 'react-icons/gi';
-import { TbCurrencyNaira, TbShoppingCartX } from 'react-icons/tb';
-import Table from '../components/Table';
+import { BsListCheck } from "react-icons/bs";
+import { GiShoppingCart } from "react-icons/gi";
+import { TbCurrencyNaira, TbShoppingCartX } from "react-icons/tb";
+import Table from "../components/Table";
 
 export default function Board() {
   const dispatch = useDispatch();
@@ -47,7 +47,6 @@ export default function Board() {
     dispatch(updateTotalStockValue(updatedTotalStockValue));
     dispatch(updateOutOfStockCount(updatedOutOfStockCount));
     dispatch(updateCategories(updatedCategories));
-
   }, [dispatch, products]);
 
   return (
@@ -81,7 +80,7 @@ export default function Board() {
           </div>
         </button>
         <button className="w-[20%] h-[90%] rounded-xl bg-[#530441] flex items-center justify-evenly transition ease-in-out delay-150 hover:-translate-1 hover:scale-110 hover:bg-[#530441] duration-300">
-          {' '}
+          {" "}
           <div>
             <BsListCheck className="text-4xl " />
           </div>

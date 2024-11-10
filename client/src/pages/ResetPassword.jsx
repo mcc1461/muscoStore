@@ -7,7 +7,7 @@ import Loader from "../components/Loader";
 import {
   useForgotPasswordMutation,
   useResetPasswordMutation,
-} from "../slices/usersApiSlice";
+} from "../features/usersApiSlice";
 
 export default function ResetPassword() {
   const [email, setEmail] = useState("");
