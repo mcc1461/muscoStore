@@ -1,7 +1,7 @@
 // src/middlewares/authentication.js
 
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+const User = require("../models/user");
 const dotenv = require("dotenv");
 const path = require("path");
 

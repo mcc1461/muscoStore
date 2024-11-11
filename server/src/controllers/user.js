@@ -46,30 +46,24 @@ module.exports = {
   // Create a new user
   create: async (req, res) => {
     try {
-      console.log("Request body:", req.body); // Log the incoming data
-
-      // Extract all required fields
       const { username, password, email, firstName, lastName, role } = req.body;
 
-      // Validate required fields
       if (!username || !password || !email || !firstName || !lastName) {
-        return res
-          .status(400)
-          .json({ error: true, message: "All fields are required." });
+        return res.status(400).json({
+          error: true,
+          message: "All fields are required.",
+        });
       }
 
-      // Check if user already exists
       const existingUser = await User.findOne({ username });
       if (existingUser) {
-        return res
-          .status(400)
-          .json({ error: true, message: "User already exists." });
+        return res.status(400).json({
+          error: true,
+          message: "User already exists.",
+        });
       }
 
-      // Hash the password
       const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Create the new user with all required fields
       const newUser = new User({
         username,
         password: hashedPassword,
@@ -79,15 +73,30 @@ module.exports = {
         role: role || "user",
       });
 
-      // Save user to the database
       await newUser.save();
-      console.log("User created:", newUser);
 
-      return res
-        .status(201)
-        .json({ error: false, message: "User registered successfully." });
+      // Generate a token for the new user
+      const token = jwt.sign(
+        { id: newUser._id, role: newUser.role },
+        JWT_SECRET,
+        { expiresIn: "10d" }
+      );
+
+      return res.status(201).json({
+        token,
+        user: {
+          _id: newUser._id,
+          username: newUser.username,
+          email: newUser.email,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          role: newUser.role,
+        },
+        error: false,
+        message: "User registered successfully.",
+      });
     } catch (error) {
-      console.error("Error creating user:", error); // Log any errors
+      console.error("Error creating user:", error);
       return res.status(500).json({ error: true, message: "Server error." });
     }
   },

@@ -178,7 +178,7 @@ export default function PurchaseForm({
     }
 
     try {
-      const response = await apiClient.post("/api/firms", {
+      const response = await apiClient.post("/dashboard/firms", {
         name: newFirmName,
       });
       const newFirm = response.data?.data;

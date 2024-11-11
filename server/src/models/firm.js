@@ -2,7 +2,9 @@
 /* -------------------------------------------------------
     NODEJS EXPRESS | MusCo Dev
 ------------------------------------------------------- */
+
 const { mongoose } = require("../configs/dbConnection");
+
 /* ------------------------------------------------------- *
 {
     "name": "Firm 1",
@@ -11,6 +13,7 @@ const { mongoose } = require("../configs/dbConnection");
     "image": "http://imageURL"
 }
 /* ------------------------------------------------------- */
+
 // Firm Model:
 
 const FirmSchema = new mongoose.Schema(
@@ -42,5 +45,4 @@ const FirmSchema = new mongoose.Schema(
   { collection: "Firms", timestamps: true }
 );
 
-/* ------------------------------------------------------- */
 module.exports = mongoose.model("Firm", FirmSchema);

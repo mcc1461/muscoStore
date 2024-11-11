@@ -3,9 +3,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  user: null,
-  accessToken: null,
-  refreshToken: null,
+  userInfo: null,
 };
 
 const authSlice = createSlice({
@@ -13,21 +11,13 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setCredentials: (state, action) => {
-      const { user, accessToken, refreshToken } = action.payload;
-      state.user = user;
-      state.accessToken = accessToken;
-      state.refreshToken = refreshToken;
-      localStorage.setItem("userInfo", JSON.stringify(state));
+      state.userInfo = action.payload;
     },
     logout: (state) => {
-      state.user = null;
-      state.accessToken = null;
-      state.refreshToken = null;
-      localStorage.removeItem("userInfo");
+      state.userInfo = null;
     },
   },
 });
 
 export const { setCredentials, logout } = authSlice.actions;
-
-export default authSlice.reducer; // Default export
+export default authSlice.reducer;

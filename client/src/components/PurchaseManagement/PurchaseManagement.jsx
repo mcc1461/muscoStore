@@ -45,16 +45,16 @@ export default function PurchaseManagement() {
           productsResponse,
           usersResponse,
         ] = await Promise.all([
-          apiClient.get("/api/purchases", {
+          apiClient.get("/purchases", {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           }),
-          apiClient.get("/api/firms"),
-          apiClient.get("/api/brands"),
-          apiClient.get("/api/categories"),
-          apiClient.get("/api/products"),
-          apiUserClient.get("/api/users", {
+          apiClient.get("/firms"),
+          apiClient.get("/brands"),
+          apiClient.get("/categories"),
+          apiClient.get("/products"),
+          apiUserClient.get("/users", {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },

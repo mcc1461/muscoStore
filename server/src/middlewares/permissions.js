@@ -1,5 +1,3 @@
-// middlewares/permissions.js
-
 "use strict";
 
 module.exports = {
@@ -38,9 +36,10 @@ module.exports = {
     if (req.user && (req.user.role === "staff" || req.user.role === "admin")) {
       next();
     } else {
-      return res
-        .status(403)
-        .json({ error: true, message: "Access denied. Staff or Admins only." });
+      return res.status(403).json({
+        error: true,
+        message: "Access denied. Staff or Admins only.",
+      });
     }
   },
 

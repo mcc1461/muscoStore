@@ -1,25 +1,11 @@
-// server/routes/authRoutes.js
-
 const express = require("express");
 const router = express.Router();
+const authController = require("../controllers/authController");
 
-// Correctly import the named exports from authController.js
-const {
-  login,
-  register,
-  refresh,
-  logout,
-} = require("../controllers/authController");
-
-// Define routes using the imported functions
-router.post("/login", login);
-router.post("/register", register);
-router.post("/refresh", refresh);
-router.post("/logout", logout);
-
-console.log("login:", login);
-console.log("register:", register);
-console.log("refresh:", refresh);
-console.log("logout:", logout);
+// Define your routes
+router.post("/register", authController.register);
+router.post("/login", authController.login);
+router.post("/refresh", authController.refresh);
+router.post("/logout", authController.logout);
 
 module.exports = router;

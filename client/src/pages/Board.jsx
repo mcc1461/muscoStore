@@ -5,7 +5,7 @@ import {
   updateTotalStockValue,
   updateOutOfStockCount,
   updateCategories,
-} from "../features/api/products/boardSlice"; // Import your dashboardSlice actions instead of products/boardSlice
+} from "../features/api/products/boardSlice"; // Ensure correct import path
 
 import { BsListCheck } from "react-icons/bs";
 import { GiShoppingCart } from "react-icons/gi";
@@ -20,19 +20,35 @@ export default function Board() {
   const [totalProducts, setTotalProducts] = useState(0);
   const [totalStockValue, setTotalStockValue] = useState(0);
   const [outOfStockCount, setOutOfStockCount] = useState(0);
-  const [Categories, setCategories] = useState(0);
+  const [categories, setCategories] = useState(0); // Renamed to lowercase for consistency
 
   useEffect(() => {
+    if (!Array.isArray(products)) {
+      console.error("Products data is not an array:", products);
+      return;
+    }
+
     const updatedTotalProducts = products.length;
-    const updatedTotalStockValue = products.reduce(
-      (total, product) => total + product?.value,
-      0
-    );
+
+    // Safeguard to ensure product.value is a valid number
+    const updatedTotalStockValue = products.reduce((total, product) => {
+      const value = Number(product?.value);
+      if (isNaN(value)) {
+        console.warn(
+          `Invalid value for product ID ${product?._id}:`,
+          product?.value
+        );
+        return total;
+      }
+      return total + value;
+    }, 0);
+
     const updatedOutOfStockCount = products.filter(
       (product) => product?.quantity === 0
     ).length;
+
     const uniqueCategories = [
-      ...new Set(products.map((product) => product?.category)),
+      ...new Set(products.map((product) => product?.category).filter(Boolean)),
     ];
     const updatedCategories = uniqueCategories.length;
 
@@ -80,13 +96,12 @@ export default function Board() {
           </div>
         </button>
         <button className="w-[20%] h-[90%] rounded-xl bg-[#530441] flex items-center justify-evenly transition ease-in-out delay-150 hover:-translate-1 hover:scale-110 hover:bg-[#530441] duration-300">
-          {" "}
           <div>
             <BsListCheck className="text-4xl " />
           </div>
           <div className="text-center">
             <p>All Categories</p>
-            <p>{Categories}</p>
+            <p>{categories}</p>
           </div>
         </button>
       </div>

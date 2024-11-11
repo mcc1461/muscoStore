@@ -18,7 +18,7 @@ import Addproducts from "./Addproducts";
 import ForgotPassword from "./ForgotPassword";
 import ResetPassword from "./ResetPassword";
 import Editproduct from "./Editproduct";
-import PrivateRoute from "../components/PrivateRoute";
+import PrivateRoute from "../components/privateRoute";
 import Deleteproducts from "./Deleteproducts";
 import FirmsList from "../utils/FirmsList";
 import BrandsList from "../utils/BrandsList";

@@ -1,6 +1,6 @@
 // src/utils/FirmsList.jsx
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   FaEdit,
   FaTrashAlt,
@@ -11,6 +11,7 @@ import {
 import { Dialog, Transition } from "@headlessui/react";
 import apiClient from "../services/apiClient";
 import { useNavigate } from "react-router-dom";
+import debounce from "lodash.debounce"; // Doğru import
 
 export default function FirmsList() {
   const navigate = useNavigate();
@@ -29,31 +30,39 @@ export default function FirmsList() {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(6);
-  const [cardsPerRow, setCardsPerRow] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(6); // Default değer
+  const [cardsPerRow, setCardsPerRow] = useState(3); // Default değer
 
-  // Card dimension constants
-  const CARD_WIDTH = 300;
-  const CARD_HEIGHT = 400;
+  // Debounce Search - useCallback ile memoize ediyoruz
+  const debouncedSearch = useCallback(
+    debounce((value) => {
+      setSearchTerm(value);
+      setCurrentPage(1); // Arama yaptığınızda sayfayı başa alabilirsiniz
+    }, 300),
+    []
+  );
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    debouncedSearch(value);
+  };
 
   // Calculate itemsPerPage based on window size
   const calculateItemsPerPage = () => {
-    const containerWidth = window.innerWidth - 64;
-    const containerHeight = window.innerHeight - 200;
+    const containerWidth = window.innerWidth - 64; // Gerekirse ayarlayın
+    const containerHeight = window.innerHeight - 200; // Gerekirse ayarlayın
 
-    const cardsPerRow = Math.floor(containerWidth / CARD_WIDTH);
-    setCardsPerRow(cardsPerRow);
+    const calculatedCardsPerRow = Math.floor(containerWidth / 300) || 1; // CARD_WIDTH = 300
+    const rowsPerPage = Math.floor(containerHeight / 400) || 1; // CARD_HEIGHT = 400
 
-    const rowsPerPage = Math.floor(containerHeight / CARD_HEIGHT);
-
-    const totalItemsPerPage = cardsPerRow * rowsPerPage;
-    setItemsPerPage(totalItemsPerPage > 0 ? totalItemsPerPage : 1);
+    setCardsPerRow(calculatedCardsPerRow);
+    setItemsPerPage(calculatedCardsPerRow * rowsPerPage);
   };
 
   useEffect(() => {
     const fetchFirms = async () => {
       try {
-        const response = await apiClient.get("/firms"); // Ensure this endpoint is correct
+        const response = await apiClient.get("/firms"); // Endpoint doğru
         setFirms(response.data.data);
         setLoading(false);
       } catch (error) {
@@ -65,9 +74,15 @@ export default function FirmsList() {
 
     fetchFirms();
     calculateItemsPerPage();
-    window.addEventListener("resize", calculateItemsPerPage);
 
-    return () => window.removeEventListener("resize", calculateItemsPerPage);
+    // Debounce resize
+    const debouncedHandleResize = debounce(() => {
+      calculateItemsPerPage();
+    }, 300);
+
+    window.addEventListener("resize", debouncedHandleResize);
+
+    return () => window.removeEventListener("resize", debouncedHandleResize);
   }, []);
 
   const confirmDeleteFirm = (firm) => {
@@ -84,7 +99,6 @@ export default function FirmsList() {
       setConfirmOpen(false);
     } catch (error) {
       console.error("Error deleting the firm:", error);
-      // Optionally, set an error message to display to the user
       setError(error.response?.data?.message || "Error deleting the firm");
     }
   };
@@ -213,8 +227,7 @@ export default function FirmsList() {
             <input
               type="text"
               placeholder="Search firms..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               className="hidden w-full px-4 py-2 border rounded-lg md:block focus:ring focus:ring-indigo-200"
             />
 
@@ -231,8 +244,7 @@ export default function FirmsList() {
               <input
                 type="text"
                 placeholder="Search firms..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
                 className="block w-full px-4 py-2 border rounded-lg md:hidden focus:ring focus:ring-indigo-200"
               />
             )}
@@ -241,7 +253,7 @@ export default function FirmsList() {
           {/* Add New Firm Button for Desktop */}
           <button
             onClick={openAddNewModal}
-            className="hidden px-4 py-2 text-white bg-green-500 rounded-lg md:flex hover:bg-green-600"
+            className="items-center hidden px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600 md:flex"
           >
             <FaPlusCircle className="inline-block mr-2" /> Add New Firm
           </button>
@@ -258,13 +270,13 @@ export default function FirmsList() {
           <div
             className="grid gap-6"
             style={{
-              gridTemplateColumns: `repeat(${cardsPerRow}, 1fr)`,
+              gridTemplateColumns: `repeat(${cardsPerRow}, minmax(0, 1fr))`,
             }}
           >
             {currentFirms.map((firm) => (
               <div
                 key={firm._id}
-                className="overflow-hidden transition-transform duration-300 transform bg-gray-100 rounded-lg shadow-lg hover:scale-105"
+                className="overflow-hidden transition-transform duration-300 transform bg-gray-100 rounded-lg shadow-lg cursor-pointer hover:scale-105"
                 onMouseLeave={() => hideDetails(firm._id)}
               >
                 <div className="flex items-center justify-center h-56 bg-white">

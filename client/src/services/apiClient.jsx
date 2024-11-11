@@ -8,7 +8,14 @@ const apiClient = axios.create({
 });
 
 // Define a list of endpoints that should not include the Authorization header
-const authEndpoints = ["/auth/login", "/auth/register", "/auth/refresh-token"];
+const authEndpoints = [
+  `$(import.meta.env.VITE_APP_API_URL)/auth/login`,
+  `$(import.meta.env.VITE_APP_API_URL)/auth/register`,
+  `$(import.meta.env.VITE_APP_API_URL)/auth/refresh-token`,
+  "/auth/login",
+  "/auth/register",
+  "/auth/refresh-token",
+];
 
 // Add a request interceptor to include the token in all requests except auth-related ones
 apiClient.interceptors.request.use(

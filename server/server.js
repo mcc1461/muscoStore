@@ -1,5 +1,3 @@
-// server.js
-
 "use strict";
 
 const express = require("express");
@@ -11,6 +9,7 @@ const { dbConnection } = require("./src/configs/dbConnection");
 const authRoutes = require("./src/routes/authRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const productRoutes = require("./src/routes/productRoutes");
+const firmRoutes = require("./src/routes/firm"); // Import Firm Routes
 const authenticate = require("./src/middlewares/authentication");
 const findSearchSortPage = require("./src/middlewares/findSearchSortPage"); // If applicable
 const errorHandler = require("./src/middlewares/errorHandler");
@@ -64,6 +63,9 @@ app.use("/api/users", userRoutes);
 
 // Product Routes
 app.use("/api/products", productRoutes);
+
+// Firm Routes
+app.use("/api/firms", firmRoutes); // Mount Firm Routes
 
 // Example Protected Route
 app.get("/api/protected", authenticate, (req, res) => {
