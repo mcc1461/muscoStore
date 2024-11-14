@@ -1,97 +1,71 @@
-import { useParams } from "react-router-dom";
-import { useGetProductByIdQuery } from "../features/api/products/productApiSlice";
-import Loader from "../components/Loader";
-import photo from "../assets/product.jfif";
+// src/pages/Products.jsx
+
+import React from "react";
+import { useSelector } from "react-redux";
+import { useGetProductsQuery } from "../features/api/products/productApiSlice";
 import { Link } from "react-router-dom";
 
 export default function Products() {
-  const { id } = useParams();
+  const { error, isLoading } = useGetProductsQuery();
+  const products = useSelector((state) => state.product.products);
 
-  // Fetch the product details using the product Id
-  const { data: productData, isLoading, isError } = useGetProductByIdQuery(id);
+  // Arama terimi state
+  const [searchTerm, setSearchTerm] = React.useState("");
 
-  if (isLoading) {
-    return <Loader />;
-  }
+  // Filtrelenmiş ürünler
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  if (isError || !productData) {
-    // Handle error or product not found
-    return (
-      <div className="text-2xl font-bold">
-        Error: Unable to fetch Product Details.................
-        <br />
-        <div>Please confirm you clicked on the right product!!!!</div>
-      </div>
-    );
-  }
-
-  const { name, sku, categories, price, quantity, description } = productData;
+  if (isLoading) return <p>Loading products...</p>;
+  if (error) return <p>Error loading products...</p>;
+  if (!products || products.length === 0) return <p>No products available</p>;
 
   return (
-    <div className="flex flex-col justify-center w-[80vw] h-[85vh] mt-3">
-      <div className="flex items-start justify-center w-[100%] h-[100%] gap-10">
-        {/* Left Section */}
-        <div className="bg-white rounded-lg shadow-lg w-[45%] h-[100%] flex flex-col gap-2 items-center justify-start">
-          <div className="w-[95%]">
-            <h2 className="text-2xl font-bold">Product</h2>
-            <p className="font-bold border-t-2 border-b-2 border-gray-300">
-              Products Availability :{" "}
-              <span className="text-green-700 font-semibold">In Stock</span>
-            </p>
-          </div>
-
-          <div className="h-[73vh] w-[95%]">
-            <p>
-              <b className="red bg-red-500 p-1 mb-2 text-xl text-white">
-                Name:
-              </b>{" "}
-              <span>{name}</span>
-            </p>
-            <p>
-              <b>SKU: {sku}</b>{" "}
-              <span className="text-gray-500 font-semibold">
-                -183547496489307
-              </span>
-            </p>
-            <p>
-              <b>Categories:</b>{" "}
-              <span className="text-gray-500 font-semibold ml-3">
-                {categories}
-              </span>
-            </p>
-            <p>
-              <b>Price:</b>{" "}
-              <span className="text-gray-500 font-semibold ml-3">#{price}</span>
-            </p>
-            <p>
-              <b>Quantity in Stock:</b>{" "}
-              <span className="text-gray-500 font-semibold ml-3">
-                {quantity}
-              </span>
-            </p>
-            <p className="border-b-2 border-gray-300">
-              <b>Total value in Stock:</b>{" "}
-              <span className="text-gray-500 font-semibold ml-3">
-                #{price * quantity}
-              </span>
-            </p>
-            <b>Description:</b>
-            <p className="text-gray-500 font-semibold">{description}</p>
-          </div>
-
-          <Link to={`/dashboard/editproduct/${id}`}>
-            <button className="bg-red-500 hover:bg-red-600 text-white font-semibold text-center p-1 rounded mt-2 no-underline">
-              Edit Product
-            </button>
-          </Link>
-        </div>
-
-        {/* Right Section */}
-        <div className="w-[45%]">
-          <p className="text-xl">Product Image:</p>
-          <img src={photo} alt="Image of a milo" className="h-[92%] w-[100%]" />
-          <img src={productData.image} alt={`Image of ${name}`} />
-        </div>
+    <div>
+      <h2 className="text-2xl font-semibold mb-4">Products</h2>
+      <input
+        type="text"
+        placeholder="Search products..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="mb-4 p-2 border rounded"
+      />
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white border">
+          <thead>
+            <tr>
+              <th className="py-2 px-4 border">Name</th>
+              <th className="py-2 px-4 border">Price</th>
+              <th className="py-2 px-4 border">Quantity</th>
+              <th className="py-2 px-4 border">Category</th>
+              <th className="py-2 px-4 border">Brand</th>
+              <th className="py-2 px-4 border">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredProducts.map((product) => (
+              <tr key={product._id}>
+                <td className="py-2 px-4 border">{product.name}</td>
+                <td className="py-2 px-4 border">{product.price}</td>
+                <td className="py-2 px-4 border">{product.quantity}</td>
+                <td className="py-2 px-4 border">{product.categoryId?.name}</td>
+                <td className="py-2 px-4 border">{product.brandId?.name}</td>
+                <td className="py-2 px-4 border">
+                  {/* Action buttons (Edit, Delete) */}
+                  <Link to={`/dashboard/editproduct/${product._id}`}>
+                    <button className="text-blue-500 hover:underline mr-2">
+                      Edit
+                    </button>
+                  </Link>
+                  <button className="text-red-500 hover:underline">
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

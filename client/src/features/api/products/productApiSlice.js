@@ -1,35 +1,68 @@
-import { apiSlice } from "../apiSlice";
-const PRODUCTS_URL = "/api/products";
+// src/features/api/products/productApiSlice.js
 
-export const productApiSlice = apiSlice.injectEndpoints({
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { logout, setToken } from "../../auth/authSlice";
+
+const productBaseQuery = fetchBaseQuery({
+  baseUrl: "/api",
+  prepareHeaders: (headers, { getState }) => {
+    const token = getState().auth.token;
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+    return headers;
+  },
+});
+
+const productBaseQueryWithReauth = async (args, api, extraOptions) => {
+  let result = await productBaseQuery(args, api, extraOptions);
+
+  if (result.error && result.error.status === 401 && !args._retry) {
+    args._retry = true;
+    console.warn("Product API received 401, attempting token refresh");
+
+    const refreshResult = await productBaseQuery(
+      {
+        url: "/auth/refresh-token",
+        method: "POST",
+        body: { refreshToken: api.getState().auth.refreshToken },
+      },
+      api,
+      extraOptions
+    );
+
+    if (refreshResult.data) {
+      const newToken = refreshResult.data.token;
+      const newRefreshToken = refreshResult.data.refreshToken;
+
+      api.dispatch(
+        setToken({ token: newToken, refreshToken: newRefreshToken })
+      );
+
+      result = await productBaseQuery(args, api, extraOptions);
+    } else {
+      api.dispatch(logout());
+      // Navigate işlemini komponentlerde yapın
+    }
+  }
+
+  return result;
+};
+
+export const productApiSlice = createApi({
+  reducerPath: "productApi",
+  baseQuery: productBaseQueryWithReauth,
+  tagTypes: ["Product"],
   endpoints: (builder) => ({
     getProducts: builder.query({
-      query: () => `${PRODUCTS_URL}`,
-      // Define other options like `transformResponse` here if needed.
+      query: () => "/products",
+      providesTags: ["Product"],
     }),
     getProductById: builder.query({
-      query: (id) => `${PRODUCTS_URL}/${id}`,
+      query: (id) => `/products/${id}`,
+      providesTags: (result, error, id) => [{ type: "Product", id }],
     }),
-    createProduct: builder.mutation({
-      query: (newProductData) => ({
-        url: `${PRODUCTS_URL}`,
-        method: "POST",
-        body: newProductData,
-      }),
-    }),
-    updateProduct: builder.mutation({
-      query: ({ id, updatedProductData }) => ({
-        url: `${PRODUCTS_URL}/${id}`,
-        method: "PUT",
-        body: updatedProductData,
-      }),
-    }),
-    deleteProduct: builder.mutation({
-      query: (id) => ({
-        url: `${PRODUCTS_URL}/${id}`,
-        method: "DELETE",
-      }),
-    }),
+    // Diğer ürünle ilgili endpoint'ler...
   }),
 });
 

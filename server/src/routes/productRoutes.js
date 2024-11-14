@@ -1,20 +1,30 @@
 // src/routes/productRoutes.js
 
+"use strict";
+
 const express = require("express");
 const router = express.Router();
-const productController = require("../controllers/productController");
+const productController = require("../controllers/product"); // Ensure correct path and case
 const authenticate = require("../middlewares/authentication");
 
-// Get all products (Protected)
-router.get("/", authenticate, productController.getAllProducts);
+// Debugging: Verify controller functions are imported correctly
+console.log("Product Controller:", productController);
 
-// Create a new product (Protected)
-router.post("/", authenticate, productController.createProduct);
+// Define Routes
 
-// Update a product by ID (Protected)
-router.put("/:id", authenticate, productController.updateProduct);
+// GET /api/products - List all products
+router.get("/", authenticate, productController.list);
 
-// Delete a product by ID (Protected)
-router.delete("/:id", authenticate, productController.deleteProduct);
+// POST /api/products - Create a new product
+router.post("/", authenticate, productController.create);
+
+// GET /api/products/:id - Get a single product by ID
+router.get("/:id", authenticate, productController.read);
+
+// PUT /api/products/:id - Update a product by ID
+router.put("/:id", authenticate, productController.update);
+
+// DELETE /api/products/:id - Delete a product by ID
+router.delete("/:id", authenticate, productController.delete);
 
 module.exports = router;

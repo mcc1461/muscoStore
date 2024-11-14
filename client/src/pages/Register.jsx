@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useRegisterUserMutation } from "../features/api/apiSlice";
-import { setCredentials } from "../features/api/auth/authSlice";
+import { setCredentials } from "../features/auth/authSlice";
 import log from "../assets/log.png";
 import Logo from "../components/Logo1";
 import Loader from "../components/Loader";

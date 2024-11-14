@@ -1,22 +1,24 @@
-// main.jsx
+// src/main.jsx
+
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./pages/App.jsx";
-import "./index.css";
-import { BrowserRouter } from "react-router-dom";
-import store from "./store.js";
+import App from "./App";
+import { store, persistor } from "./app/store";
 import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+import { BrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "bootstrap/dist/css/bootstrap.min.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <Provider store={store}>
-    <React.StrictMode>
-      <BrowserRouter>
-        <ToastContainer />
-        <App />
-      </BrowserRouter>
-    </React.StrictMode>
-  </Provider>
+  <React.StrictMode>
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <BrowserRouter>
+          <App />
+          <ToastContainer /> {/* To display toast notifications */}
+        </BrowserRouter>
+      </PersistGate>
+    </Provider>
+  </React.StrictMode>
 );

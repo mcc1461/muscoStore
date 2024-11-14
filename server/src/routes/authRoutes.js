@@ -1,11 +1,36 @@
+// src/routes/authRoutes.js
+
+"use strict";
+
 const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/authController");
+const { body } = require("express-validator");
 
-// Define your routes
-router.post("/register", authController.register);
-router.post("/login", authController.login);
-router.post("/refresh", authController.refresh);
-router.post("/logout", authController.logout);
+// POST /auth/login
+router.post(
+  "/auth/login",
+  [
+    body("username").notEmpty().withMessage("Username is required"),
+    body("password").notEmpty().withMessage("Password is required"),
+  ],
+  authController.loginUser
+);
+
+// POST /auth/register
+router.post(
+  "/auth/register",
+  [
+    body("username").notEmpty().withMessage("Username is required"),
+    body("email").isEmail().withMessage("Please include a valid email"),
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters"),
+  ],
+  authController.registerUser
+);
+
+// POST /auth/refresh-token
+router.post("/refresh-token", authController.refreshToken);
 
 module.exports = router;

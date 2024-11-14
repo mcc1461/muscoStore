@@ -1,5 +1,6 @@
-"use strict";
+// server.js
 
+"use strict";
 const express = require("express");
 const app = express();
 const path = require("path");
@@ -9,7 +10,7 @@ const { dbConnection } = require("./src/configs/dbConnection");
 const authRoutes = require("./src/routes/authRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const productRoutes = require("./src/routes/productRoutes");
-const firmRoutes = require("./src/routes/firm"); // Import Firm Routes
+const firmRoutes = require("./src/routes/firmRoutes"); // Adjust as necessary
 const authenticate = require("./src/middlewares/authentication");
 const findSearchSortPage = require("./src/middlewares/findSearchSortPage"); // If applicable
 const errorHandler = require("./src/middlewares/errorHandler");
@@ -25,6 +26,9 @@ require("express-async-errors");
 // Connect to the database
 dbConnection();
 
+// **Import all models to ensure they are registered**
+require("./src/models"); // This imports src/models/index.js
+
 /* ------------------------------------------------------- */
 // Middlewares:
 
@@ -32,7 +36,7 @@ dbConnection();
 app.use(
   cors({
     origin: [
-      "http://localhost:3061", // Frontend origin (adjust port if different)
+      "http://localhost:3061", // Frontend origin
       "http://127.0.0.1:3061",
       "https://tailwindui.com",
     ],
@@ -56,7 +60,7 @@ app.use(express.urlencoded({ extended: false }));
 // Routes:
 
 // Authentication Routes
-app.use("/api/auth", authRoutes);
+app.use("/auth", authRoutes); // Mounted at /auth
 
 // User Routes
 app.use("/api/users", userRoutes);

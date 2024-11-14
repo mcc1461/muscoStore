@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+// src/pages/Board.jsx
+
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  updateTotalProducts,
-  updateTotalStockValue,
-  updateOutOfStockCount,
-  updateCategories,
-} from "../features/api/products/boardSlice"; // Ensure correct import path
+  setTotalProducts,
+  setTotalStockValue,
+  setOutOfStockCount,
+  setCategories,
+} from "../features/api/products/boardSlice";
 
 import { BsListCheck } from "react-icons/bs";
 import { GiShoppingCart } from "react-icons/gi";
@@ -16,11 +18,10 @@ export default function Board() {
   const dispatch = useDispatch();
   const products = useSelector((state) => state.product.products);
 
-  // Declare state variables for calculations
-  const [totalProducts, setTotalProducts] = useState(0);
-  const [totalStockValue, setTotalStockValue] = useState(0);
-  const [outOfStockCount, setOutOfStockCount] = useState(0);
-  const [categories, setCategories] = useState(0); // Renamed to lowercase for consistency
+  const totalProducts = useSelector((state) => state.board.totalProducts);
+  const totalStockValue = useSelector((state) => state.board.totalStockValue);
+  const outOfStockCount = useSelector((state) => state.board.outOfStock);
+  const categories = useSelector((state) => state.board.allCategories);
 
   useEffect(() => {
     if (!Array.isArray(products)) {
@@ -28,19 +29,24 @@ export default function Board() {
       return;
     }
 
+    console.log("Products:", products); // Ürün verilerini kontrol etmek için
+
     const updatedTotalProducts = products.length;
 
-    // Safeguard to ensure product.value is a valid number
+    // Safeguard to ensure product.price and product.quantity are valid numbers
     const updatedTotalStockValue = products.reduce((total, product) => {
-      const value = Number(product?.value);
-      if (isNaN(value)) {
+      const price = Number(product?.price);
+      const quantity = Number(product?.quantity);
+
+      if (isNaN(price) || isNaN(quantity)) {
         console.warn(
-          `Invalid value for product ID ${product?._id}:`,
-          product?.value
+          `Invalid price or quantity for product ID ${product?._id}:`,
+          product?.price,
+          product?.quantity
         );
         return total;
       }
-      return total + value;
+      return total + price * quantity;
     }, 0);
 
     const updatedOutOfStockCount = products.filter(
@@ -48,21 +54,17 @@ export default function Board() {
     ).length;
 
     const uniqueCategories = [
-      ...new Set(products.map((product) => product?.category).filter(Boolean)),
+      ...new Set(
+        products.map((product) => product?.categoryId?.name).filter(Boolean)
+      ),
     ];
     const updatedCategories = uniqueCategories.length;
 
-    // Update state variables
-    setTotalProducts(updatedTotalProducts);
-    setTotalStockValue(updatedTotalStockValue);
-    setOutOfStockCount(updatedOutOfStockCount);
-    setCategories(updatedCategories);
-
     // Dispatch the updates to the Redux store
-    dispatch(updateTotalProducts(updatedTotalProducts));
-    dispatch(updateTotalStockValue(updatedTotalStockValue));
-    dispatch(updateOutOfStockCount(updatedOutOfStockCount));
-    dispatch(updateCategories(updatedCategories));
+    dispatch(setTotalProducts(updatedTotalProducts));
+    dispatch(setTotalStockValue(updatedTotalStockValue));
+    dispatch(setOutOfStockCount(updatedOutOfStockCount));
+    dispatch(setCategories(updatedCategories));
   }, [dispatch, products]);
 
   return (

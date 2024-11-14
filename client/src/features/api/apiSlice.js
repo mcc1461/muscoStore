@@ -1,43 +1,57 @@
-// client/src/features/api/apiSlice.js
+// src/features/api/apiSlice.js
 
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { logout, setCredentials } from "./auth/authSlice";
+import { setCredentials, logout } from "../auth/authSlice";
 
-const BASE_URL =
-  import.meta.env.VITE_APP_API_URL || "http://127.0.0.1:8061/api";
+// Set BASE_URL to match your backend's root (without /api)
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8061";
 
+console.log("BASE_URL:", BASE_URL);
+
+// Define the baseQuery with authentication headers
 const baseQuery = fetchBaseQuery({
-  baseUrl: BASE_URL,
+  baseUrl: BASE_URL, // Corrected baseUrl
+  credentials: "include", // Include cookies if needed
   prepareHeaders: (headers, { getState }) => {
-    const { auth } = getState();
-    if (auth?.accessToken) {
-      headers.set("Authorization", `Bearer ${auth.accessToken}`);
+    const token = getState().auth.token;
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
     }
     return headers;
   },
 });
 
+// Wrapper to handle token refresh logic
 const baseQueryWithReauth = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
+  // If unauthorized, attempt to refresh the token
   if (result.error && result.error.status === 401) {
-    console.warn("Received 401, attempting token refresh");
+    console.log("401 Unauthorized. Attempting to refresh token...");
 
+    // Attempt to refresh the token
     const refreshResult = await baseQuery(
-      {
-        url: "/auth/refresh",
-        method: "POST",
-        body: { refreshToken: api.getState().auth.refreshToken },
-      },
+      "/auth/refresh-token",
       api,
       extraOptions
     );
 
     if (refreshResult.data) {
-      const { accessToken, refreshToken } = refreshResult.data.bearer;
-      api.dispatch(setCredentials({ accessToken, refreshToken }));
+      const { user, bearer } = refreshResult.data;
+      const { accessToken } = bearer;
+
+      // Update the store with new credentials
+      api.dispatch(
+        setCredentials({
+          user,
+          token: accessToken,
+        })
+      );
+
+      // Retry the original query with the new token
       result = await baseQuery(args, api, extraOptions);
     } else {
+      // Logout the user if refresh fails
       api.dispatch(logout());
     }
   }
@@ -47,36 +61,80 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 
 export const apiSlice = createApi({
   reducerPath: "api",
-  baseQuery: baseQueryWithReauth,
-  tagTypes: ["Product"],
+  baseQuery: baseQueryWithReauth, // Use the wrapped baseQuery
+  tagTypes: ["Product", "User"], // Define tag types for caching
   endpoints: (builder) => ({
-    // Login Mutation
+    // Products Endpoints
+    getProducts: builder.query({
+      query: () => "/api/products", // Correct path relative to BASE_URL
+      providesTags: (result = [], error, arg) => [
+        ...result.map(({ id }) => ({ type: "Product", id })),
+        { type: "Product", id: "LIST" },
+      ],
+    }),
+    deleteProduct: builder.mutation({
+      query: (id) => ({
+        url: `/api/products/${id}`, // Correct path
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, id) => [{ type: "Product", id }],
+    }),
+    addProduct: builder.mutation({
+      query: (newProduct) => ({
+        url: "/api/products", // Correct path
+        method: "POST",
+        body: newProduct,
+      }),
+      invalidatesTags: [{ type: "Product", id: "LIST" }],
+    }),
+    updateProduct: builder.mutation({
+      query: (updatedProduct) => ({
+        url: `/api/products/${updatedProduct._id}`, // Correct path
+        method: "PUT",
+        body: updatedProduct,
+      }),
+      invalidatesTags: (result, error, { _id }) => [
+        { type: "Product", id: _id },
+      ],
+    }),
+
+    // User Authentication Endpoints
     loginUser: builder.mutation({
       query: (credentials) => ({
-        url: "/auth/login",
+        url: "/auth/login", // Corrected to match backend
         method: "POST",
         body: credentials,
       }),
+      invalidatesTags: [{ type: "User", id: "CURRENT_USER" }],
     }),
-    // Register Mutation
     registerUser: builder.mutation({
       query: (userData) => ({
-        url: "/users",
+        url: "/auth/register", // Corrected to match backend
         method: "POST",
         body: userData,
       }),
+      invalidatesTags: [{ type: "User", id: "LIST" }],
     }),
-    // Example: Get all products
-    getProducts: builder.query({
-      query: () => "/products",
-      providesTags: ["Product"],
+    refreshToken: builder.mutation({
+      query: () => ({
+        url: "/auth/refresh-token", // Corrected to match backend
+        method: "POST",
+      }),
+      invalidatesTags: [{ type: "User", id: "CURRENT_USER" }],
     }),
-    // Add other endpoints here
+    // Add more user-related endpoints as needed
   }),
 });
 
+// Export hooks for usage in functional components
 export const {
+  useGetProductsQuery,
+  useDeleteProductMutation,
+  useAddProductMutation,
+  useUpdateProductMutation,
   useLoginUserMutation,
   useRegisterUserMutation,
-  useGetProductsQuery,
+  useRefreshTokenMutation,
 } = apiSlice;
+
+export default apiSlice;

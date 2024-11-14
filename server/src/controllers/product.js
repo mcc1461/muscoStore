@@ -1,53 +1,52 @@
-// backend/controllers/brand.js
+// backend/controllers/product.js
+
 "use strict";
 
-const Brand = require("../models/brand");
+const Product = require("../models/Product"); // Ensure correct path and case
 
 module.exports = {
   list: async (req, res) => {
     try {
-      // Filtreleme, arama, sıralama ve sayfalama için query parametrelerini işleyebilirsiniz
-      // Şu an basit bir listeleme yapıyoruz:
-      const brands = await Brand.find();
-      const total = await Brand.countDocuments();
+      const products = await Product.find(); // Populates handled by pre 'find' middleware
+      const total = await Product.countDocuments();
 
       res.status(200).send({
         error: false,
         details: { total },
-        data: brands,
+        data: products,
       });
     } catch (error) {
-      console.error("Error fetching brands:", error);
+      console.error("Error fetching products:", error);
       res.status(500).send({
         error: true,
-        message: "Error fetching brands",
+        message: "Error fetching products",
       });
     }
   },
 
   create: async (req, res) => {
     try {
-      const data = await Brand.create(req.body);
+      const data = await Product.create(req.body);
       res.status(201).send({
         error: false,
         data,
       });
     } catch (error) {
-      console.error("Error creating brand:", error);
+      console.error("Error creating product:", error);
       res.status(500).send({
         error: true,
-        message: "Error creating brand",
+        message: "Error creating product",
       });
     }
   },
 
   read: async (req, res) => {
     try {
-      const data = await Brand.findOne({ _id: req.params.id });
+      const data = await Product.findById(req.params.id);
       if (!data) {
         return res.status(404).send({
           error: true,
-          message: "Brand not found",
+          message: "Product not found",
         });
       }
       res.status(200).send({
@@ -55,24 +54,24 @@ module.exports = {
         data,
       });
     } catch (error) {
-      console.error("Error fetching brand:", error);
+      console.error("Error fetching product:", error);
       res.status(500).send({
         error: true,
-        message: "Error fetching brand",
+        message: "Error fetching product",
       });
     }
   },
 
   update: async (req, res) => {
     try {
-      const data = await Brand.findByIdAndUpdate(req.params.id, req.body, {
+      const data = await Product.findByIdAndUpdate(req.params.id, req.body, {
         new: true,
         runValidators: true,
       });
       if (!data) {
         return res.status(404).send({
           error: true,
-          message: "Brand not found",
+          message: "Product not found",
         });
       }
       res.status(200).send({
@@ -80,29 +79,29 @@ module.exports = {
         data,
       });
     } catch (error) {
-      console.error("Error updating brand:", error);
+      console.error("Error updating product:", error);
       res.status(500).send({
         error: true,
-        message: "Error updating brand",
+        message: "Error updating product",
       });
     }
   },
 
   delete: async (req, res) => {
     try {
-      const data = await Brand.findByIdAndDelete(req.params.id);
+      const data = await Product.findByIdAndDelete(req.params.id);
       if (!data) {
         return res.status(404).send({
           error: true,
-          message: "Brand not found",
+          message: "Product not found",
         });
       }
       res.status(204).send(); // 204 No Content
     } catch (error) {
-      console.error("Error deleting brand:", error);
+      console.error("Error deleting product:", error);
       res.status(500).send({
         error: true,
-        message: "Error deleting brand",
+        message: "Error deleting product",
       });
     }
   },

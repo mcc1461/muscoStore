@@ -1,6 +1,17 @@
 // src/models/User.js
 
+"use strict";
+
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv");
+const path = require("path");
+
+// Load environment variables
+dotenv.config({
+  path: path.join(__dirname, "../../.env"),
+});
 
 const userSchema = new mongoose.Schema(
   {
@@ -8,6 +19,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please add a username"],
       unique: true,
+      trim: true,
     },
     email: {
       type: String,
@@ -21,27 +33,37 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, "Please add a password"],
+      minlength: 6,
+      select: false, // Exclude password from queries by default
     },
-    firstName: {
-      type: String,
-      required: [true, "Please add your first name"],
-    },
-    lastName: {
-      type: String,
-      required: [true, "Please add your last name"],
-    },
-    role: {
-      type: String,
-      enum: ["user", "admin"],
-      default: "user",
-    },
-    refreshToken: {
-      type: String,
-      default: null,
-    },
+    // Add other fields as necessary
   },
   { timestamps: true }
 );
 
-// Check if the User model already exists before defining it
-module.exports = mongoose.models.User || mongoose.model("User", userSchema);
+// Encrypt password before saving
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
+    next();
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
+// Method to compare password
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Method to get signed JWT
+userSchema.methods.getSignedJwtToken = function () {
+  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRE || "30d",
+  });
+};
+
+// Prevent model overwrite by checking if it already exists
+const User = mongoose.models.User || mongoose.model("User", userSchema);
+
+module.exports = mongoose.model("User", userSchema);

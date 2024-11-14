@@ -2,7 +2,7 @@
 /* -------------------------------------------------------
     NODEJS EXPRESS | MusCo Dev
 ------------------------------------------------------- */
-const { mongoose } = require("../configs/dbConnection");
+const mongoose = require("mongoose");
 
 /* ------------------------------------------------------- */
 // Purchase Model:

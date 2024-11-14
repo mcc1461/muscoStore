@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   FaEdit,
   FaTrashAlt,
@@ -9,6 +9,7 @@ import {
 import { Dialog, Transition } from "@headlessui/react";
 import apiClient from "../services/apiClient";
 import { useNavigate } from "react-router-dom";
+import debounce from "lodash.debounce"; // Debounce için
 
 export default function BrandsList() {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ export default function BrandsList() {
   const [isAddingNewBrand, setIsAddingNewBrand] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedBrandForDelete, setSelectedBrandForDelete] = useState(null);
-  const [isSearchOpen, setIsSearchOpen] = useState(false); // State for showing search input in mobile view
+  const [isSearchOpen, setIsSearchOpen] = useState(false); // Mobile search state
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -32,41 +33,60 @@ export default function BrandsList() {
   const CARD_WIDTH = 300; // Width of a card
   const CARD_HEIGHT = 400; // Height of a card
 
+  // Debounce Search - useCallback ile memoize ediyoruz
+  const debouncedSearch = useCallback(
+    debounce((value) => {
+      setSearchTerm(value);
+      setCurrentPage(1); // Arama yaptığınızda sayfayı başa alabilirsiniz
+    }, 300),
+    []
+  );
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    debouncedSearch(value);
+  };
+
+  // Function to calculate itemsPerPage based on window size
+  const calculateItemsPerPage = useCallback(() => {
+    const containerWidth = window.innerWidth - 64; // Subtracting padding/margins
+    const containerHeight = window.innerHeight - 200; // Subtracting header/pagination height
+
+    // Cards per row
+    const cardsPerRowCalc = Math.floor(containerWidth / CARD_WIDTH) || 1;
+    setCardsPerRow(cardsPerRowCalc);
+
+    // Rows per page based on available height
+    const rowsPerPage = Math.floor(containerHeight / CARD_HEIGHT) || 1;
+
+    // Total items per page
+    const totalItemsPerPage = cardsPerRowCalc * rowsPerPage;
+    setItemsPerPage(totalItemsPerPage > 0 ? totalItemsPerPage : 1); // Ensure at least 1 item
+  }, []);
+
   useEffect(() => {
     const fetchBrands = async () => {
       try {
-        const response = await apiClient.get("/api/brands");
+        const response = await apiClient.get("/brands");
+        console.log("Fetched brands:", response.data); // Yanıt yapısını kontrol edin
         setBrands(response.data.data);
         setLoading(false);
       } catch (error) {
-        setError("Error fetching brands");
+        console.error("Error fetching brands:", error);
+        setError(error.response?.data?.message || "Error fetching brands");
         setLoading(false);
       }
     };
 
     fetchBrands();
     calculateItemsPerPage();
-    window.addEventListener("resize", calculateItemsPerPage);
+    const debouncedHandleResize = debounce(() => {
+      calculateItemsPerPage();
+    }, 300);
+    window.addEventListener("resize", debouncedHandleResize);
 
-    return () => window.removeEventListener("resize", calculateItemsPerPage);
-  }, []);
-
-  // Function to calculate itemsPerPage based on window size
-  const calculateItemsPerPage = () => {
-    const containerWidth = window.innerWidth - 64; // Subtracting padding/margins
-    const containerHeight = window.innerHeight - 200; // Subtracting header/pagination height
-
-    // Cards per row
-    const cardsPerRow = Math.floor(containerWidth / CARD_WIDTH);
-    setCardsPerRow(cardsPerRow);
-
-    // Rows per page based on available height
-    const rowsPerPage = Math.floor(containerHeight / CARD_HEIGHT);
-
-    // Total items per page
-    const totalItemsPerPage = cardsPerRow * rowsPerPage;
-    setItemsPerPage(totalItemsPerPage > 0 ? totalItemsPerPage : 1); // Ensure at least 1 item
-  };
+    return () => window.removeEventListener("resize", debouncedHandleResize);
+  }, [calculateItemsPerPage]);
 
   const confirmDeleteBrand = (brand) => {
     setSelectedBrandForDelete(brand);
@@ -82,6 +102,7 @@ export default function BrandsList() {
       setConfirmOpen(false); // Close confirm modal
     } catch (error) {
       console.error("Error deleting the brand:", error);
+      setError(error.response?.data?.message || "Error deleting the brand");
     }
   };
 
@@ -100,6 +121,7 @@ export default function BrandsList() {
   const closeModal = () => {
     setModalOpen(false);
     setEditingBrand(null);
+    setError(null); // Clear any form errors
   };
 
   const saveBrandDetails = async () => {
@@ -108,16 +130,25 @@ export default function BrandsList() {
         const response = await apiClient.post("/api/brands", editingBrand);
         setBrands((prevBrands) => [...prevBrands, response.data.data]);
       } else {
-        await apiClient.put(`/api/brands/${editingBrand._id}`, editingBrand);
-        setBrands((prevBrands) =>
-          prevBrands.map((brand) =>
-            brand._id === editingBrand._id ? editingBrand : brand
-          )
+        const updateResponse = await apiClient.put(
+          `/api/brands/${editingBrand._id}`,
+          editingBrand
         );
+
+        if (updateResponse.status === 200 || updateResponse.status === 202) {
+          setBrands((prevBrands) =>
+            prevBrands.map((brand) =>
+              brand._id === editingBrand._id ? { ...editingBrand } : brand
+            )
+          );
+        } else {
+          throw new Error("Failed to update the brand.");
+        }
       }
       closeModal();
     } catch (error) {
       console.error("Error saving the brand:", error);
+      setError(error.response?.data?.message || "Error saving the brand");
     }
   };
 
@@ -155,7 +186,7 @@ export default function BrandsList() {
   }
 
   if (error) {
-    return <p>{error}</p>;
+    return <p className="text-red-500">{error}</p>;
   }
 
   return (
@@ -179,18 +210,15 @@ export default function BrandsList() {
         <div className="flex items-center justify-between px-4 py-2 bg-blue-500">
           {/* Search Input and Icon */}
           <div className="flex items-center space-x-4">
-            {/* Full search input for larger screens */}
+            {/* Debounced Search Input for Desktop */}
             <input
               type="text"
               placeholder="Search brands..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={`hidden md:block w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200 ${
-                isSearchOpen ? "block" : "hidden"
-              }`}
+              onChange={handleSearchChange}
+              className="hidden w-full px-4 py-2 border rounded-lg md:block focus:ring focus:ring-indigo-200"
             />
 
-            {/* Magnifying glass icon for smaller screens */}
+            {/* Search Icon for Mobile */}
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)} // Toggle the search input
               className="text-white md:hidden"
@@ -203,28 +231,24 @@ export default function BrandsList() {
               <input
                 type="text"
                 placeholder="Search brands..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
                 className="block w-full px-4 py-2 border rounded-lg md:hidden focus:ring focus:ring-indigo-200"
               />
             )}
           </div>
 
-          {/* Add New Button */}
-          <div className="flex items-center space-x-4">
-            {/* Full button for larger screens */}
-            <button
-              onClick={openAddNewModal}
-              className="hidden px-4 py-2 text-white bg-green-500 rounded-lg md:flex hover:bg-green-600"
-            >
-              <FaPlusCircle className="inline-block mr-2" /> Add New Brand
-            </button>
+          {/* Add New Brand Button for Desktop */}
+          <button
+            onClick={openAddNewModal}
+            className="items-center hidden px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600 md:flex"
+          >
+            <FaPlusCircle className="inline-block mr-2" /> Add New Brand
+          </button>
 
-            {/* Plus icon for smaller screens */}
-            <button onClick={openAddNewModal} className="text-white md:hidden">
-              <FaPlusCircle size={24} />
-            </button>
-          </div>
+          {/* Add New Brand Icon for Mobile */}
+          <button onClick={openAddNewModal} className="text-white md:hidden">
+            <FaPlusCircle size={24} />
+          </button>
         </div>
       </div>
 
@@ -303,14 +327,20 @@ export default function BrandsList() {
             <button
               onClick={handlePreviousPage}
               disabled={currentPage === 1}
-              className="relative inline-flex items-center px-3 py-2 text-sm font-semibold text-gray-900 bg-white rounded-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
+              className={`relative inline-flex items-center px-3 py-2 text-sm font-semibold text-gray-900 bg-white rounded-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0 ${
+                currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
               Previous
             </button>
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className="relative inline-flex items-center px-3 py-2 ml-3 text-sm font-semibold text-gray-900 bg-white rounded-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0"
+              className={`relative inline-flex items-center px-3 py-2 ml-3 text-sm font-semibold text-gray-900 bg-white rounded-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:outline-offset-0 ${
+                currentPage === totalPages
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
             >
               Next
             </button>
@@ -355,6 +385,7 @@ export default function BrandsList() {
                 value={editingBrand?.name || ""}
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
+                placeholder="Enter brand name"
               />
             </div>
 
@@ -373,6 +404,9 @@ export default function BrandsList() {
                 Cancel
               </button>
             </div>
+
+            {/* Display Form Errors */}
+            {error && <p className="mt-2 text-red-500">{error}</p>}
           </div>
         </div>
       )}

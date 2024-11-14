@@ -1,4 +1,6 @@
-import { createSlice } from '@reduxjs/toolkit';
+// src/features/api/products/boardSlice.js
+
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   totalProducts: 0,
@@ -8,50 +10,29 @@ const initialState = {
 };
 
 const boardSlice = createSlice({
-  name: 'board',
+  name: "board",
   initialState,
   reducers: {
-    updateTotalProducts: (state, action) => {
-      if (action.payload && action.payload.deleted) {
-        state.totalProducts -= 1; // Decrease total products when a product is deleted
-      } else {
-        state.totalProducts += 1; // Increase total products when a new product is added
-      }
+    setTotalProducts: (state, action) => {
+      state.totalProducts = action.payload;
     },
-    updateTotalStockValue: (state, action) => {
-      if (action.payload && action.payload.products) {
-        // Calculate total stock value based on the updated products
-        state.totalStockValue = action.payload.products.reduce(
-          (total, product) => total + product.value,
-          0
-        );
-      }
+    setTotalStockValue: (state, action) => {
+      state.totalStockValue = action.payload;
     },
-    updateOutOfStockCount: (state, action) => {
-      if (action.payload && action.payload.products) {
-        // Calculate the count of products that are out of stock (quantity is 0)
-        state.outOfStock = action.payload.products.filter(
-          (product) => product.quantity === 0
-        ).length;
-      }
+    setOutOfStockCount: (state, action) => {
+      state.outOfStock = action.payload;
     },
-    updateCategories: (state, action) => {
-      if (action.payload && action.payload.products) {
-        // Calculate the count of unique categories based on the updated products
-        const categoriesSet = new Set(
-          action.payload.products.map((product) => product.category)
-        );
-        state.allCategories = categoriesSet.size;
-      }
+    setCategories: (state, action) => {
+      state.allCategories = action.payload;
     },
   },
 });
 
 export const {
-  updateTotalProducts,
-  updateTotalStockValue,
-  updateOutOfStockCount,
-  updateCategories,
+  setTotalProducts,
+  setTotalStockValue,
+  setOutOfStockCount,
+  setCategories,
 } = boardSlice.actions;
 
 export default boardSlice.reducer;

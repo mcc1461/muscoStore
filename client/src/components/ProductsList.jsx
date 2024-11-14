@@ -5,8 +5,6 @@ import debounce from "lodash.debounce";
 import {
   useGetProductsQuery,
   useDeleteProductMutation,
-  useAddProductMutation,
-  useUpdateProductMutation,
 } from "../features/api/apiSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { setProducts } from "../features/api/products/productSlice";
@@ -15,8 +13,10 @@ import Filters from "./Filters";
 import ProductItem from "./ProductItem";
 import Pagination from "./Pagination";
 import ProductModal from "./ProductModal";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-export default function ProductsList() {
+const ProductsList = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { data, error, isLoading } = useGetProductsQuery();
@@ -60,6 +60,7 @@ export default function ProductsList() {
     }
     if (error) {
       console.error("Error fetching products:", error);
+      toast.error("Failed to load products.");
     }
   }, [data, error, dispatch]);
 
@@ -150,9 +151,11 @@ export default function ProductsList() {
     if (!selectedProductForDelete) return;
     try {
       await deleteProduct(selectedProductForDelete._id).unwrap();
+      toast.success("Product deleted successfully.");
       setConfirmOpen(false);
     } catch (error) {
       console.error("Error deleting the product:", error);
+      toast.error("Failed to delete the product.");
     }
   };
 
@@ -176,6 +179,9 @@ export default function ProductsList() {
 
   return (
     <>
+      {/* Toast Notifications */}
+      <ToastContainer />
+
       {/* Sticky Header */}
       <div className="fixed top-0 z-10 w-full bg-blue-500 shadow-md">
         <div className="flex items-center justify-between px-4 py-4 text-white">
@@ -273,7 +279,6 @@ export default function ProductsList() {
         isOpen={modalOpen}
         onClose={closeModal}
         product={editingProduct}
-        setProducts={() => {}} // Optional if you're using RTK Query
       />
 
       {/* Confirm Delete Dialog */}
@@ -284,4 +289,6 @@ export default function ProductsList() {
       />
     </>
   );
-}
+};
+
+export default ProductsList;

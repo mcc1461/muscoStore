@@ -2,7 +2,7 @@
 /* -------------------------------------------------------
     NODEJS EXPRESS | MusCo Dev
 ------------------------------------------------------- */
-const { mongoose } = require("../configs/dbConnection");
+const mongoose = require("mongoose");
 /* ------------------------------------------------------- *
 {
     "name": "Brand 1",
@@ -11,7 +11,7 @@ const { mongoose } = require("../configs/dbConnection");
 /* ------------------------------------------------------- */
 // Brand Model:
 
-const BrandSchema = new mongoose.Schema(
+const brandSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -30,5 +30,8 @@ const BrandSchema = new mongoose.Schema(
   { collection: "brands", timestamps: true }
 );
 
+// Prevent model overwrite by checking if it already exists
+const Brand = mongoose.models.Brand || mongoose.model("Brand", brandSchema);
+
 /* ------------------------------------------------------- */
-module.exports = mongoose.model("Brand", BrandSchema);
+module.exports = mongoose.model("Brand", brandSchema);

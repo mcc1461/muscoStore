@@ -1,27 +1,29 @@
 "use strict";
-/* -------------------------------------------------------
-    NODEJS EXPRESS | MusCo Dev
-------------------------------------------------------- */
+
 const router = require("express").Router();
-/* ------------------------------------------------------- */
-// routes/brand:
-
 const permissions = require("../middlewares/permissions");
-const brand = require("../controllers/brand");
+const brandController = require("../controllers/brand");
+const authenticate = require("../middlewares/authentication"); // Import authenticate middleware
 
-// URL: /brands
+// Apply authentication middleware to all routes in this router
+router.use(authenticate);
 
-router
-  .route("/")
-  .get(permissions.isStaff, brand.list)
-  .post(permissions.isStaff, brand.create);
+// GET /api/brands - Accessible to all authenticated users
+router.get("/", brandController.list);
 
-router
-  .route("/:id")
-  .get(permissions.isStaff, brand.read)
-  .put(permissions.isAdmin, brand.update)
-  .patch(permissions.isAdmin, brand.update)
-  .delete(permissions.isAdmin, brand.delete);
+// POST /api/brands - Accessible to staff and admin
+router.post("/", permissions.isStaffOrAdmin, brandController.create);
 
-/* ------------------------------------------------------- */
+// GET /api/brands/:id - Accessible to all authenticated users
+router.get("/:id", brandController.read);
+
+// PUT /api/brands/:id - Accessible to staff and admin
+router.put("/:id", permissions.isStaffOrAdmin, brandController.update);
+
+// PATCH /api/brands/:id - Accessible to staff and admin
+router.patch("/:id", permissions.isStaffOrAdmin, brandController.update);
+
+// DELETE /api/brands/:id - Accessible only to admin
+router.delete("/:id", permissions.isAdmin, brandController.delete);
+
 module.exports = router;

@@ -2,7 +2,7 @@
 /* -------------------------------------------------------
     NODEJS EXPRESS | MusCo Dev
 ------------------------------------------------------- */
-const { mongoose } = require("../configs/dbConnection");
+const mongoose = require("mongoose");
 /* ------------------------------------------------------- *
 {
     "name": "Category 1"
@@ -10,7 +10,7 @@ const { mongoose } = require("../configs/dbConnection");
 /* ------------------------------------------------------- */
 // Category Model:
 
-const CategorySchema = new mongoose.Schema(
+const categorySchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -22,5 +22,9 @@ const CategorySchema = new mongoose.Schema(
   { collection: "categories", timestamps: true }
 );
 
+// Prevent model overwrite by checking if it already exists
+const Category =
+  mongoose.models.Category || mongoose.model("Category", categorySchema);
+
 /* ------------------------------------------------------- */
-module.exports = mongoose.model("Category", CategorySchema);
+module.exports = mongoose.model("Category", categorySchema);

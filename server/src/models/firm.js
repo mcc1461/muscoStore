@@ -3,7 +3,7 @@
     NODEJS EXPRESS | MusCo Dev
 ------------------------------------------------------- */
 
-const { mongoose } = require("../configs/dbConnection");
+const mongoose = require("mongoose");
 
 /* ------------------------------------------------------- *
 {
@@ -16,7 +16,7 @@ const { mongoose } = require("../configs/dbConnection");
 
 // Firm Model:
 
-const FirmSchema = new mongoose.Schema(
+const firmSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -45,4 +45,7 @@ const FirmSchema = new mongoose.Schema(
   { collection: "Firms", timestamps: true }
 );
 
-module.exports = mongoose.model("Firm", FirmSchema);
+// Prevent model overwrite by checking if it already exists
+const Firm = mongoose.models.Firm || mongoose.model("Firm", firmSchema);
+
+module.exports = mongoose.model("Firm", firmSchema);

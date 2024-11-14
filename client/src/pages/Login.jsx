@@ -1,112 +1,108 @@
-import { setCredentials } from "../features/api/auth/authSlice";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import Logo from "../components/Logo1";
+// src/pages/Login.jsx
+import React, { useState } from "react";
 import { useLoginUserMutation } from "../features/api/apiSlice";
 import { useDispatch } from "react-redux";
-import { useState } from "react";
+import { setCredentials } from "../features/auth/authSlice";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
-export default function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-
-  const [loginUser, { isLoading }] = useLoginUserMutation();
+const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [loginUser, { isLoading, error }] = useLoginUserMutation();
 
-  const handleSubmit = async (e) => {
+  // Renamed local state setter to avoid collision with Redux action
+  const [loginData, setLoginData] = useState({
+    username: "",
+    password: "",
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setLoginData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await loginUser({ username, password }).unwrap();
-      console.log("Login response:", res);
+      const userData = await loginUser(loginData).unwrap();
+      console.log("Login successful:", userData); // Detailed logging
 
-      // Check if the response contains bearer and user data
-      if (!res.bearer || !res.user) {
-        console.error("Bearer token or user data is missing in response.");
-        toast.error("Login failed. Please try again.");
-        return;
+      // Extract user and accessToken from the response
+      const { user, bearer } = userData;
+      const { accessToken } = bearer;
+
+      // Validate that accessToken exists
+      if (accessToken) {
+        dispatch(setCredentials({ user, token: accessToken })); // Store user and token
+        toast.success("Login successful!");
+        navigate("/dashboard"); // Redirect to dashboard
+      } else {
+        console.error("Access token not found in response:", userData);
+        throw new Error("Invalid response from server.");
       }
-
-      // Extract accessToken and user data
-      const { accessToken } = res.bearer;
-      const user = res.user;
-
-      // Combine token and user info
-      const userInfoWithToken = {
-        ...user,
-        token: accessToken,
-      };
-
-      // Store combined userInfo in localStorage
-      localStorage.setItem("userInfo", JSON.stringify(userInfoWithToken));
-
-      // Update Redux state
-      dispatch(setCredentials(userInfoWithToken));
-
-      setUsername("");
-      setPassword("");
-      toast.success("Logged in successfully!");
-      navigate("/dashboard");
     } catch (err) {
       console.error("Failed to login:", err);
-      toast.error(err?.data?.message || "Login failed. Please try again.");
+
+      // Handle different error structures
+      if (err.data && err.data.msg) {
+        toast.error(`Login failed: ${err.data.msg}`);
+      } else if (err.error) {
+        toast.error(`Login failed: ${err.error}`);
+      } else {
+        toast.error("Login failed. Please try again.");
+      }
     }
   };
 
   return (
-    <div className="flex items-center justify-center h-screen">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <form
-        onSubmit={handleSubmit}
-        className="w-1/3 p-6 bg-white rounded shadow-md"
+        onSubmit={handleLogin}
+        className="p-6 bg-white rounded-lg shadow-lg w-96"
       >
-        {/* Logo at the top */}
-        <div className="flex justify-center mb-4">
-          <Logo />
-        </div>
-
-        <h2 className="mb-4 text-2xl text-center">Login</h2>
-
+        <h2 className="mb-4 text-2xl font-bold text-center">Login</h2>
+        {error && (
+          <p className="mb-4 text-red-500">
+            {error.data && error.data.msg
+              ? error.data.msg
+              : "Login failed. Please try again."}
+          </p>
+        )}
         <div className="mb-4">
-          <label className="block mb-1">Username</label>
+          <label className="block mb-2 text-sm font-semibold">Username</label>
           <input
             type="text"
-            className="w-full px-3 py-2 border rounded"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            name="username"
+            value={loginData.username}
+            onChange={handleInputChange}
             required
-            placeholder="Enter your username"
+            className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
           />
         </div>
-
-        {/* Password input with show/hide functionality using emojis */}
-        <div className="relative w-full mb-6">
-          <label className="block mb-1">Password</label>
+        <div className="mb-6">
+          <label className="block mb-2 text-sm font-semibold">Password</label>
           <input
-            type={showPassword ? "text" : "password"}
-            className="w-full px-3 py-2 border-2 border-slate-400 rounded-xl"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            type="password"
+            name="password"
+            value={loginData.password}
+            onChange={handleInputChange}
             required
-            placeholder="Password"
+            className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
           />
-          <div
-            className="absolute my-3 right-4 top-[50%] transform -translate-y-[50%] cursor-pointer"
-            onClick={() => setShowPassword(!showPassword)}
-            style={{ fontSize: "1.5em" }}
-          >
-            {showPassword ? "🙈" : "👁️"}
-          </div>
         </div>
-
         <button
           type="submit"
-          className="w-full py-2 text-white bg-blue-500 rounded"
           disabled={isLoading}
+          className={`w-full px-4 py-2 text-white rounded-lg ${
+            isLoading ? "bg-blue-300" : "bg-blue-500 hover:bg-blue-600"
+          }`}
         >
           {isLoading ? "Logging in..." : "Login"}
         </button>
       </form>
     </div>
   );
-}
+};
+
+export default Login;

@@ -23,7 +23,7 @@ const generateTokens = (user) => {
       role: user.role,
     },
     JWT_SECRET,
-    { expiresIn: "7d" } // Access token expires in 15 minutes
+    { expiresIn: "7d" } // Access token expires in 7 days
   );
 
   const refreshToken = jwt.sign(
@@ -31,14 +31,14 @@ const generateTokens = (user) => {
       _id: user._id,
     },
     REFRESH_SECRET,
-    { expiresIn: "15d" } // Refresh token expires in 7 days
+    { expiresIn: "15d" } // Refresh token expires in 15 days
   );
 
   return { accessToken, refreshToken };
 };
 
 // Register Controller
-const register = async (req, res) => {
+const registerUser = async (req, res) => {
   const { username, email, password, firstName, lastName, role } = req.body;
 
   console.log("Request body:", req.body);
@@ -112,7 +112,7 @@ const register = async (req, res) => {
 };
 
 // Login Controller
-const login = async (req, res) => {
+const loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -176,7 +176,7 @@ const login = async (req, res) => {
 };
 
 // Refresh Token Controller
-const refresh = async (req, res) => {
+const refreshToken = async (req, res) => {
   const { refreshToken } = req.body;
 
   if (!refreshToken) {
@@ -240,10 +240,10 @@ const logout = async (req, res) => {
   }
 };
 
-// Export the controllers using CommonJS syntax
+// Export the controllers
 module.exports = {
-  register,
-  login,
-  refresh,
+  registerUser,
+  loginUser,
+  refreshToken,
   logout,
 };

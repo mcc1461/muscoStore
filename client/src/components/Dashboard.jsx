@@ -1,3 +1,5 @@
+// src/components/Dashboard.jsx
+
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { FaPlusCircle, FaSearch, FaHome } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -5,8 +7,6 @@ import debounce from "lodash.debounce";
 import {
   useGetProductsQuery,
   useDeleteProductMutation,
-  useAddProductMutation,
-  useUpdateProductMutation,
 } from "../features/api/apiSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { setProducts } from "../features/api/products/productSlice";
@@ -15,13 +15,16 @@ import Filters from "./Filters";
 import ProductItem from "./ProductItem";
 import Pagination from "./Pagination";
 import ProductModal from "./ProductModal";
+import LogoutButton from "./LogoutButton"; // Assuming you have this component
+import { toast } from "react-toastify";
 
-export default function ProductsList() {
+const Dashboard = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { data, error, isLoading } = useGetProductsQuery();
   const [deleteProduct] = useDeleteProductMutation();
 
+  // Access products from the Redux store
   const products = useSelector((state) => state.product.products);
 
   // State variables
@@ -60,6 +63,11 @@ export default function ProductsList() {
     }
     if (error) {
       console.error("Error fetching products:", error);
+      if (error.data && error.data.msg) {
+        toast.error(`Failed to load products: ${error.data.msg}`);
+      } else {
+        toast.error("Failed to load products.");
+      }
     }
   }, [data, error, dispatch]);
 
@@ -150,9 +158,15 @@ export default function ProductsList() {
     if (!selectedProductForDelete) return;
     try {
       await deleteProduct(selectedProductForDelete._id).unwrap();
+      toast.success("Product deleted successfully.");
       setConfirmOpen(false);
     } catch (error) {
       console.error("Error deleting the product:", error);
+      if (error.data && error.data.msg) {
+        toast.error(`Failed to delete product: ${error.data.msg}`);
+      } else {
+        toast.error("Failed to delete product.");
+      }
     }
   };
 
@@ -170,7 +184,9 @@ export default function ProductsList() {
 
   if (error) {
     return (
-      <p className="mt-20 text-center text-red-500">Error loading products.</p>
+      <p className="mt-20 text-center text-red-500">
+        ***Error loading products.
+      </p>
     );
   }
 
@@ -180,12 +196,15 @@ export default function ProductsList() {
       <div className="fixed top-0 z-10 w-full bg-blue-500 shadow-md">
         <div className="flex items-center justify-between px-4 py-4 text-white">
           <h1 className="text-3xl font-bold">Products ({totalProducts})</h1>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="text-white hover:text-blue-200"
-          >
-            <FaHome size={28} />
-          </button>
+          <div className="flex items-center space-x-4">
+            <LogoutButton />
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="text-white hover:text-blue-200"
+            >
+              <FaHome size={28} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -219,14 +238,14 @@ export default function ProductsList() {
                   type="text"
                   placeholder="Search products..."
                   onChange={handleSearchChange}
-                  className="block w-full px-4 py-2 border rounded-lg sm:hidden focus:ring focus:ring-indigo-200"
+                  className="block w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200 sm:hidden"
                 />
               )}
               <input
                 type="text"
                 placeholder="Search products..."
                 onChange={handleSearchChange}
-                className="hidden w-full px-4 py-2 border rounded-lg sm:block focus:ring focus:ring-indigo-200"
+                className="hidden w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200 sm:block"
               />
             </div>
             {/* Add Product Button */}
@@ -273,7 +292,6 @@ export default function ProductsList() {
         isOpen={modalOpen}
         onClose={closeModal}
         product={editingProduct}
-        setProducts={() => {}} // Optional if you're using RTK Query
       />
 
       {/* Confirm Delete Dialog */}
@@ -284,4 +302,6 @@ export default function ProductsList() {
       />
     </>
   );
-}
+};
+
+export default Dashboard;
