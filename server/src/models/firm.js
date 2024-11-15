@@ -48,4 +48,4 @@ const firmSchema = new mongoose.Schema(
 // Prevent model overwrite by checking if it already exists
 const Firm = mongoose.models.Firm || mongoose.model("Firm", firmSchema);
 
-module.exports = mongoose.model("Firm", firmSchema);
+module.exports = Firm;

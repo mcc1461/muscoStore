@@ -1,7 +1,7 @@
 "use strict";
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const User = require("../models/user");
+const User = require("../models/User");
 
 // Ensure you have JWT_SECRET in your environment variables
 const JWT_SECRET = process.env.JWT_SECRET || "Mcc_JWT_SECRET";

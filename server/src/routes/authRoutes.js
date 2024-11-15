@@ -9,7 +9,7 @@ const { body } = require("express-validator");
 
 // POST /auth/login
 router.post(
-  "/auth/login",
+  "/login",
   [
     body("username").notEmpty().withMessage("Username is required"),
     body("password").notEmpty().withMessage("Password is required"),
@@ -19,7 +19,7 @@ router.post(
 
 // POST /auth/register
 router.post(
-  "/auth/register",
+  "/register",
   [
     body("username").notEmpty().withMessage("Username is required"),
     body("email").isEmail().withMessage("Please include a valid email"),

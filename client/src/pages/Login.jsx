@@ -1,4 +1,5 @@
 // src/pages/Login.jsx
+
 import React, { useState } from "react";
 import { useLoginUserMutation } from "../features/api/apiSlice";
 import { useDispatch } from "react-redux";
@@ -11,7 +12,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [loginUser, { isLoading, error }] = useLoginUserMutation();
 
-  // Renamed local state setter to avoid collision with Redux action
+  // Local state for login data
   const [loginData, setLoginData] = useState({
     username: "",
     password: "",
@@ -30,25 +31,25 @@ const Login = () => {
 
       // Extract user and accessToken from the response
       const { user, bearer } = userData;
-      const { accessToken } = bearer;
+      const { accessToken, refreshToken } = bearer;
 
       // Validate that accessToken exists
-      if (accessToken) {
-        dispatch(setCredentials({ user, token: accessToken })); // Store user and token
+      if (accessToken && refreshToken) {
+        dispatch(setCredentials({ user, token: accessToken, refreshToken }));
         toast.success("Login successful!");
         navigate("/dashboard"); // Redirect to dashboard
       } else {
-        console.error("Access token not found in response:", userData);
+        console.error("Tokens not found in response:", userData);
         throw new Error("Invalid response from server.");
       }
     } catch (err) {
       console.error("Failed to login:", err);
 
       // Handle different error structures
-      if (err.data && err.data.msg) {
-        toast.error(`Login failed: ${err.data.msg}`);
-      } else if (err.error) {
-        toast.error(`Login failed: ${err.error}`);
+      if (err.message) {
+        toast.error(`Login failed: ${err.message}`);
+      } else if (err.data && err.data.message) {
+        toast.error(`Login failed: ${err.data.message}`);
       } else {
         toast.error("Login failed. Please try again.");
       }
@@ -64,8 +65,8 @@ const Login = () => {
         <h2 className="mb-4 text-2xl font-bold text-center">Login</h2>
         {error && (
           <p className="mb-4 text-red-500">
-            {error.data && error.data.msg
-              ? error.data.msg
+            {error.data && error.data.message
+              ? error.data.message
               : "Login failed. Please try again."}
           </p>
         )}

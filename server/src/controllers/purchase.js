@@ -4,9 +4,9 @@
 ------------------------------------------------------- */
 // Purchase Controller:
 
-const Product = require("../models/product");
-const Purchase = require("../models/purchase");
-const User = require("../models/user"); // Ensure User model is imported
+const Product = require("../models/Product");
+const Purchase = require("../models/Purchase");
+const User = require("../models/User"); // Ensure User model is imported
 
 module.exports = {
   // List Purchases

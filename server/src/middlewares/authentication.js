@@ -3,7 +3,7 @@
 "use strict";
 
 const jwt = require("jsonwebtoken");
-const User = require("../models/user"); // Ensure correct path and case
+const User = require("../models/User"); // Ensure correct path and case
 const dotenv = require("dotenv");
 const path = require("path");
 

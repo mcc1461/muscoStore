@@ -7,7 +7,7 @@ const mongoose = require("mongoose");
 /* ------------------------------------------------------- */
 // Purchase Model:
 
-const PurchaseSchema = new mongoose.Schema(
+const purchaseSchema = new mongoose.Schema(
   {
     date: {
       type: Date,
@@ -81,4 +81,8 @@ PurchaseSchema.pre("findOneAndUpdate", function (next) {
   next();
 });
 
-module.exports = mongoose.model("Purchase", PurchaseSchema);
+// Prevent model overwrite by checking if it already exists
+const Purchase =
+  mongoose.models.Purchase || mongoose.model("Purchase", purchaseSchema);
+
+module.exports = Purchase;

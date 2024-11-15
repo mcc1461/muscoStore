@@ -4,7 +4,7 @@
 ------------------------------------------------------- */
 // Category Controller:
 
-const Category = require("../models/category");
+const Category = require("../models/Category");
 
 module.exports = {
   list: async (req, res) => {

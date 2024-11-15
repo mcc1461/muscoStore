@@ -34,4 +34,4 @@ const brandSchema = new mongoose.Schema(
 const Brand = mongoose.models.Brand || mongoose.model("Brand", brandSchema);
 
 /* ------------------------------------------------------- */
-module.exports = mongoose.model("Brand", brandSchema);
+module.exports = Brand;

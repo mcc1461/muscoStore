@@ -13,7 +13,7 @@ const mongoose = require("mongoose");
 /* ------------------------------------------------------- */
 // Sale Model:
 
-const SaleSchema = new mongoose.Schema(
+const saleSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -58,4 +58,6 @@ const SaleSchema = new mongoose.Schema(
 );
 
 /* ------------------------------------------------------- */
-module.exports = mongoose.model("Sale", SaleSchema);
+const Sale = mongoose.models.Sale || mongoose.model("Sale", saleSchema);
+
+module.exports = Sale;

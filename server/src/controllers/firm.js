@@ -4,7 +4,7 @@
 ------------------------------------------------------- */
 // Firm Controller:
 
-const Firm = require("../models/firm");
+const Firm = require("../models/Firm");
 const formatPhoneNumber = require("../utils/formatPhoneNumber");
 
 module.exports = {

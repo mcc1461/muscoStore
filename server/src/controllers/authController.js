@@ -2,7 +2,7 @@
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const User = require("../models/user");
+const User = require("../models/User"); // Ensure correct case
 const dotenv = require("dotenv");
 const path = require("path");
 
@@ -37,80 +37,6 @@ const generateTokens = (user) => {
   return { accessToken, refreshToken };
 };
 
-// Register Controller
-const registerUser = async (req, res) => {
-  const { username, email, password, firstName, lastName, role } = req.body;
-
-  console.log("Request body:", req.body);
-
-  // Validate input
-  if (!username || !email || !password || !firstName || !lastName) {
-    return res.status(400).json({
-      error: true,
-      message: "Please provide all required fields.",
-    });
-  }
-
-  try {
-    // Check if user exists
-    const existingUser = await User.findOne({
-      $or: [{ username }, { email }],
-    });
-    if (existingUser) {
-      return res.status(400).json({
-        error: true,
-        message: "Username or email already exists.",
-      });
-    }
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create user
-    const user = new User({
-      username,
-      email,
-      password: hashedPassword,
-      firstName,
-      lastName,
-      role: role || "user",
-    });
-
-    await user.save();
-
-    // Generate tokens
-    const { accessToken, refreshToken } = generateTokens(user);
-
-    // Save refreshToken in user model
-    user.refreshToken = refreshToken;
-    await user.save();
-
-    // Respond with user data and tokens
-    return res.status(201).json({
-      user: {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-      },
-      bearer: {
-        accessToken,
-        refreshToken,
-      },
-      error: false,
-      message: "Registration successful.",
-    });
-  } catch (error) {
-    console.error("Registration error:", error);
-    return res
-      .status(500)
-      .json({ error: true, message: "Internal server error." });
-  }
-};
-
 // Login Controller
 const loginUser = async (req, res) => {
   try {
@@ -124,8 +50,8 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Find user by username
-    const user = await User.findOne({ username });
+    // Find user by username and include password
+    const user = await User.findOne({ username }).select("+password");
     if (!user) {
       return res.status(400).json({
         error: true,
@@ -175,68 +101,176 @@ const loginUser = async (req, res) => {
   }
 };
 
-// Refresh Token Controller
-const refreshToken = async (req, res) => {
-  const { refreshToken } = req.body;
-
-  if (!refreshToken) {
-    return res
-      .status(400)
-      .json({ error: true, message: "Refresh token is required." });
-  }
-
+// Register Controller
+const registerUser = async (req, res) => {
   try {
-    // Verify refresh token
-    const decoded = jwt.verify(refreshToken, REFRESH_SECRET);
+    const { username, email, password } = req.body;
 
-    // Find user by ID and validate refresh token
-    const user = await User.findById(decoded._id);
-
-    if (!user || user.refreshToken !== refreshToken) {
-      return res
-        .status(401)
-        .json({ error: true, message: "Invalid refresh token." });
+    // Validate input
+    if (!username || !email || !password) {
+      return res.status(400).json({
+        error: true,
+        message: "Username, email, and password are required.",
+      });
     }
 
-    // Generate new tokens
-    const { accessToken, refreshToken: newRefreshToken } = generateTokens(user);
+    // Check for existing user
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({
+        error: true,
+        message: "Username is already taken.",
+      });
+    }
 
-    // Update user's refresh token
-    user.refreshToken = newRefreshToken;
+    // Create new user
+    const user = await User.create({
+      username,
+      email,
+      password,
+    });
+
+    // Generate tokens
+    const { accessToken, refreshToken } = generateTokens(user);
+
+    // Save refreshToken in user model
+    user.refreshToken = refreshToken;
     await user.save();
 
-    // Respond with new tokens
-    return res.status(200).json({
+    // Return user data and tokens
+    return res.status(201).json({
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
       bearer: {
         accessToken,
-        refreshToken: newRefreshToken,
+        refreshToken,
       },
       error: false,
-      message: "Token refreshed successfully.",
+      message: "User created.",
+    });
+  } catch (error) {
+    console.error("Registration error:", error);
+    return res.status(500).json({
+      error: true,
+      message: "Server error.",
+    });
+  }
+};
+
+// Refresh Token Controller
+const refreshToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    // Validate input
+    if (!token) {
+      return res.status(400).json({
+        error: true,
+        message: "Token is required.",
+      });
+    }
+
+    // Verify token
+    jwt.verify(token, REFRESH_SECRET, async (err, user) => {
+      if (err) {
+        return res.status(403).json({
+          error: true,
+          message: "Invalid token.",
+        });
+      }
+
+      // Find user by id
+      const existingUser = await User.findById(user._id);
+      if (!existingUser) {
+        return res.status(404).json({
+          error: true,
+          message: "User not found.",
+        });
+      }
+
+      // Generate new tokens
+      const { accessToken, refreshToken } = generateTokens(existingUser);
+
+      // Save refreshToken in user model
+      existingUser.refreshToken = refreshToken;
+      await existingUser.save();
+
+      // Return user data and tokens
+      return res.status(200).json({
+        user: {
+          _id: existingUser._id,
+          username: existingUser.username,
+          email: existingUser.email,
+          role: existingUser.role,
+        },
+        bearer: {
+          accessToken,
+          refreshToken,
+        },
+        error: false,
+        message: "Token refreshed.",
+      });
     });
   } catch (error) {
     console.error("Refresh token error:", error);
-    return res
-      .status(401)
-      .json({ error: true, message: "Invalid or expired refresh token." });
+    return res.status(500).json({
+      error: true,
+      message: "Server error.",
+    });
   }
 };
 
 // Logout Controller
 const logout = async (req, res) => {
-  const user = req.user;
-
   try {
-    // Clear the user's refresh token
-    user.refreshToken = null;
-    await user.save();
+    const { token } = req.body;
 
-    return res.status(200).json({ message: "Logged out successfully." });
+    // Validate input
+    if (!token) {
+      return res.status(400).json({
+        error: true,
+        message: "Token is required.",
+      });
+    }
+
+    // Verify token
+    jwt.verify(token, REFRESH_SECRET, async (err, user) => {
+      if (err) {
+        return res.status(403).json({
+          error: true,
+          message: "Invalid token.",
+        });
+      }
+
+      // Find user by id
+      const existingUser = await User.findById(user._id);
+      if (!existingUser) {
+        return res.status(404).json({
+          error: true,
+          message: "User not found.",
+        });
+      }
+
+      // Remove refreshToken from user model
+      existingUser.refreshToken = "";
+      await existingUser.save();
+
+      // Return success message
+      return res.status(200).json({
+        error: false,
+        message: "Logout successful.",
+      });
+    });
   } catch (error) {
     console.error("Logout error:", error);
-    return res
-      .status(500)
-      .json({ error: true, message: "Internal server error." });
+    return res.status(500).json({
+      error: true,
+      message: "Server error.",
+    });
   }
 };
 

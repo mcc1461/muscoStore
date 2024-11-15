@@ -1,7 +1,7 @@
 // backend/controllers/brand.js
 "use strict";
 
-const Brand = require("../models/brand");
+const Brand = require("../models/Brand");
 
 module.exports = {
   list: async (req, res) => {

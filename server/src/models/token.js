@@ -11,7 +11,7 @@ const mongoose = require("mongoose");
 /* ------------------------------------------------------- */
 // Token Model:
 
-const TokenSchema = new mongoose.Schema(
+const tokenSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -31,4 +31,8 @@ const TokenSchema = new mongoose.Schema(
 );
 
 /* ------------------------------------------------------- */
-module.exports = mongoose.model("Token", TokenSchema);
+
+// Prevent model overwrite by checking if it already exists
+const Token = mongoose.models.Token || mongoose.model("Token", tokenSchema);
+
+module.exports = Token;

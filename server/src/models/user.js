@@ -1,5 +1,3 @@
-// src/models/User.js
-
 "use strict";
 
 const mongoose = require("mongoose");
@@ -13,6 +11,7 @@ dotenv.config({
   path: path.join(__dirname, "../../.env"),
 });
 
+// User Schema
 const userSchema = new mongoose.Schema(
   {
     username: {
@@ -36,6 +35,15 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
       select: false, // Exclude password from queries by default
     },
+    role: {
+      type: String,
+      enum: ["user", "staff", "admin"],
+      default: "user",
+    },
+    refreshToken: {
+      type: String,
+      select: false,
+    },
     // Add other fields as necessary
   },
   { timestamps: true }
@@ -44,7 +52,7 @@ const userSchema = new mongoose.Schema(
 // Encrypt password before saving
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
-    next();
+    return next();
   }
 
   const salt = await bcrypt.genSalt(10);
@@ -66,4 +74,4 @@ userSchema.methods.getSignedJwtToken = function () {
 // Prevent model overwrite by checking if it already exists
 const User = mongoose.models.User || mongoose.model("User", userSchema);
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = User;

@@ -61,8 +61,11 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 
 export const apiSlice = createApi({
   reducerPath: "api",
-  baseQuery: baseQueryWithReauth, // Use the wrapped baseQuery
-  tagTypes: ["Product", "User"], // Define tag types for caching
+  baseQuery: fetchBaseQuery({
+    baseUrl: BASE_URL,
+    credentials: "include",
+  }), // Use the wrapped baseQuery
+  tagTypes: ["Product", "User", "Product", "Brand", "Category", "Firm"], // Define tag types for caching
   endpoints: (builder) => ({
     // Products Endpoints
     getProducts: builder.query({
