@@ -37,6 +37,60 @@ const generateTokens = (user) => {
   return { accessToken, refreshToken };
 };
 
+// Refresh Token Controller
+const refreshToken = async (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res
+      .status(400)
+      .json({ error: true, message: "Refresh token is required." });
+  }
+
+  try {
+    // Verify refresh token
+    const decoded = jwt.verify(refreshToken, REFRESH_SECRET);
+
+    // Find user by ID and validate refresh token
+    const user = await User.findById(decoded._id);
+    if (!user || user.refreshToken !== refreshToken) {
+      return res
+        .status(401)
+        .json({ error: true, message: "Invalid refresh token." });
+    }
+
+    // Generate new tokens
+    const { accessToken, refreshToken: newRefreshToken } = generateTokens(user);
+
+    // Update user's refresh token in the database
+    user.refreshToken = newRefreshToken;
+    await user.save();
+
+    // Respond with new tokens and user info
+    return res.status(200).json({
+      bearer: {
+        accessToken,
+        refreshToken: newRefreshToken,
+      },
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+      error: false,
+      message: "Token refreshed successfully.",
+    });
+  } catch (error) {
+    console.error("Refresh token error:", error);
+    return res
+      .status(401)
+      .json({ error: true, message: "Invalid or expired refresh token." });
+  }
+};
+
 // Login Controller
 const loginUser = async (req, res) => {
   try {
@@ -154,69 +208,6 @@ const registerUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Registration error:", error);
-    return res.status(500).json({
-      error: true,
-      message: "Server error.",
-    });
-  }
-};
-
-// Refresh Token Controller
-const refreshToken = async (req, res) => {
-  try {
-    const { token } = req.body;
-
-    // Validate input
-    if (!token) {
-      return res.status(400).json({
-        error: true,
-        message: "Token is required.",
-      });
-    }
-
-    // Verify token
-    jwt.verify(token, REFRESH_SECRET, async (err, user) => {
-      if (err) {
-        return res.status(403).json({
-          error: true,
-          message: "Invalid token.",
-        });
-      }
-
-      // Find user by id
-      const existingUser = await User.findById(user._id);
-      if (!existingUser) {
-        return res.status(404).json({
-          error: true,
-          message: "User not found.",
-        });
-      }
-
-      // Generate new tokens
-      const { accessToken, refreshToken } = generateTokens(existingUser);
-
-      // Save refreshToken in user model
-      existingUser.refreshToken = refreshToken;
-      await existingUser.save();
-
-      // Return user data and tokens
-      return res.status(200).json({
-        user: {
-          _id: existingUser._id,
-          username: existingUser.username,
-          email: existingUser.email,
-          role: existingUser.role,
-        },
-        bearer: {
-          accessToken,
-          refreshToken,
-        },
-        error: false,
-        message: "Token refreshed.",
-      });
-    });
-  } catch (error) {
-    console.error("Refresh token error:", error);
     return res.status(500).json({
       error: true,
       message: "Server error.",

@@ -55,14 +55,15 @@ const ProductsList = () => {
 
   // Fetch products and set them to Redux store
   useEffect(() => {
-    if (data && Array.isArray(data)) {
-      dispatch(setProducts(data));
-    }
     if (error) {
       console.error("Error fetching products:", error);
-      toast.error("Failed to load products.");
+      if (error.data && error.data.message) {
+        toast.error(`Failed to load products: ${error.data.message}`);
+      } else {
+        toast.error("Failed to load products.");
+      }
     }
-  }, [data, error, dispatch]);
+  }, [error]);
 
   // Extract unique categories and brands for filters
   const allCategories = useMemo(

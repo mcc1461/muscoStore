@@ -7,25 +7,27 @@ import debounce from "lodash.debounce";
 import {
   useGetProductsQuery,
   useDeleteProductMutation,
-} from "../features/api/apiSlice";
+} from "../features/api/apiSlice"; // Updated import path
 import { useDispatch, useSelector } from "react-redux";
-import { setProducts } from "../features/api/products/productSlice";
+// Removed import for setProducts
+// import { setProducts } from "../features/api/products/productSlice";
 import ConfirmDialog from "./ConfirmDialog";
 import Filters from "./Filters";
 import ProductItem from "./ProductItem";
 import Pagination from "./Pagination";
 import ProductModal from "./ProductModal";
-import LogoutButton from "./LogoutButton"; // Assuming you have this component
+import LogoutButton from "./LogoutButton"; // Ensure this component is correctly implemented
 import { toast } from "react-toastify";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { data, error, isLoading } = useGetProductsQuery();
-  const [deleteProduct] = useDeleteProductMutation();
 
-  // Access products from the Redux store
-  const products = useSelector((state) => state.product.products);
+  // Updated Destructuring
+  const { data, error, isLoading } = useGetProductsQuery();
+  const products = data?.data || []; // Extract products array safely
+
+  const [deleteProduct] = useDeleteProductMutation();
 
   // State variables
   const [searchTerm, setSearchTerm] = useState("");
@@ -56,20 +58,17 @@ const Dashboard = () => {
     debouncedSearch(value);
   };
 
-  // Fetch products and set them to Redux store
+  // Handle Errors
   useEffect(() => {
-    if (data && Array.isArray(data)) {
-      dispatch(setProducts(data));
-    }
     if (error) {
       console.error("Error fetching products:", error);
-      if (error.data && error.data.msg) {
-        toast.error(`Failed to load products: ${error.data.msg}`);
+      if (error.data && error.data.message) {
+        toast.error(`Failed to load products: ${error.data.message}`);
       } else {
         toast.error("Failed to load products.");
       }
     }
-  }, [data, error, dispatch]);
+  }, [error]);
 
   // Extract unique categories and brands for filters
   const allCategories = useMemo(
@@ -162,8 +161,8 @@ const Dashboard = () => {
       setConfirmOpen(false);
     } catch (error) {
       console.error("Error deleting the product:", error);
-      if (error.data && error.data.msg) {
-        toast.error(`Failed to delete product: ${error.data.msg}`);
+      if (error.data && error.data.message) {
+        toast.error(`Failed to delete product: ${error.data.message}`);
       } else {
         toast.error("Failed to delete product.");
       }
@@ -180,14 +179,6 @@ const Dashboard = () => {
 
   if (isLoading) {
     return <p className="mt-20 text-center">Loading products...</p>;
-  }
-
-  if (error) {
-    return (
-      <p className="mt-20 text-center text-red-500">
-        ***Error loading products.
-      </p>
-    );
   }
 
   return (

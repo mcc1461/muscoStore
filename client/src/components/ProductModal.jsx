@@ -1,16 +1,16 @@
+// src/components/ProductModal.jsx
+
 import React, { useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import {
   useAddProductMutation,
   useUpdateProductMutation,
-} from "../features/api/apiSlice";
+} from "../features/api/apiSlice"; // Updated import path
+import { toast } from "react-toastify";
 
-const ProductModal = ({
-  isOpen,
-  onClose,
-  product = null, // If null, it's for adding a new product
-}) => {
+export default function ProductModal({ isOpen, onClose, product }) {
   const [editingProduct, setEditingProduct] = useState(product || {});
+
   const [addProduct, { isLoading: isAdding }] = useAddProductMutation();
   const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
 
@@ -20,39 +20,24 @@ const ProductModal = ({
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    // Handle nested objects for brandId and categoryId
-    if (name.startsWith("brandId.")) {
-      const key = name.split(".")[1];
-      setEditingProduct((prev) => ({
-        ...prev,
-        brandId: { ...prev.brandId, [key]: value },
-      }));
-    } else if (name.startsWith("categoryId.")) {
-      const key = name.split(".")[1];
-      setEditingProduct((prev) => ({
-        ...prev,
-        categoryId: { ...prev.categoryId, [key]: value },
-      }));
-    } else {
-      setEditingProduct((prev) => ({
-        ...prev,
-        [name]:
-          name === "quantity" || name === "price" ? parseFloat(value) : value,
-      }));
-    }
+    setEditingProduct((prev) => ({ ...prev, [name]: value }));
   };
 
   const saveProductDetails = async () => {
     try {
       if (!editingProduct._id) {
+        // Create new product
         await addProduct(editingProduct).unwrap();
+        toast.success("Product created successfully.");
       } else {
+        // Update existing product
         await updateProduct(editingProduct).unwrap();
+        toast.success("Product updated successfully.");
       }
       onClose();
     } catch (error) {
       console.error("Error saving product:", error);
-      // Optionally, handle errors (e.g., display notification)
+      toast.error("Failed to save product.");
     }
   };
 
@@ -60,165 +45,85 @@ const ProductModal = ({
     <Transition show={isOpen} as={React.Fragment}>
       <Dialog
         as="div"
-        className="fixed inset-0 z-50 overflow-y-auto"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
         onClose={onClose}
       >
-        <div className="flex items-center justify-center min-h-screen px-4 text-center">
-          <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
-          <span
-            className="inline-block h-screen align-middle"
-            aria-hidden="true"
-          >
-            &#8203;
-          </span>
-          <div className="inline-block p-8 my-8 overflow-hidden text-left align-middle transition-all transform bg-white rounded-lg shadow-xl w-96">
-            <Dialog.Title className="mb-4 text-2xl font-bold">
-              {editingProduct._id ? "Edit Product" : "Add New Product"}
-            </Dialog.Title>
-            <div className="space-y-4">
-              {/* Name */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold">Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={editingProduct.name || ""}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
-                  required
-                />
-              </div>
+        <div className="p-8 bg-white rounded-lg shadow-lg w-96">
+          <h2 className="mb-4 text-2xl font-bold">
+            {editingProduct._id ? "Edit Product" : "Add New Product"}
+          </h2>
+          <div className="mb-4">
+            <label className="block mb-2 text-sm font-semibold">Name</label>
+            <input
+              type="text"
+              name="name"
+              value={editingProduct.name || ""}
+              onChange={handleInputChange}
+              className="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
 
-              {/* Price */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold">
-                  Price ($)
-                </label>
-                <input
-                  type="number"
-                  name="price"
-                  value={editingProduct.price || 0}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
-                  min="0"
-                  step="0.01"
-                  required
-                />
-              </div>
+          <div className="mb-4">
+            <label className="block mb-2 text-sm font-semibold">Price</label>
+            <input
+              type="number"
+              name="price"
+              value={editingProduct.price || 0}
+              onChange={handleInputChange}
+              className="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
 
-              {/* Quantity */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold">
-                  Quantity
-                </label>
-                <input
-                  type="number"
-                  name="quantity"
-                  value={editingProduct.quantity || 0}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
-                  min="0"
-                  required
-                />
-              </div>
+          <div className="mb-4">
+            <label className="block mb-2 text-sm font-semibold">Quantity</label>
+            <input
+              type="number"
+              name="quantity"
+              value={editingProduct.quantity || 0}
+              onChange={handleInputChange}
+              className="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
 
-              {/* Category */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold">
-                  Category
-                </label>
-                <input
-                  type="text"
-                  name="categoryId.name"
-                  value={editingProduct.categoryId?.name || ""}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
-                  placeholder="e.g., Electronics"
-                  required
-                />
-              </div>
+          <div className="mb-4">
+            <label className="block mb-2 text-sm font-semibold">Category</label>
+            <input
+              type="text"
+              name="categoryId"
+              value={editingProduct.categoryId || ""}
+              onChange={handleInputChange}
+              className="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
 
-              {/* Brand */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold">
-                  Brand
-                </label>
-                <input
-                  type="text"
-                  name="brandId.name"
-                  value={editingProduct.brandId?.name || ""}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
-                  placeholder="e.g., Samsung"
-                  required
-                />
-              </div>
+          <div className="mb-4">
+            <label className="block mb-2 text-sm font-semibold">Brand</label>
+            <input
+              type="text"
+              name="brandId"
+              value={editingProduct.brandId || ""}
+              onChange={handleInputChange}
+              className="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
 
-              {/* Image URL */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold">
-                  Image URL
-                </label>
-                <input
-                  type="url"
-                  name="image"
-                  value={editingProduct.image || ""}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
-                  placeholder="https://example.com/image.jpg"
-                  required
-                />
-              </div>
-
-              {/* Additional Image URL (Optional) */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold">
-                  Additional Image URL (Optional)
-                </label>
-                <input
-                  type="url"
-                  name="image2"
-                  value={editingProduct.image2 || ""}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200"
-                  placeholder="https://example.com/image2.jpg"
-                />
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex justify-end mt-6 space-x-4">
-              <button
-                onClick={saveProductDetails}
-                disabled={isAdding || isUpdating}
-                className={`px-4 py-2 text-white rounded-lg ${
-                  editingProduct._id
-                    ? "bg-blue-500 hover:bg-blue-600"
-                    : "bg-green-500 hover:bg-green-600"
-                } ${
-                  isAdding || isUpdating ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
-                {isAdding || isUpdating
-                  ? editingProduct._id
-                    ? "Updating..."
-                    : "Adding..."
-                  : editingProduct._id
-                  ? "Update"
-                  : "Add"}
-              </button>
-              <button
-                onClick={onClose}
-                className="px-4 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600"
-              >
-                Cancel
-              </button>
-            </div>
+          <div className="flex justify-end space-x-4">
+            <button
+              onClick={saveProductDetails}
+              disabled={isAdding || isUpdating}
+              className="px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600"
+            >
+              {isAdding || isUpdating ? "Saving..." : "Save"}
+            </button>
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       </Dialog>
     </Transition>
   );
-};
-
-export default ProductModal;
+}

@@ -1,7 +1,6 @@
 // src/utils/BoardStats.jsx
 
 import React, { useEffect } from "react";
-import { useGetProductsQuery } from "../features/api/products/productApiSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { setProducts } from "../features/api/products/productSlice";
 import {

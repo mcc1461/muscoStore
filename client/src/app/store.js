@@ -3,7 +3,9 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { apiSlice } from "../features/api/apiSlice";
 import authReducer from "../features/auth/authSlice";
-import productReducer from "../features/api/products/productSlice"; // Import productReducer
+// Remove productReducer import if productSlice.js is deleted
+// import productReducer from "../features/api/products/productSlice";
+
 import {
   persistStore,
   persistReducer,
@@ -31,7 +33,8 @@ export const store = configureStore({
   reducer: {
     [apiSlice.reducerPath]: apiSlice.reducer, // RTK Query API slice
     auth: persistedAuthReducer, // Persisted auth slice
-    product: productReducer, // Product slice
+    // Remove product slice if not needed
+    // product: productReducer, // Remove if necessary
     // Add other reducers here if needed
   },
   middleware: (getDefaultMiddleware) =>

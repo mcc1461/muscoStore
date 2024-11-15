@@ -3,10 +3,7 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import Loader from "../components/Loader";
 import { toast } from "react-toastify";
-import {
-  useGetProductByIdQuery,
-  useUpdateProductMutation,
-} from "../features/api/products/productApiSlice";
+
 import { updateProduct } from "../features/api/products/productSlice";
 import milo from "../assets/milo.png";
 

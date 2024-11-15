@@ -1,5 +1,4 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useDeleteProductMutation } from "../features/api/products/productApiSlice";
 import { deleteProduct } from "../features/api/products/productSlice";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";

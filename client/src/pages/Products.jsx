@@ -1,13 +1,11 @@
 // src/pages/Products.jsx
 
 import React from "react";
-import { useSelector } from "react-redux";
-import { useGetProductsQuery } from "../features/api/products/productApiSlice";
 import { Link } from "react-router-dom";
 
 export default function Products() {
   const { error, isLoading } = useGetProductsQuery();
-  const products = useSelector((state) => state.product.products);
+  const products = data || []; // Default to empty array if data is undefined
 
   // Arama terimi state
   const [searchTerm, setSearchTerm] = React.useState("");
