@@ -1,298 +1,283 @@
 // src/components/Dashboard.jsx
 
-import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { FaPlusCircle, FaSearch, FaHome } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import debounce from "lodash.debounce";
+"use client";
+import React from "react";
+import { useState } from "react";
+import { Dialog, Menu, Transition } from "@headlessui/react";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
-  useGetProductsQuery,
-  useDeleteProductMutation,
-} from "../features/api/apiSlice"; // Updated import path
-import { useDispatch, useSelector } from "react-redux";
-// Removed import for setProducts
-// import { setProducts } from "../features/api/products/productSlice";
-import ConfirmDialog from "./ConfirmDialog";
-import Filters from "./Filters";
-import ProductItem from "./ProductItem";
-import Pagination from "./Pagination";
-import ProductModal from "./ProductModal";
-import LogoutButton from "./LogoutButton"; // Ensure this component is correctly implemented
-import { toast } from "react-toastify";
+  Bars3Icon,
+  BellIcon,
+  CalendarIcon,
+  ChartPieIcon,
+  DocumentDuplicateIcon,
+  MagnifyingGlassIcon,
+  ChevronDownIcon,
+  FolderIcon,
+  HomeIcon,
+  UsersIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import { useSelector, useDispatch } from "react-redux";
+import { useLogoutMutation } from "../features/usersApiSlice"; // API Slice for logout
+import { logout } from "../features/auth/authSlice"; // Redux action for clearing user data
 
-const Dashboard = () => {
-  const navigate = useNavigate();
+const navigation = [
+  { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
+  { name: "Team", href: "/dashboard/team", icon: UsersIcon },
+  { name: "Firms", href: "/dashboard/firms", icon: FolderIcon },
+  { name: "Brands", href: "/dashboard/brands", icon: FolderIcon },
+  { name: "Products", href: "/dashboard/products", icon: FolderIcon },
+  { name: "Categories", href: "/dashboard/categories", icon: FolderIcon },
+  {
+    name: "Purchases",
+    href: "/dashboard/purchases",
+    icon: DocumentDuplicateIcon,
+  },
+  {
+    name: "Sales",
+    href: "/dashboard/sales",
+    icon: DocumentDuplicateIcon,
+  },
+  { name: "Calendar", href: "/dashboard/calendar", icon: CalendarIcon },
+  { name: "Reports", href: "/dashboard/reports", icon: ChartPieIcon },
+];
+
+function classNames(...classes) {
+  return classes.filter(Boolean).join(" ");
+}
+
+export default function Dashboard() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { userInfo } = useSelector((state) => state.auth); // Get userInfo from Redux store
 
-  // Updated Destructuring
-  const { data, error, isLoading } = useGetProductsQuery();
-  const products = data?.data || []; // Extract products array safely
+  const [logoutApiCall] = useLogoutMutation(); // Hook for API logout call
 
-  const [deleteProduct] = useDeleteProductMutation();
+  const logoutHandler = async () => {
+    dispatch(logout()); // Clear user info from Redux store
 
-  // State variables
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedBrand, setSelectedBrand] = useState("all");
-  const [filterStockStatus, setFilterStockStatus] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [selectedProductForDelete, setSelectedProductForDelete] =
-    useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [isAddingNewProduct, setIsAddingNewProduct] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+    // Remove tokens and user info from local storage
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("userInfo");
 
-  // Debounced Search Handler
-  const debouncedSearch = useCallback(
-    debounce((value) => {
-      setSearchTerm(value);
-      setCurrentPage(1); // Reset to first page on search
-    }, 300),
-    []
-  );
-
-  const handleSearchChange = (e) => {
-    const value = e.target.value;
-    debouncedSearch(value);
+    // Redirect to the login page
+    navigate("/login");
   };
-
-  // Handle Errors
-  useEffect(() => {
-    if (error) {
-      console.error("Error fetching products:", error);
-      if (error.data && error.data.message) {
-        toast.error(`Failed to load products: ${error.data.message}`);
-      } else {
-        toast.error("Failed to load products.");
-      }
-    }
-  }, [error]);
-
-  // Extract unique categories and brands for filters
-  const allCategories = useMemo(
-    () => [...new Set(products.map((p) => p.categoryId?.name).filter(Boolean))],
-    [products]
-  );
-  const allBrands = useMemo(
-    () => [...new Set(products.map((p) => p.brandId?.name).filter(Boolean))],
-    [products]
-  );
-
-  // Filtered Products
-  const filteredProducts = useMemo(() => {
-    return products
-      .filter((product) =>
-        selectedCategory === "all"
-          ? true
-          : product.categoryId?.name === selectedCategory
-      )
-      .filter((product) =>
-        selectedBrand === "all" ? true : product.brandId?.name === selectedBrand
-      )
-      .filter((product) => {
-        if (filterStockStatus === "all") return true;
-        if (filterStockStatus === "low")
-          return product.quantity > 0 && product.quantity < 5;
-        if (filterStockStatus === "available") return product.quantity >= 1;
-        if (filterStockStatus === "out") return product.quantity === 0;
-        return true;
-      })
-      .filter((product) =>
-        product?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-  }, [
-    products,
-    selectedCategory,
-    selectedBrand,
-    filterStockStatus,
-    searchTerm,
-  ]);
-
-  // Pagination logic
-  const indexOfLastProduct = currentPage * itemsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - itemsPerPage;
-  const currentProducts = filteredProducts.slice(
-    indexOfFirstProduct,
-    indexOfLastProduct
-  );
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
-  };
-
-  // Open Add/Edit Modal
-  const openEditModal = (product) => {
-    setEditingProduct(product);
-    setIsAddingNewProduct(false);
-    setModalOpen(true);
-  };
-
-  const openAddNewModal = () => {
-    setEditingProduct(null);
-    setIsAddingNewProduct(true);
-    setModalOpen(true);
-  };
-
-  // Close Modal
-  const closeModal = () => {
-    setModalOpen(false);
-    setEditingProduct(null);
-  };
-
-  // Confirm Delete Product
-  const confirmDeleteProduct = (product) => {
-    setSelectedProductForDelete(product);
-    setConfirmOpen(true);
-  };
-
-  // Delete Product
-  const handleDeleteProduct = async () => {
-    if (!selectedProductForDelete) return;
-    try {
-      await deleteProduct(selectedProductForDelete._id).unwrap();
-      toast.success("Product deleted successfully.");
-      setConfirmOpen(false);
-    } catch (error) {
-      console.error("Error deleting the product:", error);
-      if (error.data && error.data.message) {
-        toast.error(`Failed to delete product: ${error.data.message}`);
-      } else {
-        toast.error("Failed to delete product.");
-      }
-    }
-  };
-
-  // Calculate Stock Summary
-  const totalProducts = products.length;
-  const outOfStockCount = products.filter((p) => p.quantity === 0).length;
-  const lowStockCount = products.filter(
-    (p) => p.quantity > 0 && p.quantity < 5
-  ).length;
-  const availableCount = totalProducts - outOfStockCount - lowStockCount;
-
-  if (isLoading) {
-    return <p className="mt-20 text-center">Loading products...</p>;
-  }
 
   return (
     <>
-      {/* Sticky Header */}
-      <div className="fixed top-0 z-10 w-full bg-blue-500 shadow-md">
-        <div className="flex items-center justify-between px-4 py-4 text-white">
-          <h1 className="text-3xl font-bold">Products ({totalProducts})</h1>
-          <div className="flex items-center space-x-4">
-            <LogoutButton />
-            <button
-              onClick={() => navigate("/dashboard")}
-              className="text-white hover:text-blue-200"
+      <div>
+        {/* Sidebar overlay for mobile */}
+        <Transition show={sidebarOpen} as={Dialog} onClose={setSidebarOpen}>
+          <Dialog.Overlay className="fixed inset-0 bg-gray-900/80" />
+
+          <div className="fixed inset-0 flex">
+            <Transition.Child
+              enter="transition ease-out duration-300"
+              enterFrom="-translate-x-full opacity-0"
+              enterTo="translate-x-0 opacity-100"
+              leave="transition ease-in duration-200"
+              leaveFrom="translate-x-0 opacity-100"
+              leaveTo="-translate-x-full opacity-0"
             >
-              <FaHome size={28} />
-            </button>
+              <Dialog.Panel className="relative flex flex-1 w-full max-w-xs mr-16 bg-gray-900">
+                <div className="absolute top-0 flex justify-center w-16 pt-5 left-full">
+                  <button
+                    type="button"
+                    onClick={() => setSidebarOpen(false)}
+                    className="-m-2.5 p-2.5"
+                  >
+                    <span className="sr-only">Close sidebar</span>
+                    <XMarkIcon
+                      aria-hidden="true"
+                      className="w-6 h-6 text-white"
+                    />
+                  </button>
+                </div>
+
+                {/* Sidebar content */}
+                <div className="flex flex-col px-6 pb-4 overflow-y-auto bg-gray-900 grow gap-y-5 ring-1 ring-white/10">
+                  <nav className="flex flex-col flex-1">
+                    <ul role="list" className="flex flex-col flex-1 gap-y-7">
+                      {navigation.map((item) => (
+                        <li key={item.name}>
+                          <NavLink
+                            to={item.href}
+                            className={({ isActive }) =>
+                              classNames(
+                                isActive
+                                  ? "bg-gray-800 text-white"
+                                  : "text-gray-400 hover:bg-gray-800 hover:text-white",
+                                "group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6"
+                              )
+                            }
+                          >
+                            <item.icon
+                              aria-hidden="true"
+                              className="w-6 h-6 shrink-0"
+                            />
+                            {item.name}
+                          </NavLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </Transition>
+
+        {/* Static sidebar for desktop */}
+        <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+          <div className="flex flex-col px-6 pb-4 overflow-y-auto bg-gray-900 grow gap-y-5">
+            <div className="flex items-center h-16 shrink-0">
+              <img alt="Your Company" src="#" className="w-auto h-8" />
+            </div>
+            <nav className="flex flex-col flex-1">
+              <ul role="list" className="flex flex-col flex-1 gap-y-7">
+                {navigation.map((item) => (
+                  <li key={item.name}>
+                    <NavLink
+                      to={item.href}
+                      className={({ isActive }) =>
+                        classNames(
+                          isActive
+                            ? "bg-gray-800 text-white"
+                            : "text-gray-400 hover:bg-gray-800 hover:text-white",
+                          "group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6"
+                        )
+                      }
+                    >
+                      <item.icon
+                        aria-hidden="true"
+                        className="w-6 h-6 shrink-0"
+                      />
+                      {item.name}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           </div>
         </div>
-      </div>
 
-      <div className="flex">
-        {/* Sidebar Filters */}
-        <Filters
-          filteredCategories={allCategories}
-          filteredBrands={allBrands}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          selectedBrand={selectedBrand}
-          setSelectedBrand={setSelectedBrand}
-          filterStockStatus={filterStockStatus}
-          setFilterStockStatus={setFilterStockStatus}
-        />
-
-        {/* Main Products Section */}
-        <main className="w-full sm:w-3/4 h-screen overflow-y-auto sm:ml-[25%] mt-[5.7rem]">
-          {/* Search and Add New Product Section */}
-          <div className="fixed top-[5.7rem] w-full sm:w-[75%] z-50 flex items-center justify-between p-3 mb-4 bg-gray-100">
-            {/* Search Bar */}
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="text-blue-500 sm:hidden"
-              >
-                <FaSearch size={24} />
-              </button>
-              {isSearchOpen && (
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  onChange={handleSearchChange}
-                  className="block w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200 sm:hidden"
-                />
-              )}
-              <input
-                type="text"
-                placeholder="Search products..."
-                onChange={handleSearchChange}
-                className="hidden w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-200 sm:block"
-              />
-            </div>
-            {/* Add Product Button */}
+        {/* Main content area */}
+        <div className="lg:pl-72">
+          <div className="sticky top-0 z-40 flex items-center h-16 px-4 bg-white border-b border-gray-200 shadow-sm shrink-0 gap-x-4 sm:gap-x-6 sm:px-6 lg:px-8">
             <button
-              onClick={openAddNewModal}
-              className="items-center hidden px-4 py-2 text-white bg-green-500 rounded-lg sm:flex hover:bg-green-600"
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
             >
-              <FaPlusCircle className="inline-block mr-2" /> Add New Product
+              <span className="sr-only">Open sidebar</span>
+              <Bars3Icon aria-hidden="true" className="w-6 h-6" />
             </button>
+
+            <div
+              aria-hidden="true"
+              className="w-px h-6 bg-gray-900/10 lg:hidden"
+            />
+
+            <div className="flex self-stretch flex-1 gap-x-4 lg:gap-x-6">
+              <form action="#" method="GET" className="relative flex flex-1">
+                <label htmlFor="search-field" className="sr-only">
+                  Search
+                </label>
+                <MagnifyingGlassIcon
+                  aria-hidden="true"
+                  className="absolute inset-y-0 left-0 w-5 h-full text-gray-400 pointer-events-none"
+                />
+                <input
+                  id="search-field"
+                  name="search"
+                  type="search"
+                  placeholder="Search..."
+                  className="block w-full h-full py-0 pl-8 pr-0 text-gray-900 border-0 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
+                />
+              </form>
+              <div className="flex items-center gap-x-4 lg:gap-x-6">
+                <button
+                  type="button"
+                  className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500"
+                >
+                  <span className="sr-only">View notifications</span>
+                  <BellIcon aria-hidden="true" className="w-6 h-6" />
+                </button>
+
+                {/* Profile dropdown */}
+                <Menu as="div" className="relative">
+                  <Menu.Button className="-m-1.5 flex items-center p-1.5">
+                    <span className="sr-only">Open user menu</span>
+                    <img
+                      alt="User"
+                      src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e"
+                      className="w-8 h-8 rounded-full bg-gray-50"
+                    />
+                    <span className="hidden lg:flex lg:items-center">
+                      <span className="ml-4 text-sm font-semibold leading-6 text-gray-900">
+                        {userInfo ? userInfo.username : "Guest"}
+                      </span>
+                      <ChevronDownIcon
+                        aria-hidden="true"
+                        className="w-5 h-5 ml-2 text-gray-400"
+                      />
+                    </span>
+                  </Menu.Button>
+                  <Transition
+                    as={React.Fragment}
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
+                  >
+                    <Menu.Items className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
+                      <Menu.Item>
+                        {({ active }) => (
+                          <Link
+                            to="/dashboard/profile"
+                            className={classNames(
+                              active ? "bg-gray-100" : "",
+                              "block px-3 py-1 text-sm leading-6 text-gray-900"
+                            )}
+                          >
+                            Your profile
+                          </Link>
+                        )}
+                      </Menu.Item>
+                      <Menu.Item>
+                        {({ active }) => (
+                          <button
+                            onClick={logoutHandler}
+                            className={classNames(
+                              active ? "bg-gray-100" : "",
+                              "block px-3 py-1 text-sm leading-6 text-gray-900 underline w-full text-left"
+                            )}
+                          >
+                            Logout
+                          </button>
+                        )}
+                      </Menu.Item>
+                    </Menu.Items>
+                  </Transition>
+                </Menu>
+              </div>
+            </div>
           </div>
 
-          {/* Product List */}
-          {currentProducts.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 p-4 mt-20 sm:grid-cols-2 lg:grid-cols-3">
-              {currentProducts.map((product) => (
-                <ProductItem
-                  key={product._id}
-                  product={product}
-                  onEdit={() => openEditModal(product)}
-                  onDelete={() => confirmDeleteProduct(product)}
-                />
-              ))}
+          <main className="py-10">
+            <div className="px-4 sm:px-6 lg:px-8">
+              {/* Nested routes will render here */}
+              <Outlet />
             </div>
-          ) : (
-            <p className="mt-20 text-center text-gray-600">
-              No products found for your search.
-            </p>
-          )}
-
-          {/* Pagination */}
-          {filteredProducts.length > itemsPerPage && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPrevious={handlePreviousPage}
-              onNext={handleNextPage}
-            />
-          )}
-        </main>
+          </main>
+        </div>
       </div>
-
-      {/* Add/Edit Product Modal */}
-      <ProductModal
-        isOpen={modalOpen}
-        onClose={closeModal}
-        product={editingProduct}
-      />
-
-      {/* Confirm Delete Dialog */}
-      <ConfirmDialog
-        confirmOpen={confirmOpen}
-        setConfirmOpen={setConfirmOpen}
-        deleteProduct={handleDeleteProduct}
-      />
     </>
   );
-};
-
-export default Dashboard;
+}
