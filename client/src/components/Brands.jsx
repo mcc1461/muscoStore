@@ -95,7 +95,7 @@ export default function BrandsList() {
 
   const deleteBrand = async () => {
     try {
-      await apiClient.delete(`/api/brands/${selectedBrandForDelete._id}`);
+      await apiClient.delete(`/brands/${selectedBrandForDelete._id}`);
       setBrands(
         brands.filter((brand) => brand._id !== selectedBrandForDelete._id)
       ); // Remove deleted brand
@@ -127,11 +127,11 @@ export default function BrandsList() {
   const saveBrandDetails = async () => {
     try {
       if (isAddingNewBrand) {
-        const response = await apiClient.post("/api/brands", editingBrand);
+        const response = await apiClient.post("/brands", editingBrand);
         setBrands((prevBrands) => [...prevBrands, response.data.data]);
       } else {
         const updateResponse = await apiClient.put(
-          `/api/brands/${editingBrand._id}`,
+          `/brands/${editingBrand._id}`,
           editingBrand
         );
 

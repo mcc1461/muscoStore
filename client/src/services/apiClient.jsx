@@ -6,41 +6,25 @@ import axios from "axios";
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_APP_API_URL, // Ensure this is correctly set in your environment variables
 });
-
-// Define a list of endpoints that should not include the Authorization header
-const authEndpoints = [
-  `$(import.meta.env.VITE_APP_API_URL)/auth/login`,
-  `$(import.meta.env.VITE_APP_API_URL)/auth/register`,
-  `$(import.meta.env.VITE_APP_API_URL)/auth/refresh-token`,
-  "/auth/login",
-  "/auth/register",
-  "/auth/refresh-token",
-];
+console.log("API Base URL:", apiClient.defaults.baseURL);
 
 // Add a request interceptor to include the token in all requests except auth-related ones
 apiClient.interceptors.request.use(
   (config) => {
-    // Retrieve the 'userInfo' object from localStorage
-    const userInfoStr = localStorage.getItem("userInfo");
-    let token = null;
+    // Retrieve the 'token' and 'refreshToken' from localStorage
+    const token = localStorage.getItem("token");
+    const refreshToken = localStorage.getItem("refreshToken");
+    const userStr = localStorage.getItem("user");
 
-    if (userInfoStr) {
-      try {
-        const userInfo = JSON.parse(userInfoStr);
-        token = userInfo.token; // Adjust if your token is nested differently
-      } catch (error) {
-        console.error("Error parsing userInfo from localStorage:", error);
-      }
-    }
+    console.log("Token retrieved from localStorage:", token);
+    console.log("Refresh Token retrieved from localStorage:", refreshToken);
 
-    // Check if the request URL is not in the authEndpoints list
-    const isAuthRequest = authEndpoints.some((endpoint) =>
-      config.url.startsWith(endpoint)
-    );
-
-    // If it's not an auth-related request and a token exists, set the Authorization header
-    if (!isAuthRequest && token) {
+    // If a token exists, set the Authorization header
+    if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log("Authorization header set:", config.headers.Authorization);
+    } else {
+      console.log("No token found; Authorization header not set.");
     }
 
     return config;
@@ -52,15 +36,15 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error("API Client Error:", error);
+
     if (error.response && error.response.status === 401) {
       console.warn("Unauthorized! Redirecting to login.");
 
       // Clear user information from localStorage
-      localStorage.removeItem("userInfo");
-
-      // Optionally, dispatch a logout action here if using Redux
-      // For example:
-      // store.dispatch(logout());
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
 
       // Redirect to the login page
       window.location.href = "/login";

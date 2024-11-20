@@ -1,4 +1,4 @@
-// src/utils/FirmsList.jsx
+// src/utils/Firms.jsx
 
 import React, { useEffect, useState, useCallback } from "react";
 import {
@@ -13,7 +13,7 @@ import apiClient from "../services/apiClient";
 import { useNavigate } from "react-router-dom";
 import debounce from "lodash.debounce"; // Doğru import
 
-export default function FirmsList() {
+export default function Firms() {
   const navigate = useNavigate();
   const [firms, setFirms] = useState([]);
   const [loading, setLoading] = useState(true);

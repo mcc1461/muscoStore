@@ -5,10 +5,16 @@ const path = require("path");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const { dbConnection } = require("./src/configs/dbConnection");
+
+// Import routes
 const authRoutes = require("./src/routes/authRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const productRoutes = require("./src/routes/productRoutes");
 const firmRoutes = require("./src/routes/firmRoutes"); // Adjust as necessary
+const brandRoutes = require("./src/routes/brandRoutes"); // Adjust as necessary
+const categoryRoutes = require("./src/routes/categoryRoutes"); // Adjust as necessary
+
+// Import middlewares
 const authenticate = require("./src/middlewares/authentication");
 const findSearchSortPage = require("./src/middlewares/findSearchSortPage"); // If applicable
 const errorHandler = require("./src/middlewares/errorHandler");
@@ -68,6 +74,12 @@ app.use("/api/products", productRoutes);
 
 // Firm Routes
 app.use("/api/firms", firmRoutes); // Mount Firm Routes
+
+// Brand Routes
+app.use("/api/brands", brandRoutes); // Mount Brand Routes
+
+// Category Routes
+app.use("/api/categories", categoryRoutes); // Mount Category Routes
 
 // Example Protected Route
 app.get("/api/protected", authenticate, (req, res) => {

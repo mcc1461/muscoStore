@@ -1,29 +1,27 @@
 "use strict";
 
 const router = require("express").Router();
-const permissions = require("../middlewares/permissions");
 const firmController = require("../controllers/firm");
 const authenticate = require("../middlewares/authentication"); // Import authenticate middleware
 
 // Apply authentication middleware to all routes in this router
 router.use(authenticate);
 
-// GET /api/firms - Accessible to all authenticated users
+// Define Routes
+
+// GET /api/firms - List all firms
 router.get("/", firmController.list);
 
-// POST /api/firms - Accessible to staff and admin
-router.post("/", permissions.isStaffOrAdmin, firmController.create);
+// POST /api/firms - Create a new firm
+router.post("/", authenticate, firmController.create);
 
-// GET /api/firms/:id - Accessible to all authenticated users
-router.get("/:id", firmController.read);
+// GET /api/firms/:id - Get a single firm by ID
+router.get("/:id", authenticate, firmController.read);
 
-// PUT /api/firms/:id - Accessible to staff and admin
-router.put("/:id", permissions.isStaffOrAdmin, firmController.update);
+// PUT /api/firms/:id - Update a firm by ID
+router.put("/:id", authenticate, firmController.update);
 
-// PATCH /api/firms/:id - Accessible to staff and admin
-router.patch("/:id", permissions.isStaffOrAdmin, firmController.update);
-
-// DELETE /api/firms/:id - Accessible only to admin
-router.delete("/:id", permissions.isAdmin, firmController.delete);
+// DELETE /api/firms/:id - Delete a firm by ID
+router.delete("/:id", authenticate, firmController.delete);
 
 module.exports = router;

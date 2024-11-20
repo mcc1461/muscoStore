@@ -13,7 +13,7 @@ console.log("Product Controller:", productController);
 // Define Routes
 
 // GET /api/products - List all products
-router.get("/", authenticate, productController.list);
+router.get("/", productController.list);
 
 // POST /api/products - Create a new product
 router.post("/", authenticate, productController.create);

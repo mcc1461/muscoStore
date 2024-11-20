@@ -6,15 +6,15 @@ const router = require("express").Router();
 // });
 
 // Sub-routes
-router.use("/auth", require("./auth"));
-router.use("/users", require("./user")); // This should ensure /api/users works
-router.use("/tokens", require("./token"));
-router.use("/categories", require("./category"));
-router.use("/brands", require("./brand"));
-router.use("/firms", require("./firm"));
+router.use("/auth", require("./authRoutes")); // This should ensure /auth works
+router.use("/users", require("./userRoutes")); // This should ensure /api/users works
+router.use("/tokens", require("./tokenRoutes"));
+router.use("/categories", require("./categoryRoutes"));
+router.use("/brands", require("./brandRoutes"));
+router.use("/firms", require("./firmRoutes"));
 router.use("/products", require("./productRoutes"));
-router.use("/purchases", require("./purchase"));
-router.use("/sales", require("./sale"));
-router.use("/documents", require("./document"));
+router.use("/purchases", require("./purchaseRoutes"));
+router.use("/sales", require("./saleRoutes"));
+router.use("/documents", require("./documentRoutes"));
 
 module.exports = router;

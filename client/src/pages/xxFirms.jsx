@@ -1,4 +1,4 @@
-// src/utils/FirmsList.jsx
+// src/utils/Firms.jsx
 
 import React, { useEffect, useState, useCallback } from "react";
 import {
@@ -13,7 +13,7 @@ import apiClient from "../services/apiClient";
 import { useNavigate } from "react-router-dom";
 import debounce from "lodash.debounce"; // Doğru import
 
-export default function FirmsList() {
+export default function Firms() {
   const navigate = useNavigate();
   const [firms, setFirms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -59,19 +59,37 @@ export default function FirmsList() {
     setItemsPerPage(calculatedCardsPerRow * rowsPerPage);
   };
 
-  useEffect(() => {
-    const fetchFirms = async () => {
-      try {
-        const response = await apiClient.get("/firms"); // Endpoint doğru
-        setFirms(response.data.data);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching firms:", error);
-        setError(error.response?.data?.message || "Error fetching firms");
-        setLoading(false);
-      }
-    };
+  // Function to fetch firms data
+  const fetchFirms = async () => {
+    try {
+      const response = await apiClient.get("/firms");
+      setFirms(response.data.data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching firms:", error);
 
+      // Detailed error logging
+      if (error.response) {
+        // The request was made, and the server responded with a status code outside 2xx
+        console.error("Error response data:", error.response.data);
+        console.error("Error response status:", error.response.status);
+        console.error("Error response headers:", error.response.headers);
+        setError(error.response.data?.message || "Error fetching firms");
+      } else if (error.request) {
+        // The request was made, but no response was received
+        console.error("No response received:", error.request);
+        setError("No response received from the server.");
+      } else {
+        // Something happened in setting up the request
+        console.error("Error setting up request:", error.message);
+        setError("Error setting up the request.");
+      }
+
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchFirms();
     calculateItemsPerPage();
 
